@@ -44,11 +44,43 @@ npm test
 npm audit --audit-level=high
 ```
 
-## Docker
+## Deployment
 
 ```bash
 docker compose up --build
 ```
+
+Docker deployment wrappers:
+
+```bash
+./scripts/deploy-docker-linux.sh up
+./scripts/deploy-docker-linux.sh logs
+./scripts/deploy-docker-linux.sh down
+```
+
+```powershell
+.\scripts\deploy-docker-windows.ps1 -Action up
+.\scripts\deploy-docker-windows.ps1 -Action logs
+.\scripts\deploy-docker-windows.ps1 -Action down
+```
+
+Direct terminal deployment wrappers:
+
+```bash
+./scripts/deploy-terminal-linux.sh up
+```
+
+```powershell
+.\scripts\deploy-terminal-windows.ps1 -Action up
+```
+
+The Docker wrappers use `docker-compose.yml`, build images, run containers in
+the background, and expose the frontend on `http://localhost:8080` and backend
+on `http://localhost:8000`.
+
+The terminal wrappers install dependencies, seed the sample user, build the
+frontend, start FastAPI on `http://127.0.0.1:8000`, and start Vite preview on
+`http://127.0.0.1:8080` in the foreground.
 
 ## Sample login
 

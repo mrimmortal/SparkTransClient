@@ -6,6 +6,19 @@ and the existing CoreSTT WebSocket service.
 CoreSTT remains a separate transcription service. This app owns documents,
 templates, macros, settings, authentication, logging, exports, and UI behavior.
 
+## Project Structure
+
+```text
+backend/    FastAPI app, SQLite models, auth, resources, exports, STT proxy
+frontend/   React/Vite UI, feature modules, API/STT browser clients
+scripts/    Local development and deployment wrappers
+docs/       Command, module, API, user, progress, and session docs
+```
+
+Frontend UI is organized under `frontend/src/features/` with a small
+`frontend/src/App.tsx` composition root. Core frontend flow helpers remain in
+`frontend/src/lib/`.
+
 ## Local Development
 
 One-command startup:
@@ -32,9 +45,74 @@ The UI works without CoreSTT for editing/testing, but real dictation requires Co
 
 See `docs/USER_MANUAL.md` for the user workflow.
 
+## Deployment
+
+There are two deployment modes: Docker Compose and direct terminal startup.
+
+### Docker
+
+Linux/macOS:
+
+```bash
+./scripts/deploy-docker-linux.sh up
+./scripts/deploy-docker-linux.sh logs
+./scripts/deploy-docker-linux.sh down
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\deploy-docker-windows.ps1 -Action up
+.\scripts\deploy-docker-windows.ps1 -Action logs
+.\scripts\deploy-docker-windows.ps1 -Action down
+```
+
+Docker deployment uses `docker-compose.yml`, builds both services, runs
+containers in the background, and exposes:
+
+```text
+Frontend: http://localhost:8080
+Backend:  http://localhost:8000
+```
+
+### Direct Terminal
+
+Linux/macOS:
+
+```bash
+./scripts/deploy-terminal-linux.sh up
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\deploy-terminal-windows.ps1 -Action up
+```
+
+Direct terminal deployment installs dependencies, seeds the sample user, builds
+the frontend, starts FastAPI, and starts Vite preview in the foreground:
+
+```text
+Frontend: http://127.0.0.1:8080
+Backend:  http://127.0.0.1:8000
+```
+
+Use Docker for server-style deployment. Use direct terminal startup when Docker
+is unavailable or when you want to run both services visibly in the terminal.
+
 ## Manual Commands
 
 See `docs/COMMANDS.md`.
+
+## Validation
+
+Common checks:
+
+```bash
+cd frontend && npm test
+cd frontend && npm run build
+cd backend && .venv/bin/pytest -q
+```
 
 ## Production Notes
 

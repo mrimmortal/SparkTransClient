@@ -20,7 +20,10 @@ proxy/client integration.
   Pydantic settings.
 - Backend persistence: `backend/app/db/session.py` and `backend/app/models/`
   use SQLite/SQLAlchemy.
-- Frontend shell: `frontend/src/App.tsx` owns the current one-page workspace.
+- Frontend shell: `frontend/src/App.tsx` composes auth, TipTap editor,
+  workspace data, dictation state, and `WorkspaceShell`.
+- Frontend feature modules: `frontend/src/features/` contains routed pages,
+  workspace state, dictation orchestration, and focused UI components.
 - Frontend API client: `frontend/src/lib/api.ts` calls `/api/*` with cookies.
 - CoreSTT frontend flow: `frontend/src/lib/sttClient.ts`,
   `frontend/src/lib/corestt.ts`, `frontend/src/lib/micCapture.ts`, and
@@ -35,6 +38,9 @@ proxy/client integration.
 - Frontend app import: `frontend/src/main.tsx` renders `App`
 - Vite dev proxy: `frontend/vite.config.ts` proxies `/api` and `/ws`
 - Docker compose: `docker-compose.yml`
+- Deployment wrappers: `scripts/deploy-docker-linux.sh`,
+  `scripts/deploy-docker-windows.ps1`, `scripts/deploy-terminal-linux.sh`,
+  and `scripts/deploy-terminal-windows.ps1`
 - SQLite default: `backend/data/app.db`
 - Upload volume/path in Docker: `/app/uploads`
 - Default CoreSTT URL: `ws://127.0.0.1:8020/ws/transcribe`

@@ -21,12 +21,17 @@ Use this map to find the smallest relevant file set for future work.
 
 | Area | Files | Tests |
 |---|---|---|
-| App shell/UI | `frontend/src/App.tsx`, `frontend/src/styles/app.css` | build validation |
+| App shell/composition | `frontend/src/App.tsx`, `frontend/src/features/workspace/WorkspaceShell.tsx` | build validation |
+| Workspace state | `frontend/src/features/workspace/useWorkspaceData.ts`, `frontend/src/features/workspace/types.ts` | build validation |
+| Dictation orchestration | `frontend/src/features/dictation/useDictationSession.ts`, `frontend/src/features/dictation/DictationControlPanel.tsx` | `frontend/src/lib/corestt.test.ts`, build validation |
+| Routed UI pages | `frontend/src/features/documents/`, `frontend/src/features/templates/`, `frontend/src/features/macros/`, `frontend/src/features/settings/`, `frontend/src/features/diagnostics/` | build validation |
+| Shared UI components | `frontend/src/components/`, `frontend/src/features/micro-editor/` | build validation |
 | API client | `frontend/src/lib/api.ts` | `frontend/src/lib/api.test.ts` |
 | CoreSTT protocol/client | `frontend/src/lib/corestt.ts`, `frontend/src/lib/sttClient.ts`, `frontend/src/lib/micCapture.ts`, `frontend/public/corestt-audio-worklet.js` | `frontend/src/lib/corestt.test.ts` |
 | Sample credentials | `frontend/src/lib/sampleUser.ts` | `frontend/src/lib/corestt.test.ts` |
 | Entrypoint | `frontend/src/main.tsx` | build validation |
 | Dev proxy | `frontend/vite.config.ts`, `scripts/run-dev.sh` | smoke startup |
+| Deployment scripts | `scripts/deploy-docker-linux.sh`, `scripts/deploy-docker-windows.ps1`, `scripts/deploy-terminal-linux.sh`, `scripts/deploy-terminal-windows.ps1`, `docker-compose.yml` | syntax checks, deployment smoke when available |
 | User workflow docs | `docs/USER_MANUAL.md`, `docs/PROJECT_PROGRESS.md` | doc/source consistency checks |
 
 ## Docs

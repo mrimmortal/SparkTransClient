@@ -1,5 +1,34 @@
 # Session Log
 
+## 2026-06-24 - OS deployment scripts
+
+Changed:
+- Added separate Docker and direct-terminal deployment wrappers for Linux/macOS
+  and Windows PowerShell under `scripts/`.
+- Documented wrapper usage in command and AI context docs.
+
+Validation:
+- `bash -n scripts/deploy-docker-linux.sh`
+- `bash -n scripts/deploy-terminal-linux.sh`
+- `./scripts/deploy-docker-linux.sh help`
+- `./scripts/deploy-terminal-linux.sh help`
+- PowerShell syntax validation not run because `pwsh`/`powershell` is not
+  available on this host.
+
+## 2026-06-24 - Frontend module split
+
+Changed:
+- Split the former monolithic frontend workspace from `App.tsx` into feature
+  modules under `frontend/src/features/`.
+- Added focused workspace data and dictation session hooks while preserving
+  routes, API calls, CSS classes, and STT behavior.
+- Updated AI context docs to point future sessions at the new frontend module
+  boundaries.
+
+Validation:
+- `cd frontend && npm run build`
+- `cd frontend && npm test`
+
 ## 2026-06-20
 
 - Scaffolded production-oriented React + FastAPI dictation platform.
