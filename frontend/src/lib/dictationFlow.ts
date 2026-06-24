@@ -91,7 +91,9 @@ export function getDictationHelpContent(): DictationHelpContent {
     setupSteps: [
       "Open or create a document.",
       "Connect to CoreSTT and wait for Ready.",
-      "Start dictation, speak naturally, then stop when finished.",
+      "Start dictation and speak naturally.",
+      "Watch the grey preview in the Smart Editor; final text replaces it automatically.",
+      "Stop dictation when finished.",
     ],
     punctuationPhrases: [
       "comma",
@@ -108,7 +110,18 @@ export function getDictationHelpContent(): DictationHelpContent {
     punctuationExample: "hello comma world full stop -> hello, world.",
     recordingControls: ["stop recording / stop dictation / pause recording"],
     formattingCommands: ["bold", "italic", "underline", "clear formatting"],
-    editorControls: ["new line / newline", "new paragraph / new para", "undo", "redo", "select all / select everything", "clear all / clear everything"],
+    editorControls: [
+      "new line / newline",
+      "new paragraph / new para",
+      "scratch that",
+      "delete last word / delete previous word",
+      "delete last sentence",
+      "undo / undo that",
+      "redo / redo that",
+      "save document",
+      "select all / select everything",
+      "clear all / clear everything",
+    ],
     templatePhrases: ["insert template <template name>", "use template <template name>", "get template <template name>"],
     macroSummary: "Enabled macros expand matching dictated phrases automatically before text is inserted.",
   };

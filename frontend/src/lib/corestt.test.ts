@@ -190,6 +190,16 @@ describe("transcript routing", () => {
     expect(routeFinalText("clear everything", "smart-editor", [])).toEqual({ kind: "command", command: "clear-all" });
     expect(routeFinalText("stop dictation", "smart-editor", [])).toEqual({ kind: "command", command: "stop-dictation" });
     expect(routeFinalText("pause recording", "smart-editor", [])).toEqual({ kind: "command", command: "stop-dictation" });
+    expect(routeFinalText("scratch that", "smart-editor", [])).toEqual({ kind: "command", command: "scratch-that" });
+    expect(routeFinalText("delete previous word", "smart-editor", [])).toEqual({ kind: "command", command: "delete-last-word" });
+    expect(routeFinalText("undo that", "smart-editor", [])).toEqual({ kind: "command", command: "undo" });
+    expect(routeFinalText("redo that", "smart-editor", [])).toEqual({ kind: "command", command: "redo" });
+  });
+
+  it("routes high-value editing commands case-insensitively", () => {
+    expect(routeFinalText("Delete last word.", "smart-editor", [])).toEqual({ kind: "command", command: "delete-last-word" });
+    expect(routeFinalText("delete last sentence", "smart-editor", [])).toEqual({ kind: "command", command: "delete-last-sentence" });
+    expect(routeFinalText("SAVE DOCUMENT", "smart-editor", [])).toEqual({ kind: "command", command: "save-document" });
   });
 
   it("can disable flexible smart editor command variants", () => {

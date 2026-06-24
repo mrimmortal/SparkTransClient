@@ -73,6 +73,12 @@ import {
 } from "./lib/templateFlow";
 import { DictationAction, getDictationAction, getDictationHelpContent, getEditorTargetLabel } from "./lib/dictationFlow";
 import { canSaveEditorDocument, confirmationMessages, EditorToolbarCommand, editorToolbarItems, getSaveStatusLabel } from "./lib/editorFlow";
+import { getDeleteLastSentenceRange, getDeleteLastWordRange, TextblockDeleteRange } from "./lib/editorVoiceCommands";
+import {
+  clearRealtimeTranscriptPreview,
+  RealtimeTranscriptPreview,
+  setRealtimeTranscriptPreview,
+} from "./lib/realtimeTranscriptPreview";
 
 const defaultSettings: UserSettingsRecord = {
   audio_device_id: null,
@@ -164,11 +170,13 @@ export function App() {
   const insertedFinalSegmentsRef = useRef(new Set<number>());
   const recentFinalTranscriptTextRef = useRef(new Map<string, number>());
   const recentTemplateVoiceCommandsRef = useRef(new Map<string, number>());
+  const lastSmartEditorDictationRangeRef = useRef<{ from: number; to: number; text: string } | null>(null);
 
   const editor = useEditor({
     extensions: [
       StarterKit,
       UnderlineExtension,
+      RealtimeTranscriptPreview,
       Placeholder.configure({ placeholder: "Start dictation or type your document..." }),
     ],
     content: activeDocument?.content_html || "",
@@ -240,6 +248,7 @@ export function App() {
       void startMicrophoneCapture();
     }
     if (connectionState === "CLOSED" || connectionState === "DISCONNECTED" || connectionState === "ERROR") {
+      if (editorRef.current) clearRealtimeTranscriptPreview(editorRef.current);
       stopMicrophoneCapture();
     }
   }, [connectionState]);
@@ -377,6 +386,15 @@ export function App() {
         const typed = message as { type?: string; segmentId?: number; text?: string; displayText?: string };
         if ((typed.type === "realtime" || typed.type === "final") && typeof typed.segmentId === "number") {
           setTranscripts((current) => applyTranscriptEvent(current, typed as never));
+          if (typed.type === "realtime") {
+            const previewText = typed.displayText ?? typed.text ?? "";
+            const previewEditor = editorRef.current;
+            if (previewEditor) setRealtimeTranscriptPreview(previewEditor, previewText);
+          }
+          if (typed.type === "final") {
+            const previewEditor = editorRef.current;
+            if (previewEditor) clearRealtimeTranscriptPreview(previewEditor);
+          }
           if (
             typed.type === "final" &&
             typed.text &&
@@ -391,6 +409,8 @@ export function App() {
           }
         }
         if (typed.type === "clear") {
+          const previewEditor = editorRef.current;
+          if (previewEditor) clearRealtimeTranscriptPreview(previewEditor);
           insertedFinalSegmentsRef.current.clear();
           recentFinalTranscriptTextRef.current.clear();
           recentTemplateVoiceCommandsRef.current.clear();
@@ -414,6 +434,7 @@ export function App() {
 
   function stopDictation() {
     dictationRequestedRef.current = false;
+    if (editorRef.current) clearRealtimeTranscriptPreview(editorRef.current);
     stopMicrophoneCapture();
     sttRef.current?.stop();
   }
@@ -477,6 +498,7 @@ export function App() {
     });
     if (template) {
       if (!shouldInsertTemplateVoiceCommand(recentTemplateVoiceCommandsRef.current, template, text, Date.now())) return;
+      lastSmartEditorDictationRangeRef.current = null;
       editorRef.current?.chain().focus().insertContent(template.content_html || "").run();
       return;
     }
@@ -492,9 +514,16 @@ export function App() {
     }
     if (target === "micro-editor") {
       setMicroOpen(true);
+      lastSmartEditorDictationRangeRef.current = null;
       setMicroText((current) => `${current}${current ? " " : ""}${routed.text}`);
     } else {
-      editorRef.current?.chain().focus().insertContent(`${routed.text} `).run();
+      const currentEditor = editorRef.current;
+      if (!currentEditor) return;
+      const insertedText = `${routed.text} `;
+      const from = currentEditor.state.selection.from;
+      currentEditor.chain().focus().insertContent(insertedText).run();
+      const to = currentEditor.state.selection.from;
+      lastSmartEditorDictationRangeRef.current = to > from ? { from, to, text: insertedText } : null;
     }
   }
 
@@ -505,6 +534,22 @@ export function App() {
     }
     const currentEditor = editorRef.current;
     if (!currentEditor) return;
+    if (command === "scratch-that") {
+      deleteLastSmartEditorDictationRange(currentEditor);
+      return;
+    }
+    if (command === "delete-last-word") {
+      deleteTextblockRange(currentEditor, getDeleteLastWordRange);
+      return;
+    }
+    if (command === "delete-last-sentence") {
+      deleteTextblockRange(currentEditor, getDeleteLastSentenceRange);
+      return;
+    }
+    if (command === "save-document") {
+      void saveDocument();
+      return;
+    }
     if (command === "insert-newline") currentEditor.chain().focus().setHardBreak().run();
     if (command === "insert-paragraph") currentEditor.chain().focus().createParagraphNear().run();
     if (command === "undo") currentEditor.chain().focus().undo().run();
@@ -517,6 +562,47 @@ export function App() {
     if (command === "clear-all" && (!settingsRef.current.confirm_destructive_actions || window.confirm(confirmationMessages.clearEditor))) {
       currentEditor.commands.clearContent();
     }
+  }
+
+  function deleteLastSmartEditorDictationRange(currentEditor: Editor) {
+    const range = lastSmartEditorDictationRangeRef.current;
+    if (!range) return;
+    const documentSize = currentEditor.state.doc.content.size;
+    const from = Math.max(0, Math.min(range.from, documentSize));
+    const to = Math.max(from, Math.min(range.to, documentSize));
+    if (to <= from) {
+      lastSmartEditorDictationRangeRef.current = null;
+      return;
+    }
+    if (currentEditor.state.doc.textBetween(from, to, " ", " ") !== range.text) {
+      lastSmartEditorDictationRangeRef.current = null;
+      return;
+    }
+    currentEditor.chain().focus().deleteRange({ from, to }).run();
+    lastSmartEditorDictationRangeRef.current = null;
+  }
+
+  function deleteTextblockRange(
+    currentEditor: Editor,
+    getRange: (text: string, cursorOffset: number) => TextblockDeleteRange | null,
+  ) {
+    const { state } = currentEditor;
+    const { empty } = state.selection;
+    if (!empty) {
+      currentEditor.chain().focus().deleteSelection().run();
+      lastSmartEditorDictationRangeRef.current = null;
+      return;
+    }
+    const textblockStart = state.selection.$from.start();
+    const cursorOffset = state.selection.$from.parentOffset;
+    const range = getRange(state.selection.$from.parent.textContent, cursorOffset);
+    if (!range) return;
+    currentEditor
+      .chain()
+      .focus()
+      .deleteRange({ from: textblockStart + range.fromOffset, to: textblockStart + range.toOffset })
+      .run();
+    lastSmartEditorDictationRangeRef.current = null;
   }
 
   if (!authChecked) {
@@ -906,7 +992,6 @@ function DictationControlPanel({
         <span>Microphone: {formatMicStatus(context.micStatus)}</span>
         <span>Packets: {context.audioPacketCount}</span>
         <span>Target: {getEditorTargetLabel(activeTarget)}</span>
-        {context.realtimeText && <span className="interim">{context.realtimeText}</span>}
       </div>
 
       {helpOpen && (

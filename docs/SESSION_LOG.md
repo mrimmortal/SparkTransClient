@@ -47,10 +47,16 @@ Changed:
   steps, punctuation, formatting, editor controls, templates, and macro notes.
 - Added Phase 1 voice recording control so `stop recording`, `stop dictation`,
   and `pause recording` stop active dictation.
+- Moved realtime transcript display from the dictation status row into a
+  temporary grey Smart Editor preview that clears before final insertion.
+- Added high-value voice editing commands for `scratch that`, deleting the last
+  word/sentence, `undo that`, `redo that`, and `save document`.
 
 Validation:
 - `cd frontend && npm test -- src/lib/corestt.test.ts src/lib/editorFlow.test.ts`
 - `cd frontend && npm test -- src/lib/dictationFlow.test.ts`
+- `cd frontend && npm test -- src/lib/realtimeTranscriptPreview.test.ts`
+- `cd frontend && npm test -- src/lib/editorVoiceCommands.test.ts`
 - `cd frontend && npm run build`
 
 ## 2026-06-20 - CoreSTT browser microphone integration

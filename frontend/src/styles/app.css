@@ -469,6 +469,14 @@ nav {
   margin: 0 0 12px;
 }
 
+.realtime-transcript-preview {
+  color: #617082;
+  font-style: italic;
+  margin-left: 4px;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
 .micro-editor {
   position: fixed;
   right: 24px;

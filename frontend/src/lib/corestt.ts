@@ -133,6 +133,9 @@ const smartEditorCommands = new Map<string, string>([
   ["select all", "select-all"],
   ["clear all", "clear-all"],
   ["stop recording", "stop-dictation"],
+  ["delete last word", "delete-last-word"],
+  ["delete last sentence", "delete-last-sentence"],
+  ["save document", "save-document"],
   ["bold", "bold"],
   ["italic", "italic"],
   ["underline", "underline"],
@@ -146,6 +149,10 @@ const smartEditorCommandVariants = new Map<string, string>([
   ["clear everything", "clear-all"],
   ["stop dictation", "stop-dictation"],
   ["pause recording", "stop-dictation"],
+  ["scratch that", "scratch-that"],
+  ["delete previous word", "delete-last-word"],
+  ["undo that", "undo"],
+  ["redo that", "redo"],
 ]);
 
 const spokenPunctuation = [

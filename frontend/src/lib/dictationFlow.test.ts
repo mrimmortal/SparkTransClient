@@ -68,6 +68,12 @@ describe("dictation flow UX", () => {
 
     expect(help.editorControls).toContain("new line / newline");
     expect(help.editorControls).toContain("clear all / clear everything");
+    expect(help.editorControls).toContain("scratch that");
+    expect(help.editorControls).toContain("delete last word / delete previous word");
+    expect(help.editorControls).toContain("delete last sentence");
+    expect(help.editorControls).toContain("undo / undo that");
+    expect(help.editorControls).toContain("redo / redo that");
+    expect(help.editorControls).toContain("save document");
     expect(help.recordingControls).toContain("stop recording / stop dictation / pause recording");
     expect(help.formattingCommands).toContain("bold");
     expect(help.formattingCommands).toContain("italic");

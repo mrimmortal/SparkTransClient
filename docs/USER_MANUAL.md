@@ -71,8 +71,8 @@ The app uses a route-based desktop layout:
 3. Use the primary dictation button to connect, start dictation after CoreSTT reports ready, stop dictation, or retry after a connection error.
 4. Allow browser microphone access when prompted.
 5. Speak a short English phrase into the desktop microphone.
-6. Interim transcript appears in the dictation status row.
-7. Final transcript is inserted into the active editor target.
+6. Realtime transcript appears as a grey italic preview in the Smart Editor.
+7. Final transcript replaces the preview and is inserted into the active editor target.
 8. Open `Dictation help` on the document screen for setup status, supported voice commands, template phrases, and macro/settings pointers.
 9. Open `Diagnostics` to confirm microphone status, sample rate, audio packet count, and reconnect attempt details.
 10. Stop dictation when finished and confirm microphone status changes away from capturing.
@@ -91,6 +91,12 @@ target is set to Micro Editor:
 | `new paragraph`, `new para` | Insert paragraph |
 | `undo` | Undo editor change |
 | `redo` | Redo editor change |
+| `undo that` | Undo editor change |
+| `redo that` | Redo editor change |
+| `scratch that` | Remove the last final dictated phrase inserted into the Smart Editor |
+| `delete last word`, `delete previous word` | Delete the word before the cursor or the selected text |
+| `delete last sentence` | Delete text back to the previous sentence boundary or paragraph start |
+| `save document` | Save the current document |
 | `bold` | Toggle bold formatting |
 | `italic` | Toggle italic formatting |
 | `underline` | Toggle underline formatting |
