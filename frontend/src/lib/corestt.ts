@@ -132,6 +132,7 @@ const smartEditorCommands = new Map<string, string>([
   ["redo", "redo"],
   ["select all", "select-all"],
   ["clear all", "clear-all"],
+  ["stop recording", "stop-dictation"],
   ["bold", "bold"],
   ["italic", "italic"],
   ["underline", "underline"],
@@ -143,6 +144,8 @@ const smartEditorCommandVariants = new Map<string, string>([
   ["new para", "insert-paragraph"],
   ["select everything", "select-all"],
   ["clear everything", "clear-all"],
+  ["stop dictation", "stop-dictation"],
+  ["pause recording", "stop-dictation"],
 ]);
 
 const spokenPunctuation = [

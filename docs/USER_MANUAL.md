@@ -97,8 +97,10 @@ target is set to Micro Editor:
 | `clear formatting` | Clear active formatting and block style |
 | `select all`, `select everything` | Select editor content |
 | `clear all`, `clear everything` | Ask before clearing editor content |
+| `stop recording`, `stop dictation`, `pause recording` | Stop active dictation |
 
 Outside the Smart Editor, recognized phrases are inserted as plain text.
+Recording control phrases work while dictation is running.
 
 Spoken punctuation is converted in final dictated text when voice commands are
 enabled. For example, `hello comma world full stop` inserts `hello, world.`.

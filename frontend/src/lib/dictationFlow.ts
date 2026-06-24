@@ -20,6 +20,7 @@ export type DictationHelpContent = {
   setupSteps: string[];
   punctuationPhrases: string[];
   punctuationExample: string;
+  recordingControls: string[];
   formattingCommands: string[];
   editorControls: string[];
   templatePhrases: string[];
@@ -105,6 +106,7 @@ export function getDictationHelpContent(): DictationHelpContent {
       "open quote / close quote",
     ],
     punctuationExample: "hello comma world full stop -> hello, world.",
+    recordingControls: ["stop recording / stop dictation / pause recording"],
     formattingCommands: ["bold", "italic", "underline", "clear formatting"],
     editorControls: ["new line / newline", "new paragraph / new para", "undo", "redo", "select all / select everything", "clear all / clear everything"],
     templatePhrases: ["insert template <template name>", "use template <template name>", "get template <template name>"],

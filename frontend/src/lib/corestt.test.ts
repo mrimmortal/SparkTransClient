@@ -179,6 +179,7 @@ describe("transcript routing", () => {
     expect(routeFinalText("new   paragraph,", "smart-editor", [])).toEqual({ kind: "command", command: "insert-paragraph" });
     expect(routeFinalText("SELECT ALL:", "smart-editor", [])).toEqual({ kind: "command", command: "select-all" });
     expect(routeFinalText("clear all!", "smart-editor", [])).toEqual({ kind: "command", command: "clear-all" });
+    expect(routeFinalText("stop recording", "smart-editor", [])).toEqual({ kind: "command", command: "stop-dictation" });
   });
 
   it("routes common STT variants of smart editor commands", () => {
@@ -187,6 +188,8 @@ describe("transcript routing", () => {
     expect(routeFinalText("new para", "smart-editor", [])).toEqual({ kind: "command", command: "insert-paragraph" });
     expect(routeFinalText("select everything", "smart-editor", [])).toEqual({ kind: "command", command: "select-all" });
     expect(routeFinalText("clear everything", "smart-editor", [])).toEqual({ kind: "command", command: "clear-all" });
+    expect(routeFinalText("stop dictation", "smart-editor", [])).toEqual({ kind: "command", command: "stop-dictation" });
+    expect(routeFinalText("pause recording", "smart-editor", [])).toEqual({ kind: "command", command: "stop-dictation" });
   });
 
   it("can disable flexible smart editor command variants", () => {
@@ -204,6 +207,12 @@ describe("transcript routing", () => {
     const result = routeFinalText("new paragraph", "smart-editor", [], { voiceCommandsEnabled: false });
 
     expect(result).toEqual({ kind: "insert", text: "new paragraph" });
+  });
+
+  it("inserts recording command phrases as text when voice commands are disabled", () => {
+    const result = routeFinalText("stop recording", "smart-editor", [], { voiceCommandsEnabled: false });
+
+    expect(result).toEqual({ kind: "insert", text: "stop recording" });
   });
 
   it("routes spoken formatting commands to the smart editor", () => {

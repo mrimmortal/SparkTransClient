@@ -45,6 +45,8 @@ Changed:
 - Added TipTap underline support and documented the new commands.
 - Reorganized the in-app Dictation help panel for first-time users with setup
   steps, punctuation, formatting, editor controls, templates, and macro notes.
+- Added Phase 1 voice recording control so `stop recording`, `stop dictation`,
+  and `pause recording` stop active dictation.
 
 Validation:
 - `cd frontend && npm test -- src/lib/corestt.test.ts src/lib/editorFlow.test.ts`

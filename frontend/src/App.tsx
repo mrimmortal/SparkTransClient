@@ -499,6 +499,10 @@ export function App() {
   }
 
   function runCommand(command: string) {
+    if (command === "stop-dictation") {
+      stopDictation();
+      return;
+    }
     const currentEditor = editorRef.current;
     if (!currentEditor) return;
     if (command === "insert-newline") currentEditor.chain().focus().setHardBreak().run();
@@ -929,6 +933,16 @@ function DictationControlPanel({
             <div className="command-list">
               {help.punctuationPhrases.map((phrase) => (
                 <code key={phrase}>{phrase}</code>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2>Control recording by voice</h2>
+            <p>While dictation is running, say one of these commands to stop recording.</p>
+            <div className="command-list">
+              {help.recordingControls.map((command) => (
+                <code key={command}>{command}</code>
               ))}
             </div>
           </section>
