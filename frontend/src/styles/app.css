@@ -304,6 +304,17 @@ nav {
   margin: 10px 0 0;
 }
 
+.dictation-help-panel ol {
+  margin: 0 0 10px 18px;
+  padding: 0;
+  color: #52616f;
+  font-size: 13px;
+}
+
+.dictation-help-panel ol li {
+  margin-bottom: 4px;
+}
+
 .setup-list {
   list-style: none;
   padding: 0;

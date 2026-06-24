@@ -91,10 +91,21 @@ target is set to Micro Editor:
 | `new paragraph`, `new para` | Insert paragraph |
 | `undo` | Undo editor change |
 | `redo` | Redo editor change |
+| `bold` | Toggle bold formatting |
+| `italic` | Toggle italic formatting |
+| `underline` | Toggle underline formatting |
+| `clear formatting` | Clear active formatting and block style |
 | `select all`, `select everything` | Select editor content |
 | `clear all`, `clear everything` | Ask before clearing editor content |
 
 Outside the Smart Editor, recognized phrases are inserted as plain text.
+
+Spoken punctuation is converted in final dictated text when voice commands are
+enabled. For example, `hello comma world full stop` inserts `hello, world.`.
+Supported punctuation phrases include `comma`, `full stop`, `period`,
+`question mark`, `exclamation mark`, `exclamation point`, `colon`, `semicolon`,
+`dash`, `hyphen`, `slash`, `open bracket`, `close bracket`, `open quote`, and
+`close quote`.
 
 ## Macro Test
 

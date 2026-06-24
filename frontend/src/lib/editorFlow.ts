@@ -12,6 +12,7 @@ export type EditorSaveInput = {
 export type EditorToolbarCommand =
   | "bold"
   | "italic"
+  | "underline"
   | "heading"
   | "paragraph"
   | "bullet-list"
@@ -31,6 +32,7 @@ export type EditorToolbarItem = {
 export const editorToolbarItems: EditorToolbarItem[] = [
   { command: "bold", label: "Bold" },
   { command: "italic", label: "Italic" },
+  { command: "underline", label: "Underline" },
   { command: "heading", label: "Heading" },
   { command: "paragraph", label: "Paragraph" },
   { command: "bullet-list", label: "Bullet list" },

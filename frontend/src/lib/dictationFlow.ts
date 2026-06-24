@@ -17,8 +17,13 @@ export type DictationAction = {
 };
 
 export type DictationHelpContent = {
-  smartEditorCommands: string[];
+  setupSteps: string[];
+  punctuationPhrases: string[];
+  punctuationExample: string;
+  formattingCommands: string[];
+  editorControls: string[];
   templatePhrases: string[];
+  macroSummary: string;
 };
 
 export function getDictationAction(input: DictationActionInput): DictationAction {
@@ -82,8 +87,28 @@ export function getDictationAction(input: DictationActionInput): DictationAction
 
 export function getDictationHelpContent(): DictationHelpContent {
   return {
-    smartEditorCommands: ["new line / newline", "new paragraph / new para", "undo", "redo", "select all", "clear all"],
+    setupSteps: [
+      "Open or create a document.",
+      "Connect to CoreSTT and wait for Ready.",
+      "Start dictation, speak naturally, then stop when finished.",
+    ],
+    punctuationPhrases: [
+      "comma",
+      "full stop / period",
+      "question mark",
+      "exclamation mark / exclamation point",
+      "colon",
+      "semicolon",
+      "dash / hyphen",
+      "slash",
+      "open bracket / close bracket",
+      "open quote / close quote",
+    ],
+    punctuationExample: "hello comma world full stop -> hello, world.",
+    formattingCommands: ["bold", "italic", "underline", "clear formatting"],
+    editorControls: ["new line / newline", "new paragraph / new para", "undo", "redo", "select all / select everything", "clear all / clear everything"],
     templatePhrases: ["insert template <template name>", "use template <template name>", "get template <template name>"],
+    macroSummary: "Enabled macros expand matching dictated phrases automatically before text is inserted.",
   };
 }
 

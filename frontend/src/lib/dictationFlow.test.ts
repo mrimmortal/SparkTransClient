@@ -66,8 +66,15 @@ describe("dictation flow UX", () => {
   it("keeps current voice commands and template phrases discoverable", () => {
     const help = getDictationHelpContent();
 
-    expect(help.smartEditorCommands).toContain("new line / newline");
-    expect(help.smartEditorCommands).toContain("clear all");
+    expect(help.editorControls).toContain("new line / newline");
+    expect(help.editorControls).toContain("clear all / clear everything");
+    expect(help.formattingCommands).toContain("bold");
+    expect(help.formattingCommands).toContain("italic");
+    expect(help.formattingCommands).toContain("underline");
+    expect(help.formattingCommands).toContain("clear formatting");
+    expect(help.punctuationPhrases).toContain("comma");
+    expect(help.punctuationPhrases).toContain("full stop / period");
+    expect(help.punctuationExample).toBe("hello comma world full stop -> hello, world.");
     expect(help.templatePhrases).toContain("insert template <template name>");
     expect(help.templatePhrases).toContain("use template <template name>");
     expect(help.templatePhrases).toContain("get template <template name>");

@@ -4,6 +4,7 @@ import { EditorContent, Editor } from "@tiptap/react";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
+import UnderlineExtension from "@tiptap/extension-underline";
 import {
   Activity,
   Bold,
@@ -30,6 +31,7 @@ import {
   Pilcrow,
   Quote,
   Minus,
+  Underline,
   Undo2,
   Upload,
   Wand2,
@@ -166,6 +168,7 @@ export function App() {
   const editor = useEditor({
     extensions: [
       StarterKit,
+      UnderlineExtension,
       Placeholder.configure({ placeholder: "Start dictation or type your document..." }),
     ],
     content: activeDocument?.content_html || "",
@@ -502,6 +505,10 @@ export function App() {
     if (command === "insert-paragraph") currentEditor.chain().focus().createParagraphNear().run();
     if (command === "undo") currentEditor.chain().focus().undo().run();
     if (command === "redo") currentEditor.chain().focus().redo().run();
+    if (command === "bold") currentEditor.chain().focus().toggleBold().run();
+    if (command === "italic") currentEditor.chain().focus().toggleItalic().run();
+    if (command === "underline") currentEditor.chain().focus().toggleUnderline().run();
+    if (command === "clear-formatting") currentEditor.chain().focus().unsetAllMarks().clearNodes().run();
     if (command === "select-all") currentEditor.commands.selectAll();
     if (command === "clear-all" && (!settingsRef.current.confirm_destructive_actions || window.confirm(confirmationMessages.clearEditor))) {
       currentEditor.commands.clearContent();
@@ -779,6 +786,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled: 
     const chain = editor.chain().focus();
     if (command === "bold") chain.toggleBold().run();
     if (command === "italic") chain.toggleItalic().run();
+    if (command === "underline") chain.toggleUnderline().run();
     if (command === "heading") chain.toggleHeading({ level: 2 }).run();
     if (command === "paragraph") chain.setParagraph().run();
     if (command === "bullet-list") chain.toggleBulletList().run();
@@ -795,6 +803,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled: 
     if (!editor) return false;
     if (command === "bold") return editor.isActive("bold");
     if (command === "italic") return editor.isActive("italic");
+    if (command === "underline") return editor.isActive("underline");
     if (command === "heading") return editor.isActive("heading", { level: 2 });
     if (command === "paragraph") return editor.isActive("paragraph");
     if (command === "bullet-list") return editor.isActive("bulletList");
@@ -826,6 +835,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled: 
 function renderToolbarIcon(command: EditorToolbarCommand) {
   if (command === "bold") return <Bold size={16} />;
   if (command === "italic") return <Italic size={16} />;
+  if (command === "underline") return <Underline size={16} />;
   if (command === "heading") return <Heading2 size={16} />;
   if (command === "paragraph") return <Pilcrow size={16} />;
   if (command === "bullet-list") return <List size={16} />;
@@ -898,7 +908,12 @@ function DictationControlPanel({
       {helpOpen && (
         <aside className="dictation-help-panel">
           <section>
-            <h2>Setup checklist</h2>
+            <h2>Start dictation</h2>
+            <ol>
+              {help.setupSteps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
             <ul className="setup-list">
               <li className={context.activeDocument ? "ready" : ""}>Document: {context.activeDocument ? context.activeDocument.title : "Select or create one"}</li>
               <li className={connectionReady ? "ready" : ""}>CoreSTT: {connectionReady ? "Ready" : context.connectionState}</li>
@@ -908,9 +923,31 @@ function DictationControlPanel({
           </section>
 
           <section>
-            <h2>Smart Editor commands</h2>
+            <h2>Dictate text and punctuation</h2>
+            <p>Speak normally. Use punctuation words when you want symbols inserted in the final text.</p>
+            <p><strong>Example:</strong> <code>{help.punctuationExample}</code></p>
             <div className="command-list">
-              {help.smartEditorCommands.map((command) => (
+              {help.punctuationPhrases.map((phrase) => (
+                <code key={phrase}>{phrase}</code>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2>Format text by voice</h2>
+            <p>Say these commands to toggle formatting for selected text or for what you dictate next.</p>
+            <div className="command-list">
+              {help.formattingCommands.map((command) => (
+                <code key={command}>{command}</code>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2>Edit by voice</h2>
+            <p>These commands control the Smart Editor even if the Micro Editor is the current transcript target.</p>
+            <div className="command-list">
+              {help.editorControls.map((command) => (
                 <code key={command}>{command}</code>
               ))}
             </div>
@@ -918,13 +955,14 @@ function DictationControlPanel({
 
           <section>
             <h2>Templates and macros</h2>
+            <p>Insert a saved template by saying one of these phrases followed by the template name.</p>
             <div className="command-list">
               {help.templatePhrases.map((phrase) => (
                 <code key={phrase}>{phrase}</code>
               ))}
             </div>
             <p>
-              Macro expansion follows enabled macros. Use <NavLink to="/macros">Macros</NavLink> and <NavLink to="/settings">Settings</NavLink> to adjust dictation behavior.
+              {help.macroSummary} Use <NavLink to="/macros">Macros</NavLink> and <NavLink to="/settings">Settings</NavLink> to adjust dictation behavior.
             </p>
           </section>
         </aside>

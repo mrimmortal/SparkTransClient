@@ -132,6 +132,10 @@ const smartEditorCommands = new Map<string, string>([
   ["redo", "redo"],
   ["select all", "select-all"],
   ["clear all", "clear-all"],
+  ["bold", "bold"],
+  ["italic", "italic"],
+  ["underline", "underline"],
+  ["clear formatting", "clear-formatting"],
 ]);
 
 const smartEditorCommandVariants = new Map<string, string>([
@@ -140,6 +144,24 @@ const smartEditorCommandVariants = new Map<string, string>([
   ["select everything", "select-all"],
   ["clear everything", "clear-all"],
 ]);
+
+const spokenPunctuation = [
+  { words: ["exclamation", "mark"], symbol: "!" },
+  { words: ["exclamation", "point"], symbol: "!" },
+  { words: ["question", "mark"], symbol: "?" },
+  { words: ["full", "stop"], symbol: "." },
+  { words: ["open", "bracket"], symbol: "(" },
+  { words: ["close", "bracket"], symbol: ")" },
+  { words: ["open", "quote"], symbol: '"' },
+  { words: ["close", "quote"], symbol: '"' },
+  { words: ["comma"], symbol: "," },
+  { words: ["period"], symbol: "." },
+  { words: ["colon"], symbol: ":" },
+  { words: ["semicolon"], symbol: ";" },
+  { words: ["dash"], symbol: "-" },
+  { words: ["hyphen"], symbol: "-" },
+  { words: ["slash"], symbol: "/" },
+];
 
 export function expandMacros(text: string, macros: { trigger: string; replacement: string; enabled: boolean }[]): string {
   const enabledMacros = [...macros].filter((macro) => macro.enabled).sort((left, right) => right.trigger.length - left.trigger.length);
@@ -174,7 +196,8 @@ export function routeFinalText(
   if (voiceCommandsEnabled && voiceCommandVariantsEnabled && smartEditorCommandVariants.has(normalized)) {
     return { kind: "command", command: smartEditorCommandVariants.get(normalized)! };
   }
-  return { kind: "insert", text: macrosEnabled ? expandMacros(text, macros) : text };
+  const insertText = voiceCommandsEnabled ? convertSpokenPunctuation(text) : text;
+  return { kind: "insert", text: macrosEnabled ? expandMacros(insertText, macros) : insertText };
 }
 
 function normalizeVoiceCommand(value: string): string {
@@ -189,6 +212,37 @@ function normalizeTranscriptText(value: string): string {
     .toLowerCase()
     .trim()
     .replace(/[.,!?;:]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function convertSpokenPunctuation(text: string): string {
+  const tokens = text.trim().split(/\s+/).filter(Boolean);
+  const converted: string[] = [];
+  for (let index = 0; index < tokens.length; index += 1) {
+    const match = spokenPunctuation.find((candidate) =>
+      candidate.words.every((word, offset) => normalizePunctuationToken(tokens[index + offset] ?? "") === word),
+    );
+    if (match) {
+      converted.push(match.symbol);
+      index += match.words.length - 1;
+    } else {
+      converted.push(tokens[index]);
+    }
+  }
+  return applyPunctuationSpacing(converted.join(" "));
+}
+
+function normalizePunctuationToken(value: string): string {
+  return value.toLowerCase().replace(/^[.,!?;:]+|[.,!?;:]+$/g, "");
+}
+
+function applyPunctuationSpacing(value: string): string {
+  return value
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/([([])\s+/g, "$1")
+    .replace(/\s+([)\]])/g, "$1")
+    .replace(/\s*\/\s*/g, "/")
     .replace(/\s+/g, " ")
     .trim();
 }

@@ -35,6 +35,22 @@ Validation:
 Next:
 - Use `docs/PROJECT_PROGRESS.md` as the canonical project tracking checklist.
 
+## 2026-06-24 - Spoken punctuation and formatting commands
+
+Changed:
+- Added frontend routing for dictated punctuation phrases such as `comma`,
+  `full stop`, `question mark`, `colon`, and `semicolon`.
+- Added Smart Editor voice commands for `bold`, `italic`, `underline`, and
+  `clear formatting`.
+- Added TipTap underline support and documented the new commands.
+- Reorganized the in-app Dictation help panel for first-time users with setup
+  steps, punctuation, formatting, editor controls, templates, and macro notes.
+
+Validation:
+- `cd frontend && npm test -- src/lib/corestt.test.ts src/lib/editorFlow.test.ts`
+- `cd frontend && npm test -- src/lib/dictationFlow.test.ts`
+- `cd frontend && npm run build`
+
 ## 2026-06-20 - CoreSTT browser microphone integration
 
 Changed:

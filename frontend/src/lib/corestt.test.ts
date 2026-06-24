@@ -206,6 +206,31 @@ describe("transcript routing", () => {
     expect(result).toEqual({ kind: "insert", text: "new paragraph" });
   });
 
+  it("routes spoken formatting commands to the smart editor", () => {
+    expect(routeFinalText("bold", "smart-editor", [])).toEqual({ kind: "command", command: "bold" });
+    expect(routeFinalText("italic.", "smart-editor", [])).toEqual({ kind: "command", command: "italic" });
+    expect(routeFinalText("underline", "smart-editor", [])).toEqual({ kind: "command", command: "underline" });
+    expect(routeFinalText("clear formatting", "smart-editor", [])).toEqual({ kind: "command", command: "clear-formatting" });
+  });
+
+  it("converts standalone spoken punctuation to insertable punctuation", () => {
+    expect(routeFinalText("comma", "smart-editor", [])).toEqual({ kind: "insert", text: "," });
+    expect(routeFinalText("full stop", "smart-editor", [])).toEqual({ kind: "insert", text: "." });
+    expect(routeFinalText("question mark", "smart-editor", [])).toEqual({ kind: "insert", text: "?" });
+  });
+
+  it("converts inline spoken punctuation before insertion", () => {
+    const result = routeFinalText("hello comma world full stop", "smart-editor", []);
+
+    expect(result).toEqual({ kind: "insert", text: "hello, world." });
+  });
+
+  it("does not convert spoken punctuation when voice commands are disabled", () => {
+    const result = routeFinalText("hello comma world full stop", "smart-editor", [], { voiceCommandsEnabled: false });
+
+    expect(result).toEqual({ kind: "insert", text: "hello comma world full stop" });
+  });
+
   it("skips macro expansion when macros are disabled", () => {
     const result = routeFinalText(
       "standard closing note",
@@ -215,6 +240,16 @@ describe("transcript routing", () => {
     );
 
     expect(result).toEqual({ kind: "insert", text: "standard closing note" });
+  });
+
+  it("converts spoken punctuation before macro expansion", () => {
+    const result = routeFinalText(
+      "standard closing note comma thanks",
+      "smart-editor",
+      [{ trigger: "standard closing note", replacement: "Please review.", enabled: true }],
+    );
+
+    expect(result).toEqual({ kind: "insert", text: "Please review. thanks" });
   });
 
   it("expands multi-word macros next to punctuation without duplicating terminal punctuation", () => {

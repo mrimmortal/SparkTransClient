@@ -12,6 +12,7 @@ describe("editor flow UX", () => {
     expect(editorToolbarItems.map((item) => item.command)).toEqual([
       "bold",
       "italic",
+      "underline",
       "heading",
       "paragraph",
       "bullet-list",
