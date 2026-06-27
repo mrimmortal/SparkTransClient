@@ -10,11 +10,11 @@ Status key:
 
 ## Current Validation Snapshot
 
-Automated checks last verified on 2026-06-24:
+Automated checks last verified on 2026-06-27:
 
 - `[x]` Backend tests: `cd backend && .venv/bin/pytest -q` (`11 passed`)
 - `[x]` Backend syntax: `python3 -m compileall backend/app`
-- `[x]` Frontend tests: `cd frontend && npm test` (`67 passed`)
+- `[x]` Frontend tests: `cd frontend && npm test` (`118 passed`)
 - `[x]` Frontend build: `cd frontend && npm run build` (passes with existing large chunk warning)
 - `[x]` Frontend audit: `cd frontend && npm audit --audit-level=high` (`0 vulnerabilities`)
 - `[x]` Macro/template/settings API tests are covered in `backend/tests/test_macro_template_api.py`.
@@ -111,6 +111,9 @@ Smoke checks last recorded on 2026-06-20:
 - `[x]` Full macro manager UI.
 - `[ ]` Complete voice command catalog from the plan.
 - `[x]` User-configurable command and macro enablement preferences.
+- `[x]` Semantic voice command matching via sentence embeddings (MiniLM-L6-v2)
+  replaces exact-string command matching — handles STT variations, synonyms,
+  and phrasing differences without hardcoded word lists.
 
 ## Settings And Shortcuts
 

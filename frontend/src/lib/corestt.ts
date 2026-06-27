@@ -1,3 +1,5 @@
+import { CommandEmbeddingMatcher } from "./commandEmbeddings";
+
 export type DictationAudioSource = "desktop-mic" | "remote-mobile-mic";
 export type EditorTarget = "smart-editor" | "micro-editor";
 export type ConnectionState = "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "READY" | "STREAMING" | "STOPPING" | "CLOSED" | "ERROR";
@@ -285,4 +287,38 @@ export function resolveSttUrl(): string {
     return import.meta.env.VITE_STT_WS_URL ?? "ws://127.0.0.1:8020/ws/transcribe";
   }
   return import.meta.env.VITE_STT_PROXY_WS_URL ?? `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws/stt-proxy`;
+}
+
+const TEMPLATE_MARKER_COMMANDS = new Set([
+  "next-template-field",
+  "previous-template-field",
+  "first-template-field",
+  "skip-template-field",
+  "cancel-template-field-navigation",
+]);
+
+export async function routeFinalTextSemantic(
+  text: string,
+  target: EditorTarget,
+  macros: { trigger: string; replacement: string; enabled: boolean }[],
+  matcher: CommandEmbeddingMatcher | null | undefined,
+  options: TranscriptRoutingOptions = {},
+): Promise<FinalRoute> {
+  if (!matcher?.ready) {
+    return routeFinalText(text, target, macros, options);
+  }
+  const match = await matcher.match(text);
+  if (match.command && match.source) {
+    const isTemplateMarker = TEMPLATE_MARKER_COMMANDS.has(match.command);
+    const isVariant = match.source === "variant";
+    const isPrimary = match.source === "smart-editor";
+    if (
+      (isTemplateMarker && target === "smart-editor" && options.templateMarkerNavigationEnabled) ||
+      (isPrimary && options.voiceCommandsEnabled) ||
+      (isVariant && options.voiceCommandsEnabled && options.voiceCommandVariantsEnabled)
+    ) {
+      return { kind: "command", command: match.command };
+    }
+  }
+  return routeFinalText(text, target, macros, options);
 }

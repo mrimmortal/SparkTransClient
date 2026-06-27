@@ -1,5 +1,33 @@
 # Session Log
 
+## 2026-06-27 - Semantic voice command matching
+
+Changed:
+- Added `frontend/src/lib/commandEmbeddings.ts` with `CommandEmbeddingMatcher`
+  class that loads Xenova/all-MiniLM-L6-v2 via Transformers.js for semantic
+  voice command routing (cosine similarity at 0.75 threshold).
+- Added `routeFinalTextSemantic()` in `corestt.ts` as an async semantic
+  alternative to `routeFinalText()` — falls back to exact matching when the
+  model is not yet loaded.
+- Added `routeTemplateVoiceCommandSemantic()` in `templateFlow.ts` for
+  semantic template name matching.
+- Wired the matcher into `useDictationSession.ts` — model loads in background
+  on mount, template embeddings recompute when template list changes,
+  `insertFinalText()` now uses semantic routing when available.
+- Added 27 tests in `commandEmbeddings.test.ts` covering cosine similarity
+  math, matcher lifecycle, fallback behavior, mock embedding matching, and
+  integration with settings filters (voice commands, variants, template
+  marker navigation, macro expansion).
+
+Validation:
+- `cd frontend && npm test` — 118 passed (was 67)
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+Next:
+- Vite built chunk now includes ONNX Runtime Web WASM (~23.5 MB) and
+  transformers.js library (~516 KB); model weights (~23 MB) download at
+  runtime from Hugging Face Hub and cache in browser.
+
 ## 2026-06-24 - Project progress refresh
 
 Changed:

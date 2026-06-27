@@ -1,3 +1,4 @@
+import { CommandEmbeddingMatcher } from "./commandEmbeddings";
 import { TemplateRecord } from "./api";
 
 export type TemplateDraft = Pick<TemplateRecord, "name" | "category" | "content_html">;
@@ -97,8 +98,27 @@ function ensureTemplateHtml(value: string): string {
   return `<p>${escapeHtml(value)}</p>`;
 }
 
-function normalizeTemplateCommand(value: string): string {
+export function normalizeTemplateCommand(value: string): string {
   return normalizeTemplateName(value).replace(/\s+/g, " ");
+}
+
+export async function routeTemplateVoiceCommandSemantic(
+  text: string,
+  templates: TemplateRecord[],
+  options: { voiceCommandsEnabled: boolean },
+  matcher: CommandEmbeddingMatcher | null | undefined,
+  templateEmbeddings: Map<number, number[]> | null | undefined,
+): Promise<TemplateRecord | null> {
+  if (!options.voiceCommandsEnabled) return null;
+  if (!matcher?.ready || !templateEmbeddings) {
+    return routeTemplateVoiceCommand(text, templates, options);
+  }
+  const normalized = normalizeTemplateCommand(text);
+  const match = /^(?:insert|use|get)\s+template\s+(.+)$/.exec(normalized) ?? /^template\s+(.+)$/.exec(normalized);
+  if (!match) return null;
+  const requestedName = match[1];
+  const result = await matcher.matchTemplate(requestedName, templateEmbeddings, templates);
+  return result.template;
 }
 
 function normalizeTemplateCategory(value: string | null): string | null {

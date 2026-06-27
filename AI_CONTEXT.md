@@ -26,8 +26,12 @@ proxy/client integration.
   workspace state, dictation orchestration, and focused UI components.
 - Frontend API client: `frontend/src/lib/api.ts` calls `/api/*` with cookies.
 - CoreSTT frontend flow: `frontend/src/lib/sttClient.ts`,
-  `frontend/src/lib/corestt.ts`, `frontend/src/lib/micCapture.ts`, and
+  `frontend/src/lib/corestt.ts`, `frontend/src/lib/micCapture.ts`,
+  `frontend/src/lib/commandEmbeddings.ts`, and
   `frontend/public/corestt-audio-worklet.js`.
+- Semantic command matching: `frontend/src/lib/commandEmbeddings.ts` loads a
+  MiniLM sentence embedding model via Transformers.js for semantic voice command
+  routing, replacing brittle exact-string matching with cosine similarity.
 - CoreSTT backend proxy/protocol: `backend/app/api/stt_proxy.py` and
   `backend/app/services/corestt_protocol.py`.
 

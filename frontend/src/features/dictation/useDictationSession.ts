@@ -1,12 +1,14 @@
 import { Editor } from "@tiptap/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MacroRecord, TemplateRecord, UserSettingsRecord } from "../../lib/api";
+import { CommandEmbeddingMatcher } from "../../lib/commandEmbeddings";
 import {
   applyTranscriptEvent,
   ConnectionState,
   isBlankAudioTranscript,
   resolveSttUrl,
   routeFinalText,
+  routeFinalTextSemantic,
   shouldInsertFinalTranscript,
   shouldInsertFinalTranscriptText,
   TranscriptState,
@@ -31,6 +33,7 @@ import {
 import {
   highlightTemplatePlaceholders,
   routeTemplateVoiceCommand,
+  routeTemplateVoiceCommandSemantic,
   shouldInsertTemplateVoiceCommand,
 } from "../../lib/templateFlow";
 
@@ -74,6 +77,22 @@ export function useDictationSession({
   const recentFinalTranscriptTextRef = useRef(new Map<string, number>());
   const recentTemplateVoiceCommandsRef = useRef(new Map<string, number>());
   const lastSmartEditorDictationRangeRef = useRef<{ from: number; to: number; text: string } | null>(null);
+  const matcherRef = useRef<CommandEmbeddingMatcher | null>(null);
+  const templateEmbeddingsRef = useRef<Map<number, number[]>>(new Map());
+
+  useEffect(() => {
+    const matcher = new CommandEmbeddingMatcher();
+    matcherRef.current = matcher;
+    matcher.init();
+  }, []);
+
+  useEffect(() => {
+    const matcher = matcherRef.current;
+    if (!matcher?.ready) return;
+    matcher.computeTemplateEmbeddings(templates).then((embeddings) => {
+      templateEmbeddingsRef.current = embeddings;
+    });
+  }, [templates]);
 
   const realtimeText = useMemo(() => Object.values(transcripts.realtimeBySegment).join(" "), [transcripts]);
 
@@ -232,11 +251,16 @@ export function useDictationSession({
     setMicStatus("stopped");
   }
 
-  function insertFinalText(text: string) {
+  async function insertFinalText(text: string) {
     const currentSettings = settingsRef.current;
-    const template = routeTemplateVoiceCommand(text, templatesRef.current, {
-      voiceCommandsEnabled: currentSettings.voice_commands_enabled,
-    });
+    const matcher = matcherRef.current;
+    const template = await routeTemplateVoiceCommandSemantic(
+      text,
+      templatesRef.current,
+      { voiceCommandsEnabled: currentSettings.voice_commands_enabled },
+      matcher,
+      templateEmbeddingsRef.current,
+    );
     if (template) {
       if (!shouldInsertTemplateVoiceCommand(recentTemplateVoiceCommandsRef.current, template, text, Date.now())) return;
       lastSmartEditorDictationRangeRef.current = null;
@@ -250,7 +274,7 @@ export function useDictationSession({
       return;
     }
     const target = microOpenRef.current || currentSettings.default_editor_target === "micro-editor" ? "micro-editor" : "smart-editor";
-    const routed = routeFinalText(text, target, macrosRef.current, {
+    const routed = await routeFinalTextSemantic(text, target, macrosRef.current, matcher, {
       voiceCommandsEnabled: currentSettings.voice_commands_enabled,
       macrosEnabled: currentSettings.macros_enabled,
       voiceCommandVariantsEnabled: currentSettings.voice_command_variants_enabled,

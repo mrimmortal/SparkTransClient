@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
     "@tiptap/extension-placeholder": "2.22.3",
     "@tiptap/extension-underline": "2.22.3",
     "@tiptap/react": "2.22.3",
