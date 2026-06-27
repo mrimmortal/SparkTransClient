@@ -33,7 +33,7 @@ fi
 echo "Starting backend: http://$BACKEND_HOST:$BACKEND_PORT"
 (
   cd "$BACKEND_DIR"
-  .venv/bin/uvicorn app.main:app --host "$BACKEND_HOST" --port "$BACKEND_PORT"
+  .venv/bin/uvicorn app.main:app --reload --host "$BACKEND_HOST" --port "$BACKEND_PORT"
 ) &
 BACKEND_PID=$!
 

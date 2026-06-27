@@ -30,6 +30,7 @@ export type TranscriptRoutingOptions = {
   voiceCommandsEnabled?: boolean;
   macrosEnabled?: boolean;
   voiceCommandVariantsEnabled?: boolean;
+  templateMarkerNavigationEnabled?: boolean;
 };
 
 export type FinalTranscriptTextDedupeOptions = {
@@ -155,6 +156,14 @@ const smartEditorCommandVariants = new Map<string, string>([
   ["redo that", "redo"],
 ]);
 
+const templateMarkerCommands = new Map<string, string>([
+  ["next field", "next-template-field"],
+  ["previous field", "previous-template-field"],
+  ["first field", "first-template-field"],
+  ["skip field", "skip-template-field"],
+  ["cancel field navigation", "cancel-template-field-navigation"],
+]);
+
 const spokenPunctuation = [
   { words: ["exclamation", "mark"], symbol: "!" },
   { words: ["exclamation", "point"], symbol: "!" },
@@ -200,6 +209,10 @@ export function routeFinalText(
   const voiceCommandsEnabled = options.voiceCommandsEnabled ?? true;
   const macrosEnabled = options.macrosEnabled ?? true;
   const voiceCommandVariantsEnabled = options.voiceCommandVariantsEnabled ?? true;
+  const templateMarkerCommand = templateMarkerCommands.get(normalized);
+  if (target === "smart-editor" && voiceCommandsEnabled && options.templateMarkerNavigationEnabled && templateMarkerCommand) {
+    return { kind: "command", command: templateMarkerCommand };
+  }
   if (voiceCommandsEnabled && smartEditorCommands.has(normalized)) {
     return { kind: "command", command: smartEditorCommands.get(normalized)! };
   }

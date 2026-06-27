@@ -143,6 +143,15 @@ as unsaved until `Save` is clicked. Deleting a macro asks for confirmation first
 The sample user includes a `Meeting minutes` template for testing template storage.
 Use `Templates` to search, create, upload, edit, delete, preview, or insert templates
 into the active Smart Editor document.
+Templates can have one optional category for filtering. Template HTML can include
+markdown-style fields such as `{{patient_name}}`; those markers stay in the
+inserted document and are highlighted so they are easy to find.
+When voice navigation through template fields is enabled in Settings, inserting
+a template opens a field navigation panel and selects the first highlighted
+marker. A final dictated transcript replaces the selected marker. Say
+`next field`, `previous field`, `first field`, `skip field`, or
+`cancel field navigation` to move through markers. If auto-advance is enabled,
+the next marker is selected after each dictated value.
 Say `insert template <template name>`, `use template <template name>`, or
 `get template <template name>` during dictation to insert a matching template
 into the Smart Editor.
@@ -159,11 +168,14 @@ Deleting a document asks for confirmation first.
 
 Use `Settings` to adjust dictation behavior, transcript handling, microphone
 selection, document defaults, safety prompts, and shortcuts.
+The top-right `Save settings` button is enabled when settings or shortcuts have
+unsaved changes. Click it to persist the changes.
 
 Useful options include auto-connecting CoreSTT on the Documents page, allowing
 common voice-command variants, ignoring `[BLANK_AUDIO]`, preventing repeated
 final transcripts, enabling document auto-save, choosing a default template for
-new documents, and requiring confirmation before clearing or deleting data.
+new documents, voice navigation through template fields, template field
+auto-advance, and requiring confirmation before clearing or deleting data.
 The microphone section can list browser audio inputs and run a basic microphone
 permission check when the browser permits device access.
 

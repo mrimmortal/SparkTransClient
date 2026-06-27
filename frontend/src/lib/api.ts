@@ -10,6 +10,7 @@ export type DocumentRecord = {
 export type TemplateRecord = {
   id: number;
   name: string;
+  category: string | null;
   content_html: string;
   source_filename: string | null;
   created_at?: string;
@@ -43,6 +44,8 @@ export type UserSettingsRecord = {
   voice_command_variants_enabled: boolean;
   default_template_id: number | null;
   show_microphone_status: boolean;
+  template_marker_navigation_enabled: boolean;
+  template_marker_auto_advance_enabled: boolean;
 };
 
 export type ShortcutBindingRecord = {
@@ -135,10 +138,10 @@ export const api = {
   deleteDocument: (id: number) => request<void>(`/api/documents/${id}`, { method: "DELETE" }, { responseMode: "void" }),
   exportDocumentPdf: (id: number) => request<Blob>(`/api/documents/${id}/export/pdf`, { method: "POST" }, { responseMode: "blob" }),
   templates: () => request<TemplateRecord[]>("/api/templates"),
-  createTemplate: (payload: Pick<TemplateRecord, "name" | "content_html">) =>
+  createTemplate: (payload: Pick<TemplateRecord, "name" | "category" | "content_html">) =>
     request<TemplateRecord>("/api/templates", { method: "POST", ...jsonBody(payload) }),
   searchTemplates: (query: string) => request<TemplateRecord[]>(`/api/templates/search?q=${encodeURIComponent(query)}`),
-  updateTemplate: (id: number, payload: Partial<Pick<TemplateRecord, "name" | "content_html">>) =>
+  updateTemplate: (id: number, payload: Partial<Pick<TemplateRecord, "name" | "category" | "content_html">>) =>
     request<TemplateRecord>(`/api/templates/${id}`, { method: "PATCH", ...jsonBody(payload) }),
   deleteTemplate: (id: number) => request<void>(`/api/templates/${id}`, { method: "DELETE" }, { responseMode: "void" }),
   uploadTemplate: (file: File) => {

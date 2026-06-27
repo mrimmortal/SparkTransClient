@@ -24,6 +24,8 @@ class UserSettings(Base):
     voice_command_variants_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     default_template_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     show_microphone_status: Mapped[bool] = mapped_column(Boolean, default=True)
+    template_marker_navigation_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    template_marker_auto_advance_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class ShortcutBinding(Base):

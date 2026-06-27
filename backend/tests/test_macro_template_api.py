@@ -66,10 +66,15 @@ def test_template_crud_search_sanitization_and_owner_isolation(client: TestClien
 
     created = client.post(
         "/api/templates",
-        json={"name": "Meeting minutes", "content_html": "<p>Agenda</p><script>alert('x')</script><p onclick='x()'>Notes</p>"},
+        json={
+            "name": "Meeting minutes",
+            "category": "Clinical",
+            "content_html": "<p>Agenda</p><script>alert('x')</script><p onclick='x()'>Notes</p>",
+        },
     )
     assert created.status_code == 201
     template = created.json()
+    assert template["category"] == "Clinical"
     assert "<script" not in template["content_html"]
     assert "onclick" not in template["content_html"]
 
@@ -77,9 +82,14 @@ def test_template_crud_search_sanitization_and_owner_isolation(client: TestClien
     assert search.status_code == 200
     assert [item["id"] for item in search.json()] == [template["id"]]
 
-    updated = client.patch(f"/api/templates/{template['id']}", json={"name": "Updated meeting"})
+    category_search = client.get("/api/templates/search", params={"q": "clinical"})
+    assert category_search.status_code == 200
+    assert [item["id"] for item in category_search.json()] == [template["id"]]
+
+    updated = client.patch(f"/api/templates/{template['id']}", json={"name": "Updated meeting", "category": "Follow-up"})
     assert updated.status_code == 200
     assert updated.json()["name"] == "Updated meeting"
+    assert updated.json()["category"] == "Follow-up"
 
     client.post("/api/auth/logout")
     register(client, "template-other@example.com")
@@ -103,6 +113,7 @@ def test_template_docx_upload_and_invalid_upload_rejection(client: TestClient):
     )
     assert uploaded.status_code == 201
     assert uploaded.json()["name"] == "Uploaded"
+    assert uploaded.json()["category"] is None
     assert uploaded.json()["content_html"] == "<p>Uploaded paragraph</p>"
 
     invalid = client.post("/api/templates/upload", files={"file": ("bad.txt", b"not a docx", "text/plain")})
@@ -126,24 +137,52 @@ def test_user_settings_defaults_and_update(client: TestClient):
     assert body["voice_command_variants_enabled"] is True
     assert body["default_template_id"] is None
     assert body["show_microphone_status"] is True
+    assert body["template_marker_navigation_enabled"] is False
+    assert body["template_marker_auto_advance_enabled"] is False
 
     updated = client.patch(
         "/api/settings",
         json={
+            "audio_device_id": "device-1",
+            "voice_commands_enabled": False,
+            "macros_enabled": False,
+            "default_editor_target": "micro-editor",
+            "profile": "meeting-notes",
             "auto_connect_corestt": True,
             "autosave_enabled": True,
             "autosave_interval_seconds": 15,
             "confirm_destructive_actions": False,
+            "duplicate_transcript_protection_enabled": False,
             "duplicate_transcript_window_ms": 2500,
+            "ignore_blank_audio_enabled": False,
+            "voice_command_variants_enabled": False,
             "default_template_id": 42,
+            "show_microphone_status": False,
+            "template_marker_navigation_enabled": True,
+            "template_marker_auto_advance_enabled": True,
         },
     )
 
     assert updated.status_code == 200
     updated_body = updated.json()
+    assert updated_body["audio_device_id"] == "device-1"
+    assert updated_body["voice_commands_enabled"] is False
+    assert updated_body["macros_enabled"] is False
+    assert updated_body["default_editor_target"] == "micro-editor"
+    assert updated_body["profile"] == "meeting-notes"
     assert updated_body["auto_connect_corestt"] is True
     assert updated_body["autosave_enabled"] is True
     assert updated_body["autosave_interval_seconds"] == 15
     assert updated_body["confirm_destructive_actions"] is False
+    assert updated_body["duplicate_transcript_protection_enabled"] is False
     assert updated_body["duplicate_transcript_window_ms"] == 2500
+    assert updated_body["ignore_blank_audio_enabled"] is False
+    assert updated_body["voice_command_variants_enabled"] is False
     assert updated_body["default_template_id"] == 42
+    assert updated_body["show_microphone_status"] is False
+    assert updated_body["template_marker_navigation_enabled"] is True
+    assert updated_body["template_marker_auto_advance_enabled"] is True
+
+    refreshed = client.get("/api/settings")
+    assert refreshed.status_code == 200
+    assert refreshed.json() == updated_body

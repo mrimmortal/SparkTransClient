@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Mic, Plus, Save, Trash2 } from "lucide-react";
 import { PageHeader } from "../../components/PageHeader";
-import { api } from "../../lib/api";
+import { api, UserSettingsRecord } from "../../lib/api";
 import { WorkspaceContext } from "../workspace/types";
 import { withWarning } from "../workspace/withWarning";
 import { stripShortcutId, updateShortcut } from "./shortcutDrafts";
@@ -35,6 +35,10 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
     setSaving(false);
   }
 
+  async function updateSetting<Field extends keyof UserSettingsRecord>(field: Field, value: UserSettingsRecord[Field]) {
+    setDraftSettings((current) => ({ ...current, [field]: value }));
+  }
+
   async function loadDevices() {
     if (!navigator.mediaDevices?.enumerateDevices) {
       context.setWarning("This browser cannot list audio devices.");
@@ -60,8 +64,15 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
 
   return (
     <section className="manager-page">
-      <PageHeader title="Settings" />
-      <form className="settings-grid" onSubmit={(event) => void saveSettings(event)}>
+      <PageHeader
+        title="Settings"
+        actions={
+          <button className="primary" type="submit" form="settings-form" disabled={!canSave}>
+            <Save size={16} /> {saving ? "Saving" : "Save settings"}
+          </button>
+        }
+      />
+      <form id="settings-form" className="settings-grid" onSubmit={(event) => void saveSettings(event)}>
         <section className="panel stack">
           <div className="panel-heading">
             <h2>Dictation</h2>
@@ -71,7 +82,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <input
               type="checkbox"
               checked={draftSettings.voice_commands_enabled}
-              onChange={(event) => setDraftSettings({ ...draftSettings, voice_commands_enabled: event.target.checked })}
+              onChange={(event) => void updateSetting("voice_commands_enabled", event.target.checked)}
             />
             Voice commands enabled
           </label>
@@ -79,7 +90,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <input
               type="checkbox"
               checked={draftSettings.voice_command_variants_enabled}
-              onChange={(event) => setDraftSettings({ ...draftSettings, voice_command_variants_enabled: event.target.checked })}
+              onChange={(event) => void updateSetting("voice_command_variants_enabled", event.target.checked)}
             />
             Allow common voice command variants
           </label>
@@ -87,7 +98,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <input
               type="checkbox"
               checked={draftSettings.macros_enabled}
-              onChange={(event) => setDraftSettings({ ...draftSettings, macros_enabled: event.target.checked })}
+              onChange={(event) => void updateSetting("macros_enabled", event.target.checked)}
             />
             Macro expansion enabled
           </label>
@@ -95,7 +106,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <input
               type="checkbox"
               checked={draftSettings.auto_connect_corestt}
-              onChange={(event) => setDraftSettings({ ...draftSettings, auto_connect_corestt: event.target.checked })}
+              onChange={(event) => void updateSetting("auto_connect_corestt", event.target.checked)}
             />
             Auto-connect CoreSTT on Documents
           </label>
@@ -103,7 +114,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             Default editor target
             <select
               value={draftSettings.default_editor_target}
-              onChange={(event) => setDraftSettings({ ...draftSettings, default_editor_target: event.target.value })}
+              onChange={(event) => void updateSetting("default_editor_target", event.target.value)}
             >
               <option value="smart-editor">Smart Editor</option>
               <option value="micro-editor">Micro Editor</option>
@@ -111,7 +122,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
           </label>
           <label>
             Dictation profile
-            <select value={draftSettings.profile} onChange={(event) => setDraftSettings({ ...draftSettings, profile: event.target.value })}>
+            <select value={draftSettings.profile} onChange={(event) => void updateSetting("profile", event.target.value)}>
               <option value="general">General</option>
               <option value="meeting-notes">Meeting notes</option>
               <option value="medical">Medical</option>
@@ -125,7 +136,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <input
               type="checkbox"
               checked={draftSettings.ignore_blank_audio_enabled}
-              onChange={(event) => setDraftSettings({ ...draftSettings, ignore_blank_audio_enabled: event.target.checked })}
+              onChange={(event) => void updateSetting("ignore_blank_audio_enabled", event.target.checked)}
             />
             Ignore blank audio markers
           </label>
@@ -133,7 +144,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <input
               type="checkbox"
               checked={draftSettings.duplicate_transcript_protection_enabled}
-              onChange={(event) => setDraftSettings({ ...draftSettings, duplicate_transcript_protection_enabled: event.target.checked })}
+              onChange={(event) => void updateSetting("duplicate_transcript_protection_enabled", event.target.checked)}
             />
             Prevent repeated final transcripts
           </label>
@@ -141,7 +152,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             Duplicate protection window
             <select
               value={draftSettings.duplicate_transcript_window_ms}
-              onChange={(event) => setDraftSettings({ ...draftSettings, duplicate_transcript_window_ms: Number(event.target.value) })}
+              onChange={(event) => void updateSetting("duplicate_transcript_window_ms", Number(event.target.value))}
               disabled={!draftSettings.duplicate_transcript_protection_enabled}
             >
               <option value={2000}>2 seconds</option>
@@ -153,7 +164,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <input
               type="checkbox"
               checked={draftSettings.autosave_enabled}
-              onChange={(event) => setDraftSettings({ ...draftSettings, autosave_enabled: event.target.checked })}
+              onChange={(event) => void updateSetting("autosave_enabled", event.target.checked)}
             />
             Auto-save documents
           </label>
@@ -161,7 +172,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             Auto-save interval
             <select
               value={draftSettings.autosave_interval_seconds}
-              onChange={(event) => setDraftSettings({ ...draftSettings, autosave_interval_seconds: Number(event.target.value) })}
+              onChange={(event) => void updateSetting("autosave_interval_seconds", Number(event.target.value))}
               disabled={!draftSettings.autosave_enabled}
             >
               <option value={10}>10 seconds</option>
@@ -179,7 +190,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
           </div>
           <select
             value={draftSettings.audio_device_id ?? ""}
-            onChange={(event) => setDraftSettings({ ...draftSettings, audio_device_id: event.target.value || null })}
+            onChange={(event) => void updateSetting("audio_device_id", event.target.value || null)}
           >
             <option value="">Browser default microphone</option>
             {devices.map((device) => (
@@ -191,7 +202,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <input
               type="checkbox"
               checked={draftSettings.show_microphone_status}
-              onChange={(event) => setDraftSettings({ ...draftSettings, show_microphone_status: event.target.checked })}
+              onChange={(event) => void updateSetting("show_microphone_status", event.target.checked)}
             />
             Show microphone status
           </label>
@@ -200,7 +211,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <input
               placeholder="Audio device id"
               value={draftSettings.audio_device_id ?? ""}
-              onChange={(event) => setDraftSettings({ ...draftSettings, audio_device_id: event.target.value || null })}
+              onChange={(event) => void updateSetting("audio_device_id", event.target.value || null)}
             />
           </details>
         </section>
@@ -211,7 +222,7 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             Default template for new documents
             <select
               value={draftSettings.default_template_id ?? ""}
-              onChange={(event) => setDraftSettings({ ...draftSettings, default_template_id: event.target.value ? Number(event.target.value) : null })}
+              onChange={(event) => void updateSetting("default_template_id", event.target.value ? Number(event.target.value) : null)}
             >
               <option value="">Blank document</option>
               {context.templates.map((template) => (
@@ -223,9 +234,32 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <input
               type="checkbox"
               checked={draftSettings.confirm_destructive_actions}
-              onChange={(event) => setDraftSettings({ ...draftSettings, confirm_destructive_actions: event.target.checked })}
+              onChange={(event) => void updateSetting("confirm_destructive_actions", event.target.checked)}
             />
             Confirm before clearing or deleting data
+          </label>
+          <label className="compact-check">
+            <input
+              type="checkbox"
+              checked={draftSettings.template_marker_navigation_enabled}
+              onChange={(event) => void updateSetting("template_marker_navigation_enabled", event.target.checked)}
+            />
+            <span className="setting-label-copy">
+              <span>Navigate template fields by voice</span>
+              <span className="settings-note">Use dictation to move through highlighted template markers.</span>
+            </span>
+          </label>
+          <label className="compact-check">
+            <input
+              type="checkbox"
+              checked={draftSettings.template_marker_auto_advance_enabled}
+              onChange={(event) => void updateSetting("template_marker_auto_advance_enabled", event.target.checked)}
+              disabled={!draftSettings.template_marker_navigation_enabled}
+            />
+            <span className="setting-label-copy">
+              <span>Auto-advance after filling a field</span>
+              <span className="settings-note">Select the next template marker after dictated text replaces the current one.</span>
+            </span>
           </label>
         </section>
 
@@ -260,7 +294,6 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             <button type="button" onClick={() => setDraftShortcuts([...draftShortcuts, { action: "", shortcut: "", description: "" }])}>
               <Plus size={16} /> Add shortcut
             </button>
-            <button className="primary" type="submit" disabled={!canSave}><Save size={16} /> {saving ? "Saving" : "Save settings"}</button>
           </div>
         </section>
       </form>

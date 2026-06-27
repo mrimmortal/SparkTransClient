@@ -10,18 +10,22 @@ Status key:
 
 ## Current Validation Snapshot
 
-Last verified on 2026-06-20:
+Automated checks last verified on 2026-06-24:
 
-- `[x]` Backend tests: `cd backend && .venv/bin/pytest -q`
+- `[x]` Backend tests: `cd backend && .venv/bin/pytest -q` (`11 passed`)
 - `[x]` Backend syntax: `python3 -m compileall backend/app`
-- `[x]` Frontend tests: `cd frontend && npm test`
-- `[x]` Frontend build: `cd frontend && npm run build`
-- `[x]` Frontend audit: `cd frontend && npm audit --audit-level=high`
+- `[x]` Frontend tests: `cd frontend && npm test` (`67 passed`)
+- `[x]` Frontend build: `cd frontend && npm run build` (passes with existing large chunk warning)
+- `[x]` Frontend audit: `cd frontend && npm audit --audit-level=high` (`0 vulnerabilities`)
+- `[x]` Macro/template/settings API tests are covered in `backend/tests/test_macro_template_api.py`.
+- `[x]` STT proxy relay/log tests are covered in `backend/tests/test_stt_proxy.py`.
+
+Smoke checks last recorded on 2026-06-20:
+
 - `[x]` Local health smoke: `GET /api/health/live`
 - `[x]` Sample login smoke: `POST /api/auth/login`
 - `[x]` Frontend route smoke: `/`, `/documents`, `/templates`, `/macros`, `/settings`, `/diagnostics`
 - `[x]` Backend resource smoke: document export, template CRUD/search, macro CRUD, settings, shortcuts
-- `[x]` STT proxy relay test: `cd backend && .venv/bin/pytest tests/test_stt_proxy.py -q`
 - `[ ]` Real CoreSTT microphone transcription smoke test. Requires CoreSTT running separately.
 
 ## Foundation
@@ -140,6 +144,6 @@ Last verified on 2026-06-20:
 ## Next Recommended Milestone
 
 1. Run and record a real CoreSTT microphone transcription smoke test.
-2. Add backend API tests for ownership and CRUD flows.
+2. Add the remaining backend API tests for auth, document ownership, document CRUD, and PDF export flows.
 3. Complete the voice command catalog.
 4. Add rate limiting and Alembic migrations before production deployment.

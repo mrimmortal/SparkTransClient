@@ -45,6 +45,7 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
     ensure_sqlite_settings_columns()
+    ensure_sqlite_template_columns()
 
 
 def ensure_sqlite_settings_columns() -> None:
@@ -61,9 +62,24 @@ def ensure_sqlite_settings_columns() -> None:
         "voice_command_variants_enabled": "BOOLEAN DEFAULT 1 NOT NULL",
         "default_template_id": "INTEGER",
         "show_microphone_status": "BOOLEAN DEFAULT 1 NOT NULL",
+        "template_marker_navigation_enabled": "BOOLEAN DEFAULT 0 NOT NULL",
+        "template_marker_auto_advance_enabled": "BOOLEAN DEFAULT 0 NOT NULL",
     }
     with engine.begin() as connection:
         existing = {row[1] for row in connection.execute(text("PRAGMA table_info(user_settings)"))}
         for name, ddl in columns.items():
             if name not in existing:
                 connection.execute(text(f"ALTER TABLE user_settings ADD COLUMN {name} {ddl}"))
+
+
+def ensure_sqlite_template_columns() -> None:
+    if not settings.database_url.startswith("sqlite"):
+        return
+    columns = {
+        "category": "VARCHAR(255)",
+    }
+    with engine.begin() as connection:
+        existing = {row[1] for row in connection.execute(text("PRAGMA table_info(templates)"))}
+        for name, ddl in columns.items():
+            if name not in existing:
+                connection.execute(text(f"ALTER TABLE templates ADD COLUMN {name} {ddl}"))

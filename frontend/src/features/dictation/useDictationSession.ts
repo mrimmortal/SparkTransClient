@@ -20,6 +20,16 @@ import {
 } from "../../lib/realtimeTranscriptPreview";
 import { SttClient } from "../../lib/sttClient";
 import {
+  cancelTemplateMarkerNavigation,
+  moveToFirstTemplateMarker,
+  moveToFirstTemplateMarkerAtOrAfter,
+  moveToNextTemplateMarker,
+  moveToPreviousTemplateMarker,
+  replaceSelectedTemplateMarker,
+  skipTemplateMarker,
+} from "../../lib/templateMarkerNavigation";
+import {
+  highlightTemplatePlaceholders,
   routeTemplateVoiceCommand,
   shouldInsertTemplateVoiceCommand,
 } from "../../lib/templateFlow";
@@ -230,7 +240,13 @@ export function useDictationSession({
     if (template) {
       if (!shouldInsertTemplateVoiceCommand(recentTemplateVoiceCommandsRef.current, template, text, Date.now())) return;
       lastSmartEditorDictationRangeRef.current = null;
-      editorRef.current?.chain().focus().insertContent(template.content_html || "").run();
+      const currentEditor = editorRef.current;
+      if (!currentEditor) return;
+      const insertionStart = currentEditor.state.selection.from;
+      currentEditor.chain().focus().insertContent(highlightTemplatePlaceholders(template.content_html || "")).run();
+      if (currentSettings.template_marker_navigation_enabled) {
+        moveToFirstTemplateMarkerAtOrAfter(currentEditor, insertionStart);
+      }
       return;
     }
     const target = microOpenRef.current || currentSettings.default_editor_target === "micro-editor" ? "micro-editor" : "smart-editor";
@@ -238,6 +254,7 @@ export function useDictationSession({
       voiceCommandsEnabled: currentSettings.voice_commands_enabled,
       macrosEnabled: currentSettings.macros_enabled,
       voiceCommandVariantsEnabled: currentSettings.voice_command_variants_enabled,
+      templateMarkerNavigationEnabled: currentSettings.template_marker_navigation_enabled,
     });
     if (routed.kind === "command") {
       runCommand(routed.command);
@@ -251,6 +268,13 @@ export function useDictationSession({
       const currentEditor = editorRef.current;
       if (!currentEditor) return;
       const insertedText = `${routed.text} `;
+      if (
+        currentSettings.template_marker_navigation_enabled &&
+        replaceSelectedTemplateMarker(currentEditor, routed.text, { autoAdvance: currentSettings.template_marker_auto_advance_enabled })
+      ) {
+        lastSmartEditorDictationRangeRef.current = null;
+        return;
+      }
       const from = currentEditor.state.selection.from;
       currentEditor.chain().focus().insertContent(insertedText).run();
       const to = currentEditor.state.selection.from;
@@ -279,6 +303,26 @@ export function useDictationSession({
     }
     if (command === "save-document") {
       void saveDocument();
+      return;
+    }
+    if (command === "next-template-field") {
+      if (!moveToNextTemplateMarker(currentEditor)) setWarning("No next template field found.");
+      return;
+    }
+    if (command === "previous-template-field") {
+      if (!moveToPreviousTemplateMarker(currentEditor)) setWarning("No previous template field found.");
+      return;
+    }
+    if (command === "first-template-field") {
+      if (!moveToFirstTemplateMarker(currentEditor)) setWarning("No template field found.");
+      return;
+    }
+    if (command === "skip-template-field") {
+      if (!skipTemplateMarker(currentEditor)) setWarning("No next template field found.");
+      return;
+    }
+    if (command === "cancel-template-field-navigation") {
+      cancelTemplateMarkerNavigation(currentEditor);
       return;
     }
     if (command === "insert-newline") currentEditor.chain().focus().setHardBreak().run();

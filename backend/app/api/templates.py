@@ -22,7 +22,12 @@ def list_templates(user: User = Depends(current_user), db: Session = Depends(get
 
 @router.post("", response_model=TemplateRead, status_code=status.HTTP_201_CREATED)
 def create_template(payload: TemplateCreate, request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    template = Template(owner_id=user.id, name=payload.name, content_html=sanitize_html(payload.content_html))
+    template = Template(
+        owner_id=user.id,
+        name=payload.name,
+        category=normalize_category(payload.category),
+        content_html=sanitize_html(payload.content_html),
+    )
     db.add(template)
     db.flush()
     audit_event(db, "template.create", user.id, "template", str(template.id), getattr(request.state, "request_id", None))
@@ -46,7 +51,15 @@ async def upload_template(file: UploadFile, request: Request, user: User = Depen
 @router.get("/search", response_model=list[TemplateRead])
 def search_templates(q: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
     templates = db.scalars(select(Template).where(Template.owner_id == user.id)).all()
-    return [item for score, item in sorted(((fuzzy_score(q, template.name), template) for template in templates), key=lambda pair: pair[0], reverse=True) if score >= 0.45][:10]
+    return [
+        item
+        for score, item in sorted(
+            ((max(fuzzy_score(q, template.name), fuzzy_score(q, template.category or "")), template) for template in templates),
+            key=lambda pair: pair[0],
+            reverse=True,
+        )
+        if score >= 0.45
+    ][:10]
 
 
 @router.patch("/{template_id}", response_model=TemplateRead)
@@ -58,6 +71,8 @@ def update_template(template_id: int, payload: TemplateUpdate, request: Request,
         raise HTTPException(status_code=404, detail="Template not found")
     if payload.name is not None:
         template.name = payload.name
+    if "category" in payload.model_fields_set:
+        template.category = normalize_category(payload.category)
     if payload.content_html is not None:
         template.content_html = sanitize_html(payload.content_html)
     audit_event(db, "template.update", user.id, "template", str(template.id), getattr(request.state, "request_id", None))
@@ -74,3 +89,9 @@ def delete_template(template_id: int, request: Request, user: User = Depends(cur
         db.delete(template)
         db.commit()
 
+
+def normalize_category(value: str | None) -> str | None:
+    if value is None:
+        return None
+    normalized = value.strip()
+    return normalized or None

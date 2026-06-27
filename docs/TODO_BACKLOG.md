@@ -5,7 +5,7 @@ Keep this list aligned with `docs/PROJECT_PROGRESS.md`.
 ## High Priority
 
 - Run and record a real CoreSTT end-to-end local microphone smoke test.
-- Add backend API tests for auth, documents, templates, macros, and ownership.
+- Add the remaining backend API tests for auth, document ownership, document CRUD, and PDF export flows.
 
 ## Production Hardening
 
@@ -18,6 +18,7 @@ Keep this list aligned with `docs/PROJECT_PROGRESS.md`.
 ## Product UI
 
 - Complete voice command catalog from the original plan.
+- Reduce or intentionally accept the current Vite production chunk-size warning.
 - Add focused automated UI tests if a browser test runner is installed.
 
 ## Deferred Mobile Mic

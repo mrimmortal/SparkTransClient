@@ -4,6 +4,15 @@ import { EditorContent } from "@tiptap/react";
 import { useNavigate } from "react-router-dom";
 import { getDictationAction } from "../../lib/dictationFlow";
 import { canSaveEditorDocument, getSaveStatusLabel } from "../../lib/editorFlow";
+import {
+  cancelTemplateMarkerNavigation,
+  getTemplateMarkerNavigationState,
+  moveToFirstTemplateMarker,
+  moveToNextTemplateMarker,
+  moveToPreviousTemplateMarker,
+  skipTemplateMarker,
+  TemplateMarkerNavigationState,
+} from "../../lib/templateMarkerNavigation";
 import { DictationControlPanel } from "../dictation/DictationControlPanel";
 import { WorkspaceContext } from "../workspace/types";
 import { EditorEmptyState } from "./EditorEmptyState";
@@ -15,6 +24,12 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
   const [replaceText, setReplaceText] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [editorDirty, setEditorDirty] = useState(false);
+  const [markerNavigationState, setMarkerNavigationState] = useState<TemplateMarkerNavigationState>({
+    active: false,
+    currentName: null,
+    currentIndex: -1,
+    total: 0,
+  });
   const savingDocument = context.busy === "Saving document";
   const saveStatus = getSaveStatusLabel({ dirty: editorDirty, saving: savingDocument });
   const canSaveActiveDocument = canSaveEditorDocument({
@@ -39,12 +54,19 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
 
   useEffect(() => {
     if (!context.editor) return undefined;
+    const syncMarkerNavigation = () => {
+      setMarkerNavigationState(getTemplateMarkerNavigationState(context.editor!.state));
+    };
     const markDirty = () => {
       if (context.activeDocument) setEditorDirty(true);
+      syncMarkerNavigation();
     };
+    syncMarkerNavigation();
     context.editor.on("update", markDirty);
+    context.editor.on("selectionUpdate", syncMarkerNavigation);
     return () => {
       context.editor?.off("update", markDirty);
+      context.editor?.off("selectionUpdate", syncMarkerNavigation);
     };
   }, [context.editor, context.activeDocument?.id]);
 
@@ -95,6 +117,24 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
     context.connectStt();
   }
 
+  function runMarkerNavigation(action: "first" | "previous" | "next" | "skip" | "exit") {
+    if (!context.editor) return;
+    const moved =
+      action === "first"
+        ? moveToFirstTemplateMarker(context.editor)
+        : action === "previous"
+          ? moveToPreviousTemplateMarker(context.editor)
+          : action === "next"
+            ? moveToNextTemplateMarker(context.editor)
+            : action === "skip"
+              ? skipTemplateMarker(context.editor)
+              : cancelTemplateMarkerNavigation(context.editor);
+    if (!moved) context.setWarning(action === "previous" ? "No previous template field found." : "No next template field found.");
+    setMarkerNavigationState(getTemplateMarkerNavigationState(context.editor.state));
+  }
+
+  const markerPanelVisible = Boolean(context.activeDocument && context.settings.template_marker_navigation_enabled && markerNavigationState.total);
+
   return (
     <section className="documents-page">
       <header className="topbar">
@@ -142,6 +182,23 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
       </div>
 
       <EditorToolbar editor={context.editor} disabled={!context.activeDocument || !context.editor} />
+
+      {markerPanelVisible && (
+        <section className="template-marker-panel">
+          <div>
+            <strong>{markerNavigationState.active ? `Field ${markerNavigationState.currentIndex + 1} of ${markerNavigationState.total}` : `${markerNavigationState.total} fields available`}</strong>
+            <span>{markerNavigationState.currentName ?? "Select a field to begin"}</span>
+          </div>
+          <div className="template-marker-actions">
+            <button type="button" onClick={() => runMarkerNavigation("first")}>First</button>
+            <button type="button" onClick={() => runMarkerNavigation("previous")}>Previous</button>
+            <button type="button" onClick={() => runMarkerNavigation("next")}>Next</button>
+            <button type="button" onClick={() => runMarkerNavigation("skip")}>Skip</button>
+            <button type="button" onClick={() => runMarkerNavigation("exit")}>Exit</button>
+          </div>
+          <span className="settings-note">Voice: next field, previous field, first field, skip field, cancel field navigation.</span>
+        </section>
+      )}
 
       <div className="editor-shell">
         {context.activeDocument ? (

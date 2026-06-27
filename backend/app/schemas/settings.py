@@ -19,6 +19,8 @@ class UserSettingsUpdate(BaseModel):
     voice_command_variants_enabled: bool | None = None
     default_template_id: int | None = Field(default=None, ge=1)
     show_microphone_status: bool | None = None
+    template_marker_navigation_enabled: bool | None = None
+    template_marker_auto_advance_enabled: bool | None = None
 
 
 class UserSettingsRead(ORMModel):
@@ -37,6 +39,8 @@ class UserSettingsRead(ORMModel):
     voice_command_variants_enabled: bool
     default_template_id: int | None
     show_microphone_status: bool
+    template_marker_navigation_enabled: bool
+    template_marker_auto_advance_enabled: bool
 
 
 class ShortcutBindingWrite(BaseModel):

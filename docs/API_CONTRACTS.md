@@ -35,6 +35,10 @@ Authentication uses an HTTP-only cookie named by backend settings.
 | `PATCH` | `/api/templates/{template_id}` | Update owned template. |
 | `DELETE` | `/api/templates/{template_id}` | Delete owned template. |
 
+Template records include `id`, `name`, optional `category`, `content_html`,
+optional `source_filename`, and `created_at`. Create and update payloads accept
+optional `category`; `.docx` uploads return `category: null`.
+
 ## Macros, Settings, Shortcuts
 
 | Method | Path | Purpose |
@@ -65,6 +69,8 @@ User settings include:
 - `voice_command_variants_enabled`
 - `default_template_id`
 - `show_microphone_status`
+- `template_marker_navigation_enabled`
+- `template_marker_auto_advance_enabled`
 
 ## Health And Config
 

@@ -1,5 +1,32 @@
 # Session Log
 
+## 2026-06-24 - Project progress refresh
+
+Changed:
+- Updated `docs/PROJECT_PROGRESS.md` with the latest automated validation results.
+- Clarified that macro/template/settings and STT proxy API tests already exist.
+- Updated `docs/TODO_BACKLOG.md` so remaining backend API test work focuses on auth, documents, ownership, and PDF export.
+
+Validation:
+- `cd backend && .venv/bin/pytest -q`
+- `python3 -m compileall backend/app`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `cd frontend && npm audit --audit-level=high`
+
+Next:
+- Real CoreSTT microphone smoke test still requires CoreSTT running separately.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-24 - Feature backlog
+
+Changed:
+- Added `docs/FEATURE_BACKLOG.md` with immediate product feature priorities
+  and later general-purpose feature checklist items.
+
+Validation:
+- Documentation-only review.
+
 ## 2026-06-24 - OS deployment scripts
 
 Changed:
@@ -534,4 +561,181 @@ Validation:
 - `cd frontend && npm run build`
 
 Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Template categories and fill-in fields
+
+Changed:
+- Added optional template categories across API records, SQLite startup compatibility, and frontend create/edit/filter UI.
+- Added `{{field_name}}` placeholder detection and a required fill-in form before inserting templates from the template manager.
+- Added backend and frontend regression coverage for category search/persistence, upload response shape, and placeholder filling.
+
+Validation:
+- `cd backend && .venv/bin/pytest -q tests/test_macro_template_api.py`
+- `cd frontend && npm test -- src/lib/templateFlow.test.ts src/lib/api.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Template manager UX pass
+
+Changed:
+- Moved new template creation into the template sidebar and changed the page to a two-column manager layout.
+- Made template placeholder fields visible immediately for the selected template instead of hiding them behind the insert action.
+- Preserved filled placeholder values for matching fields while clearing stale values when template HTML changes.
+
+Validation:
+- `cd frontend && npm test -- src/lib/templateFlow.test.ts src/lib/api.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Browser visual verification was blocked by the in-app browser connector setup error in this session.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Template edit regression fix
+
+Changed:
+- Fixed selected-template sync so local edits are not overwritten while typing.
+- Added regression coverage for preserving local template edits until the template list changes.
+
+Validation:
+- `cd frontend && npm test -- src/lib/templateFlow.test.ts src/lib/api.test.ts`
+- `cd backend && .venv/bin/pytest -q tests/test_macro_template_api.py`
+- `cd frontend && npm run build`
+
+Next:
+- Browser visual verification remains To verify because the in-app browser connector failed during setup.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Template marker voice navigation
+
+Changed:
+- Added a persisted `template_marker_navigation_enabled` setting with Settings UI control.
+- Added template marker metadata and editor helpers for selecting/replacing highlighted `{{marker}}` fields.
+- Routed `next field` as a Smart Editor command only when marker navigation is enabled.
+- Focused the first inserted marker for UI, default-template document, and voice template insertion paths.
+
+Validation:
+- `cd backend && .venv/bin/pytest -q tests/test_macro_template_api.py`
+- `cd frontend && npm test -- src/lib/templateFlow.test.ts src/lib/corestt.test.ts src/lib/api.test.ts src/lib/templateMarkerNavigation.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Template marker setting persistence fix
+
+Changed:
+- Made the template marker voice navigation checkbox persist immediately when toggled.
+- Added focused settings-flow coverage for immediate persistence fields.
+
+Validation:
+- `cd frontend && npm test -- src/features/settings/settingsFlow.test.ts src/lib/api.test.ts src/lib/corestt.test.ts src/lib/templateMarkerNavigation.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Settings save behavior fix
+
+Changed:
+- Unified Settings page behavior so every user setting persists immediately on change.
+- Kept shortcut edits on the explicit Shortcuts save action.
+- Expanded backend settings coverage to verify every settings field survives update and fresh read.
+
+Validation:
+- `cd frontend && npm test -- src/features/settings/settingsFlow.test.ts src/lib/api.test.ts`
+- `cd frontend && npm run build`
+- `cd backend && .venv/bin/pytest -q tests/test_macro_template_api.py`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Settings explicit save button
+
+Changed:
+- Restored draft-only Settings behavior so settings persist only when Save settings is clicked.
+- Moved the Save settings button to the top-right Settings header and disabled it when there are no settings or shortcut changes.
+- Removed the duplicate save button from the Shortcuts panel.
+
+Validation:
+- `cd frontend && npm test -- src/features/settings/settingsFlow.test.ts src/lib/api.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Template voice navigation setting polish
+
+Changed:
+- Reworded the template field voice navigation setting for clearer scanning.
+- Top-aligned checkbox controls so multi-line settings read as one control.
+
+Validation:
+- `cd frontend && npm test -- src/features/settings/settingsFlow.test.ts src/lib/api.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Settings persistence runtime verification
+
+Changed:
+- Enabled backend reload in `scripts/run-dev.sh` to prevent stale API code during local development.
+- Restarted the local dev servers so `/api/settings` includes `template_marker_navigation_enabled`.
+- Verified the template marker navigation setting persists through PATCH, fresh GET, and SQLite storage.
+
+Validation:
+- Local API PATCH/GET against `http://127.0.0.1:8000/api/settings`
+- SQLite read of `user_settings.template_marker_navigation_enabled`
+
+Next:
+- The local dev server is running at `http://127.0.0.1:5173/`.
+
+## 2026-06-27 - Guided template marker dictation
+
+Changed:
+- Added `template_marker_auto_advance_enabled` settings support.
+- Added previous, first, skip, and cancel marker navigation commands.
+- Added a Smart Editor marker navigation panel with field progress and command hints.
+- Added active-marker styling without changing saved document content.
+
+Validation:
+- `cd backend && .venv/bin/pytest -q tests/test_macro_template_api.py`
+- `cd frontend && npm test -- src/lib/templateMarkerNavigation.test.ts src/lib/corestt.test.ts src/features/settings/settingsFlow.test.ts src/lib/api.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Template markdown marker insertion
+
+Changed:
+- Removed the fill-before-insert template flow.
+- Template markdown markers like `{{patient_name}}` now stay in inserted content and are wrapped with a highlighted token style.
+- Applied marker highlighting to template preview, manual insertion, default-template document creation, and voice-driven template insertion.
+
+Validation:
+- `cd frontend && npm test -- src/lib/templateFlow.test.ts src/lib/api.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Browser visual verification remains To verify because the in-app browser connector failed during setup.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Template marker render fix
+
+Changed:
+- Wrapped plain-text template content in paragraph HTML before inserting highlighted markers.
+- Added a TipTap mark extension so highlighted template marker spans render as inline tokens instead of literal HTML text.
+
+Validation:
+- `cd frontend && npm test -- src/lib/templateFlow.test.ts src/lib/api.test.ts`
+- `cd frontend && npm run build`
+- `cd backend && .venv/bin/pytest -q tests/test_macro_template_api.py`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify because the in-app browser connector failed during setup.
 - Vite still reports the existing large chunk warning during production build.

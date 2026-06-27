@@ -12,6 +12,7 @@ import { WorkspaceContext } from "./features/workspace/types";
 import { api, UserRecord } from "./lib/api";
 import { RealtimeTranscriptPreview } from "./lib/realtimeTranscriptPreview";
 import { sampleUser } from "./lib/sampleUser";
+import { TemplatePlaceholderToken } from "./lib/templatePlaceholderToken";
 
 export function App() {
   const [user, setUser] = useState<UserRecord | null>(null);
@@ -27,6 +28,7 @@ export function App() {
       StarterKit,
       UnderlineExtension,
       RealtimeTranscriptPreview,
+      TemplatePlaceholderToken,
       Placeholder.configure({ placeholder: "Start dictation or type your document..." }),
     ],
     content: workspace.activeDocument?.content_html || "",

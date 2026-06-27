@@ -56,7 +56,7 @@ describe("api client", () => {
   });
 
   it("uploads templates without forcing a JSON content type", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ id: 3, name: "Template", content_html: "", source_filename: "template.docx" }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({ id: 3, name: "Template", category: null, content_html: "", source_filename: "template.docx" }));
     const file = new File(["docx"], "template.docx", {
       type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     });
@@ -100,6 +100,35 @@ describe("api client", () => {
       2,
       "/api/templates/8",
       expect.objectContaining({ credentials: "include", method: "DELETE" }),
+    );
+  });
+
+  it("sends template category fields in create and update requests", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ id: 5, name: "Visit note", category: "Clinical", content_html: "", source_filename: null }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({ id: 5, name: "Visit note", category: "Follow-up", content_html: "", source_filename: null }));
+
+    await api.createTemplate({ name: "Visit note", category: "Clinical", content_html: "" });
+    await api.updateTemplate(5, { category: "Follow-up" });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/templates",
+      expect.objectContaining({
+        credentials: "include",
+        method: "POST",
+        headers: expect.objectContaining({ "content-type": "application/json" }),
+        body: JSON.stringify({ name: "Visit note", category: "Clinical", content_html: "" }),
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/templates/5",
+      expect.objectContaining({
+        credentials: "include",
+        method: "PATCH",
+        headers: expect.objectContaining({ "content-type": "application/json" }),
+        body: JSON.stringify({ category: "Follow-up" }),
+      }),
     );
   });
 });

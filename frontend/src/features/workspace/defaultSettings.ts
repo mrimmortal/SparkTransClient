@@ -16,4 +16,6 @@ export const defaultSettings: UserSettingsRecord = {
   voice_command_variants_enabled: true,
   default_template_id: null,
   show_microphone_status: true,
+  template_marker_navigation_enabled: false,
+  template_marker_auto_advance_enabled: false,
 };

@@ -2,7 +2,8 @@ import { Editor } from "@tiptap/react";
 import { SetStateAction, useEffect, useRef, useState } from "react";
 import { api, DocumentRecord, MacroRecord, ShortcutBindingRecord, TemplateRecord, UserRecord, UserSettingsRecord } from "../../lib/api";
 import { confirmationMessages } from "../../lib/editorFlow";
-import { getTemplateDocumentTitle } from "../../lib/templateFlow";
+import { moveToFirstTemplateMarker, moveToFirstTemplateMarkerAtOrAfter } from "../../lib/templateMarkerNavigation";
+import { getTemplateDocumentTitle, highlightTemplatePlaceholders } from "../../lib/templateFlow";
 import { defaultSettings } from "./defaultSettings";
 
 export function useWorkspaceData({ user }: { user: UserRecord | null }) {
@@ -17,11 +18,22 @@ export function useWorkspaceData({ user }: { user: UserRecord | null }) {
   const [microOpen, setMicroOpen] = useState(false);
   const [microText, setMicroText] = useState("");
   const editorRef = useRef<Editor | null>(null);
+  const pendingTemplateMarkerFocusRef = useRef(false);
 
   useEffect(() => {
     if (!user) return;
     void refreshWorkspace();
   }, [user]);
+
+  useEffect(() => {
+    if (!settings.template_marker_navigation_enabled || !activeDocument || !pendingTemplateMarkerFocusRef.current) return;
+    const editor = editorRef.current;
+    if (!editor) return;
+    pendingTemplateMarkerFocusRef.current = false;
+    window.requestAnimationFrame(() => {
+      moveToFirstTemplateMarker(editor);
+    });
+  }, [activeDocument?.id, settings.template_marker_navigation_enabled]);
 
   function setWorkspaceMacros(action: SetStateAction<MacroRecord[]>) {
     setMacros((current) => (typeof action === "function" ? action(current) : action));
@@ -84,8 +96,9 @@ export function useWorkspaceData({ user }: { user: UserRecord | null }) {
     await runTask("Creating document", async () => {
       const template = templates.find((item) => item.id === settings.default_template_id) ?? null;
       const document = template
-        ? await api.createDocument(getTemplateDocumentTitle(template), template.content_html || "")
+        ? await api.createDocument(getTemplateDocumentTitle(template), highlightTemplatePlaceholders(template.content_html || ""))
         : await api.createDocument("Untitled document");
+      pendingTemplateMarkerFocusRef.current = Boolean(template && settings.template_marker_navigation_enabled);
       setDocuments((current) => [document, ...current]);
       setActiveDocument(document);
     });
@@ -135,13 +148,18 @@ export function useWorkspaceData({ user }: { user: UserRecord | null }) {
     const editor = editorRef.current;
     if (!activeDocument || !editor) {
       await runTask("Creating document from template", async () => {
-        const document = await api.createDocument(getTemplateDocumentTitle(template), template.content_html || "");
+        const document = await api.createDocument(getTemplateDocumentTitle(template), highlightTemplatePlaceholders(template.content_html || ""));
+        pendingTemplateMarkerFocusRef.current = settings.template_marker_navigation_enabled;
         setDocuments((current) => [document, ...current]);
         setActiveDocument(document);
       });
       return;
     }
-    editor.chain().focus().insertContent(template.content_html || "").run();
+    const insertionStart = editor.state.selection.from;
+    editor.chain().focus().insertContent(highlightTemplatePlaceholders(template.content_html || "")).run();
+    if (settings.template_marker_navigation_enabled) {
+      moveToFirstTemplateMarkerAtOrAfter(editor, insertionStart);
+    }
   }
 
   return {

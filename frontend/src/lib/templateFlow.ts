@@ -1,12 +1,14 @@
 import { TemplateRecord } from "./api";
 
-export type TemplateDraft = Pick<TemplateRecord, "name" | "content_html">;
+export type TemplateDraft = Pick<TemplateRecord, "name" | "category" | "content_html">;
 
 const TEMPLATE_VOICE_COMMAND_DEDUPE_MS = 5_000;
+const TEMPLATE_PLACEHOLDER_PATTERN = /\{\{\s*([^{}]+?)\s*\}\}/g;
 
 export function normalizeTemplateDraft(draft: TemplateDraft): TemplateDraft {
   return {
     name: draft.name.trim(),
+    category: normalizeTemplateCategory(draft.category),
     content_html: draft.content_html,
   };
 }
@@ -28,6 +30,18 @@ export function upsertTemplate(templates: TemplateRecord[], template: TemplateRe
 
 export function removeTemplateById(templates: TemplateRecord[], id: number): TemplateRecord[] {
   return templates.filter((item) => item.id !== id);
+}
+
+export function getTemplateSelectionForListChange(
+  templates: TemplateRecord[],
+  current: TemplateRecord | null,
+  previousTemplates: TemplateRecord[],
+): TemplateRecord | null {
+  if (!current) return templates[0] ?? null;
+  const next = templates.find((template) => template.id === current.id) ?? null;
+  if (!next) return templates[0] ?? null;
+  const previous = previousTemplates.find((template) => template.id === current.id) ?? null;
+  return previous === next ? current : next;
 }
 
 export function findTemplateVoiceCommand(text: string, templates: TemplateRecord[]): TemplateRecord | null {
@@ -59,8 +73,37 @@ export function shouldInsertTemplateVoiceCommand(
   return previousMs === undefined || nowMs - previousMs > TEMPLATE_VOICE_COMMAND_DEDUPE_MS;
 }
 
+export function getTemplatePlaceholders(contentHtml: string): string[] {
+  const placeholders: string[] = [];
+  for (const match of contentHtml.matchAll(TEMPLATE_PLACEHOLDER_PATTERN)) {
+    const name = match[1].trim();
+    if (name && !placeholders.includes(name)) placeholders.push(name);
+  }
+  return placeholders;
+}
+
+export function highlightTemplatePlaceholders(contentHtml: string): string {
+  const normalizedHtml = ensureTemplateHtml(contentHtml);
+  return normalizedHtml.replace(TEMPLATE_PLACEHOLDER_PATTERN, (_match, rawName: string) => {
+    const name = rawName.trim();
+    const escapedName = escapeHtml(name);
+    return `<span class="template-placeholder-token" data-template-placeholder="${escapedName}">{{${escapedName}}}</span>`;
+  });
+}
+
+function ensureTemplateHtml(value: string): string {
+  if (!value.trim()) return "";
+  if (/<[a-z][\s\S]*>/i.test(value)) return value;
+  return `<p>${escapeHtml(value)}</p>`;
+}
+
 function normalizeTemplateCommand(value: string): string {
   return normalizeTemplateName(value).replace(/\s+/g, " ");
+}
+
+function normalizeTemplateCategory(value: string | null): string | null {
+  const normalized = value?.trim() ?? "";
+  return normalized || null;
 }
 
 function normalizeTemplateName(value: string): string {
@@ -70,4 +113,13 @@ function normalizeTemplateName(value: string): string {
     .replace(/[.,!?;:]+$/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }

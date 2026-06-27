@@ -202,6 +202,38 @@ describe("transcript routing", () => {
     expect(routeFinalText("SAVE DOCUMENT", "smart-editor", [])).toEqual({ kind: "command", command: "save-document" });
   });
 
+  it("routes next field only when template marker navigation is enabled", () => {
+    expect(routeFinalText("next field", "smart-editor", [])).toEqual({ kind: "insert", text: "next field" });
+    expect(routeFinalText("next field", "micro-editor", [], { templateMarkerNavigationEnabled: true })).toEqual({
+      kind: "insert",
+      text: "next field",
+    });
+    expect(routeFinalText("next field.", "smart-editor", [], { templateMarkerNavigationEnabled: true })).toEqual({
+      kind: "command",
+      command: "next-template-field",
+    });
+  });
+
+  it("routes full template field navigation commands only when marker navigation is enabled", () => {
+    expect(routeFinalText("previous field", "smart-editor", [], { templateMarkerNavigationEnabled: true })).toEqual({
+      kind: "command",
+      command: "previous-template-field",
+    });
+    expect(routeFinalText("first field", "smart-editor", [], { templateMarkerNavigationEnabled: true })).toEqual({
+      kind: "command",
+      command: "first-template-field",
+    });
+    expect(routeFinalText("skip field", "smart-editor", [], { templateMarkerNavigationEnabled: true })).toEqual({
+      kind: "command",
+      command: "skip-template-field",
+    });
+    expect(routeFinalText("cancel field navigation", "smart-editor", [], { templateMarkerNavigationEnabled: true })).toEqual({
+      kind: "command",
+      command: "cancel-template-field-navigation",
+    });
+    expect(routeFinalText("previous field", "smart-editor", [])).toEqual({ kind: "insert", text: "previous field" });
+  });
+
   it("can disable flexible smart editor command variants", () => {
     expect(routeFinalText("new line", "smart-editor", [], { voiceCommandVariantsEnabled: false })).toEqual({
       kind: "command",
