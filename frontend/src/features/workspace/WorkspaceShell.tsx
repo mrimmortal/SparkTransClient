@@ -1,5 +1,5 @@
 import { ClipboardList, FileText, FolderOpen, HeartPulse, LogOut, Plus, Settings, Wand2 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useNavigate } from "react-router-dom";
 import { DiagnosticsPage } from "../diagnostics/DiagnosticsPage";
 import { DocumentManagementModal } from "../documents/DocumentManagementModal";
@@ -7,6 +7,7 @@ import { DocumentsPage } from "../documents/DocumentsPage";
 import { formatDocumentDate } from "../documents/documentManagement";
 import { MacrosPage } from "../macros/MacrosPage";
 import { MicroEditor } from "../micro-editor/MicroEditor";
+import { getSuccessMessage, ToastContainer, ToastItem } from "../../components/Toast";
 import { SettingsPage } from "../settings/SettingsPage";
 import { TemplatesPage } from "../templates/TemplatesPage";
 import { WorkspaceContext } from "./types";
@@ -14,6 +15,33 @@ import { WorkspaceContext } from "./types";
 export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
   const navigate = useNavigate();
   const [documentManagerOpen, setDocumentManagerOpen] = useState(false);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const toastIdRef = useRef(0);
+  const prevBusyRef = useRef(context.busy);
+
+  const addToast = useCallback((message: string, type: "success" | "warning") => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, message, type }]);
+  }, []);
+
+  const removeToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  useEffect(() => {
+    const prev = prevBusyRef.current;
+    prevBusyRef.current = context.busy;
+    if (prev && !context.busy) {
+      addToast(getSuccessMessage(prev), "success");
+    }
+  }, [context.busy, addToast]);
+
+  useEffect(() => {
+    if (context.warning) {
+      addToast(context.warning, "warning");
+    }
+  }, [context.warning, addToast]);
+
   const recentDocuments = context.documents.slice(0, 5);
   const userInitials = getUserInitials(context.user.email);
 
@@ -77,8 +105,6 @@ export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
       </aside>
 
       <section className="main-panel">
-        {context.warning && <div className="banner warning workspace-warning">{context.warning}</div>}
-        {context.busy && <div className="status-row"><span className="status">{context.busy}</span></div>}
         <Routes>
           <Route path="/" element={<Navigate to="/documents" replace />} />
           <Route path="/documents" element={<DocumentsPage context={context} />} />
@@ -90,6 +116,7 @@ export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
         </Routes>
       </section>
 
+      <ToastContainer toasts={toasts} onDismiss={removeToast} />
       {context.microOpen && <MicroEditor context={context} />}
       {documentManagerOpen && <DocumentManagementModal context={context} onClose={() => setDocumentManagerOpen(false)} />}
     </main>

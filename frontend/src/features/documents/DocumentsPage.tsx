@@ -222,17 +222,14 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
               </span>
             </div>
             <div className="document-control-cluster">
-              <button className="primary compact-dictation-action" onClick={runDictationAction} disabled={dictationAction.disabled}>
-                {dictationAction.intent === "stop" ? <Pause size={16} /> : <Mic size={16} />}
-                {dictationAction.label}
-              </button>
               <div className="document-status-inline">
+                <button className="primary compact-dictation-action" onClick={runDictationAction} disabled={dictationAction.disabled}>
+                  {dictationAction.intent === "stop" ? <Pause size={16} /> : <Mic size={16} />}
+                  {dictationAction.label}
+                </button>
                 <span className={`status ${context.connectionState.toLowerCase()}`}>
                   <span className="status-dot" aria-hidden="true" /> {context.connectionState}
                 </span>
-                <span>Mic: {formatMicStatus(context.micStatus)}</span>
-                <span>Packets: {context.audioPacketCount}</span>
-                <span>Target: {getEditorTargetLabel(activeTarget)}</span>
                 <div className="quick-target-group document-target-segment" role="group" aria-label="Default dictation target">
                   {DOCUMENT_QUICK_TARGETS.map((target) => (
                     <button
