@@ -452,7 +452,7 @@ function DocumentRightRail({
 
       <section className="right-rail-card">
         <header>
-          <h2><HeartPulse size={18} /> Diagnostics</h2>
+          <h2><HeartPulse size={18} /> Dictation Status</h2>
         </header>
         <div className="diagnostics-summary">
           <span className={connectionReady ? "summary-good" : "summary-warn"}>
@@ -461,14 +461,14 @@ function DocumentRightRail({
           <dl>
             <dt>Microphone</dt>
             <dd>{formatMicStatus(context.micStatus)}</dd>
-            <dt>Packets</dt>
+            <dt>Audio packets</dt>
             <dd>{context.audioPacketCount}</dd>
             <dt>Target</dt>
             <dd>{getEditorTargetLabel(activeTarget)}</dd>
             <dt>Capture</dt>
             <dd>{microphoneActive ? "Active" : "Not capturing"}</dd>
           </dl>
-          <button type="button" onClick={onDiagnostics}><HeartPulse size={16} /> Run diagnostics</button>
+          <button type="button" onClick={onDiagnostics}><HeartPulse size={16} /> Diagnostics</button>
         </div>
       </section>
     </aside>

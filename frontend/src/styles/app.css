@@ -1019,6 +1019,7 @@ button.danger {
 .diagnostics-summary {
   display: grid;
   gap: 8px;
+  font-size: var(--app-body-text);
 }
 
 .right-rail-command-list span {
@@ -1050,6 +1051,7 @@ button.danger {
   margin: 0;
   min-width: 0;
   overflow-wrap: anywhere;
+  font-size: var(--app-body-text);
 }
 
 .summary-good {
