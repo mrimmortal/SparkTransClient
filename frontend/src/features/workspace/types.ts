@@ -35,6 +35,7 @@ export type WorkspaceContext = {
   setTemplates: Dispatch<SetStateAction<TemplateRecord[]>>;
   setMacros: Dispatch<SetStateAction<MacroRecord[]>>;
   setSettings: (settings: UserSettingsRecord) => void;
+  updateSetting: <Field extends keyof UserSettingsRecord>(field: Field, value: UserSettingsRecord[Field]) => Promise<void>;
   setShortcuts: (shortcuts: ShortcutBindingRecord[]) => void;
   setMicroOpen: (open: boolean) => void;
   setMicroText: Dispatch<SetStateAction<string>>;

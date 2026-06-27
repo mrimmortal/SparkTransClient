@@ -160,4 +160,20 @@ describe("api client", () => {
       }),
     );
   });
+
+  it("sends partial settings updates through the settings patch endpoint", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ autosave_enabled: true }));
+
+    await api.updateSettings({ autosave_enabled: true });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/settings",
+      expect.objectContaining({
+        credentials: "include",
+        method: "PATCH",
+        headers: expect.objectContaining({ "content-type": "application/json" }),
+        body: JSON.stringify({ autosave_enabled: true }),
+      }),
+    );
+  });
 });

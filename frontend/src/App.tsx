@@ -138,6 +138,7 @@ export function App() {
     setTemplates: workspace.setTemplates,
     setMacros: workspace.setMacros,
     setSettings: workspace.setSettings,
+    updateSetting: workspace.updateSetting,
     setShortcuts: workspace.setShortcuts,
     setMicroOpen: workspace.setMicroOpen,
     setMicroText: workspace.setMicroText,

@@ -15,6 +15,7 @@ import {
 } from "../../lib/templateMarkerNavigation";
 import { DictationControlPanel } from "../dictation/DictationControlPanel";
 import { WorkspaceContext } from "../workspace/types";
+import { DocumentQuickSettings } from "./DocumentQuickSettings";
 import { EditorEmptyState } from "./EditorEmptyState";
 import { EditorToolbar } from "./EditorToolbar";
 
@@ -168,6 +169,8 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
         onAction={runDictationAction}
         onToggleHelp={() => setHelpOpen((current) => !current)}
       />
+
+      <DocumentQuickSettings context={context} />
 
       <div className="search-replace">
         <label>

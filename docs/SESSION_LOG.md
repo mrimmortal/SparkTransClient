@@ -621,6 +621,20 @@ Validation:
 Next:
 - Backend settings still retain `profile` for API/storage compatibility.
 
+## 2026-06-27 - Document quick settings
+
+Changed:
+- Added immediate-save quick toggles to the Documents page for common dictation workflow settings.
+- Added a Smart/Micro target selector on Documents while keeping the same settings available in Settings.
+- Hid the inactive Shortcuts editor from Settings while leaving the shortcut API/storage in place.
+
+Validation:
+- `cd frontend && npm test -- src/lib/api.test.ts src/features/documents/DocumentQuickSettings.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Shortcuts remain stored by the API but do not have runtime keyboard handling yet.
+
 ## 2026-06-27 - Document management modal
 
 Changed:

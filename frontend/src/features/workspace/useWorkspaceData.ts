@@ -81,6 +81,13 @@ export function useWorkspaceData({ user }: { user: UserRecord | null }) {
     });
   }
 
+  async function updateSetting<Field extends keyof UserSettingsRecord>(field: Field, value: UserSettingsRecord[Field]) {
+    await runTask("Updating setting", async () => {
+      const updated = await api.updateSettings({ [field]: value } as Partial<UserSettingsRecord>);
+      setSettings(updated);
+    });
+  }
+
   async function logoutWorkspace() {
     await runTask("Signing out", async () => {
       await api.logout();
@@ -227,6 +234,7 @@ export function useWorkspaceData({ user }: { user: UserRecord | null }) {
     setTemplates: setWorkspaceTemplates,
     setMacros: setWorkspaceMacros,
     setSettings,
+    updateSetting,
     setShortcuts,
     setMicroOpen,
     setMicroText,

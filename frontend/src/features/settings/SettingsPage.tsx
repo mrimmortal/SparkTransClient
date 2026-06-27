@@ -1,36 +1,28 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Mic, Plus, Save, Trash2 } from "lucide-react";
+import { Mic, Save } from "lucide-react";
 import { PageHeader } from "../../components/PageHeader";
 import { api, UserSettingsRecord } from "../../lib/api";
 import { WorkspaceContext } from "../workspace/types";
 import { withWarning } from "../workspace/withWarning";
-import { stripShortcutId, updateShortcut } from "./shortcutDrafts";
 
 export function SettingsPage({ context }: { context: WorkspaceContext }) {
   const [draftSettings, setDraftSettings] = useState(context.settings);
-  const [draftShortcuts, setDraftShortcuts] = useState(context.shortcuts.map(stripShortcutId));
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [saving, setSaving] = useState(false);
   const [microphoneStatus, setMicrophoneStatus] = useState("Not checked");
 
   useEffect(() => setDraftSettings(context.settings), [context.settings]);
-  useEffect(() => setDraftShortcuts(context.shortcuts.map(stripShortcutId)), [context.shortcuts]);
 
   const settingsDirty = JSON.stringify(draftSettings) !== JSON.stringify(context.settings);
-  const shortcutsDirty = JSON.stringify(draftShortcuts) !== JSON.stringify(context.shortcuts.map(stripShortcutId));
-  const canSave = (settingsDirty || shortcutsDirty) && !saving;
+  const canSave = settingsDirty && !saving;
 
   async function saveSettings(event: FormEvent) {
     event.preventDefault();
     if (!canSave) return;
     setSaving(true);
     await withWarning(context, async () => {
-      const [nextSettings, nextShortcuts] = await Promise.all([
-        api.updateSettings(draftSettings),
-        api.replaceShortcuts(draftShortcuts.filter((shortcut) => shortcut.action && shortcut.shortcut)),
-      ]);
+      const nextSettings = await api.updateSettings(draftSettings);
       context.setSettings(nextSettings);
-      context.setShortcuts(nextShortcuts);
     });
     setSaving(false);
   }
@@ -253,40 +245,6 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
               <span className="settings-note">Select the next template marker after dictated text replaces the current one.</span>
             </span>
           </label>
-        </section>
-
-        <section className="panel wide stack">
-          <div className="panel-heading">
-            <h2>Shortcuts</h2>
-            <span className={shortcutsDirty ? "save-status dirty" : "save-status"}>{shortcutsDirty ? "Unsaved" : "Saved"}</span>
-          </div>
-          {draftShortcuts.map((shortcut, index) => (
-            <div className="shortcut-row" key={`${shortcut.action}-${index}`}>
-              <input
-                placeholder="Action"
-                value={shortcut.action}
-                onChange={(event) => setDraftShortcuts(updateShortcut(draftShortcuts, index, { action: event.target.value }))}
-              />
-              <input
-                placeholder="Shortcut"
-                value={shortcut.shortcut}
-                onChange={(event) => setDraftShortcuts(updateShortcut(draftShortcuts, index, { shortcut: event.target.value }))}
-              />
-              <input
-                placeholder="Description"
-                value={shortcut.description}
-                onChange={(event) => setDraftShortcuts(updateShortcut(draftShortcuts, index, { description: event.target.value }))}
-              />
-              <button type="button" onClick={() => setDraftShortcuts(draftShortcuts.filter((_, itemIndex) => itemIndex !== index))}>
-                <Trash2 size={16} />
-              </button>
-            </div>
-          ))}
-          <div className="button-row">
-            <button type="button" onClick={() => setDraftShortcuts([...draftShortcuts, { action: "", shortcut: "", description: "" }])}>
-              <Plus size={16} /> Add shortcut
-            </button>
-          </div>
         </section>
       </form>
     </section>

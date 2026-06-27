@@ -50,7 +50,7 @@ The app uses a route-based desktop layout:
 - `/documents`: document list, Smart Editor, dictation controls, search/replace, PDF export, and Micro Editor.
 - `/templates`: template search, create, edit, delete, `.docx` upload, preview, and insert into the active document.
 - `/macros`: macro create, edit, enable/disable, and delete.
-- `/settings`: voice command, macro expansion, default editor target, audio device, and shortcut settings.
+- `/settings`: voice command, macro expansion, default editor target, audio device, document defaults, and safety settings.
 - `/diagnostics`: backend health/config, workspace counts, STT state, microphone status, audio packet counts, and reconnect attempts.
 
 ## Test Basic Editing
@@ -167,12 +167,14 @@ categorize, duplicate, export, or delete documents.
 Click `Export` on the `Documents` page to download the active document as a PDF.
 Deleting a document asks for confirmation first.
 
-## Settings And Shortcuts
+## Settings
 
 Use `Settings` to adjust dictation behavior, transcript handling, microphone
-selection, document defaults, safety prompts, and shortcuts.
-The top-right `Save settings` button is enabled when settings or shortcuts have
-unsaved changes. Click it to persist the changes.
+selection, document defaults, and safety prompts.
+The top-right `Save settings` button is enabled when settings have unsaved
+changes. Click it to persist the changes.
+The Documents page also includes quick toggles for common dictation workflow
+settings; those controls save immediately.
 
 Useful options include auto-connecting CoreSTT on the Documents page, allowing
 common voice-command variants, ignoring `[BLANK_AUDIO]`, preventing repeated

@@ -230,7 +230,7 @@ nav {
 
 .documents-page {
   display: grid;
-  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
   min-height: 0;
   flex: 1;
 }
@@ -298,6 +298,47 @@ nav {
   padding: 10px 16px;
   display: grid;
   gap: 10px;
+}
+
+.document-quick-settings {
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #e6eaf0;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 8px 16px;
+}
+
+.quick-toggle-group,
+.quick-target-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-target-group {
+  border-left: 1px solid #e6eaf0;
+  padding-left: 10px;
+}
+
+.quick-toggle {
+  min-height: 30px;
+  padding: 0 9px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.quick-toggle.active {
+  background: #eef4ff;
+  border-color: #9bbcff;
+  color: #1f5fbf;
+}
+
+.quick-settings-status {
+  color: #617082;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .dictation-control {
@@ -1066,12 +1107,18 @@ details input {
   }
 
   .dictation-control,
-  .dictation-help-panel {
+  .dictation-help-panel,
+  .document-quick-settings {
     grid-template-columns: 1fr;
   }
 
   .dictation-action {
     width: 100%;
+  }
+
+  .quick-target-group {
+    border-left: 0;
+    padding-left: 0;
   }
 
   .smart-editor {
