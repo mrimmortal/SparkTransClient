@@ -50,7 +50,7 @@ The app uses a route-based desktop layout:
 - `/documents`: document list, Smart Editor, dictation controls, search/replace, PDF export, and Micro Editor.
 - `/templates`: template search, create, edit, delete, `.docx` upload, preview, and insert into the active document.
 - `/macros`: macro create, edit, enable/disable, and delete.
-- `/settings`: voice command, macro expansion, default editor target, audio device, profile, and shortcut settings.
+- `/settings`: voice command, macro expansion, default editor target, audio device, and shortcut settings.
 - `/diagnostics`: backend health/config, workspace counts, STT state, microphone status, audio packet counts, and reconnect attempts.
 
 ## Test Basic Editing
@@ -161,6 +161,9 @@ template asks for confirmation first.
 
 ## Export
 
+Use the sidebar document section for quick access to recent documents. Click
+`Manage` to search, sort, filter by category, create from a template, rename,
+categorize, duplicate, export, or delete documents.
 Click `Export` on the `Documents` page to download the active document as a PDF.
 Deleting a document asks for confirmation first.
 

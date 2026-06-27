@@ -123,6 +123,7 @@ input[type="checkbox"] {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-height: 100vh;
 }
 
 .brand {
@@ -155,10 +156,69 @@ nav {
 }
 
 .doc {
-  min-height: 32px;
+  min-height: 44px;
   text-align: left;
   overflow: hidden;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+}
+
+.doc span,
+.doc small {
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc small {
+  color: #617082;
+  font-size: 11px;
+}
+
+.sidebar-documents {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+}
+
+.sidebar-section-header,
+.sidebar-document-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sidebar-section-header {
+  color: #52616f;
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.sidebar-section-header span:last-child {
+  border: 1px solid #dce2e8;
+  border-radius: 999px;
+  padding: 1px 7px;
+  color: #617082;
+}
+
+.sidebar-document-actions button {
+  flex: 1;
+}
+
+.sidebar-empty {
+  border: 1px dashed #cfd7e1;
+  border-radius: 6px;
+  color: #617082;
+  font-size: 13px;
+  padding: 10px;
+}
+
+.sign-out-button {
+  margin-top: auto;
 }
 
 .main-panel {
@@ -489,6 +549,159 @@ nav {
   padding: 12px;
   display: grid;
   gap: 10px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgb(15 23 42 / 32%);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.document-modal {
+  width: min(1120px, 100%);
+  max-height: min(820px, calc(100vh - 48px));
+  background: #fff;
+  border: 1px solid #cfd7e1;
+  border-radius: 8px;
+  box-shadow: 0 24px 60px rgb(15 23 42 / 22%);
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #e6eaf0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.modal-header span,
+.document-row-meta,
+.document-modal-empty span {
+  color: #617082;
+  font-size: 13px;
+}
+
+.document-create-panel,
+.document-modal-filters {
+  display: grid;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e6eaf0;
+  background: #fbfcfd;
+}
+
+.document-create-panel {
+  grid-template-columns: minmax(160px, 1.2fr) minmax(140px, 1fr) minmax(160px, 1fr) auto;
+  align-items: end;
+}
+
+.document-modal-filters {
+  grid-template-columns: minmax(220px, 1fr) minmax(160px, 220px) minmax(160px, 220px);
+}
+
+.document-create-panel label,
+.document-modal-filters label,
+.document-row-fields label {
+  margin: 0;
+}
+
+.document-create-button {
+  min-width: 116px;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #617082;
+}
+
+.input-with-icon input {
+  width: 100%;
+  padding-left: 32px;
+}
+
+.document-modal-list {
+  overflow: auto;
+  padding: 12px 18px 18px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.document-modal-row {
+  border: 1px solid #dce2e8;
+  border-radius: 8px;
+  background: #fff;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  gap: 10px 14px;
+}
+
+.document-modal-row.active {
+  border-color: #9bbcff;
+  background: #f7faff;
+}
+
+.document-row-fields {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(150px, 0.8fr);
+  gap: 10px;
+}
+
+.document-row-fields input {
+  width: 100%;
+}
+
+.document-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.document-row-actions {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.document-row-actions button {
+  min-width: 94px;
+}
+
+.document-modal-empty {
+  min-height: 160px;
+  border: 1px dashed #cfd7e1;
+  border-radius: 8px;
+  display: grid;
+  place-content: center;
+  gap: 4px;
+  text-align: center;
+  background: #fbfcfd;
 }
 
 .manager-page {
@@ -880,5 +1093,27 @@ details input {
   .table-row,
   .shortcut-row {
     grid-template-columns: 1fr;
+  }
+
+  .modal-backdrop {
+    padding: 10px;
+    place-items: stretch;
+  }
+
+  .document-modal {
+    max-height: calc(100vh - 20px);
+  }
+
+  .document-create-panel,
+  .document-modal-filters,
+  .document-modal-row,
+  .document-row-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .document-row-actions {
+    grid-row: auto;
+    grid-column: auto;
+    justify-content: flex-start;
   }
 }

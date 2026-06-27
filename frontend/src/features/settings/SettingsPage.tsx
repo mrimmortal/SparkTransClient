@@ -120,14 +120,6 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
               <option value="micro-editor">Micro Editor</option>
             </select>
           </label>
-          <label>
-            Dictation profile
-            <select value={draftSettings.profile} onChange={(event) => void updateSetting("profile", event.target.value)}>
-              <option value="general">General</option>
-              <option value="meeting-notes">Meeting notes</option>
-              <option value="medical">Medical</option>
-            </select>
-          </label>
         </section>
 
         <section className="panel stack">

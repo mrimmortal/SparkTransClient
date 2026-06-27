@@ -39,9 +39,14 @@ export type WorkspaceContext = {
   setMicroOpen: (open: boolean) => void;
   setMicroText: Dispatch<SetStateAction<string>>;
   newDocument: () => Promise<void>;
+  createManagedDocument: (payload: { title: string; category: string | null; templateId: number | null }) => Promise<void>;
   saveDocument: () => Promise<void>;
   deleteDocument: () => Promise<void>;
+  deleteDocumentById: (documentId: number) => Promise<void>;
   exportDocument: () => Promise<void>;
+  exportDocumentById: (documentId: number) => Promise<void>;
+  updateDocumentMetadata: (documentId: number, payload: { title: string; category: string | null }) => Promise<void>;
+  duplicateDocument: (documentId: number) => Promise<void>;
   insertTemplate: (template: TemplateRecord) => Promise<void>;
   connectStt: () => void;
   startDictation: () => void;

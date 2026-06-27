@@ -121,6 +121,39 @@ def test_template_docx_upload_and_invalid_upload_rejection(client: TestClient):
     assert invalid.json()["detail"] == "Only .docx templates are supported"
 
 
+def test_document_category_crud_and_owner_isolation(client: TestClient):
+    register(client, "document-owner@example.com")
+
+    created = client.post(
+        "/api/documents",
+        json={"title": "Visit note", "category": "Clinical", "content_html": "<p>Notes</p><script>alert('x')</script>"},
+    )
+    assert created.status_code == 201
+    document = created.json()
+    assert document["category"] == "Clinical"
+    assert "<script" not in document["content_html"]
+
+    listed = client.get("/api/documents")
+    assert listed.status_code == 200
+    assert listed.json()[0]["category"] == "Clinical"
+
+    updated = client.patch(f"/api/documents/{document['id']}", json={"title": "Updated visit", "category": "Follow-up"})
+    assert updated.status_code == 200
+    assert updated.json()["title"] == "Updated visit"
+    assert updated.json()["category"] == "Follow-up"
+
+    categoryless = client.post("/api/documents", json={"title": "No category"})
+    assert categoryless.status_code == 201
+    assert categoryless.json()["category"] is None
+
+    client.post("/api/auth/logout")
+    register(client, "document-other@example.com")
+
+    assert client.get("/api/documents").json() == []
+    hidden_update = client.patch(f"/api/documents/{document['id']}", json={"category": "Hidden"})
+    assert hidden_update.status_code == 404
+
+
 def test_user_settings_defaults_and_update(client: TestClient):
     register(client, "settings@example.com")
 

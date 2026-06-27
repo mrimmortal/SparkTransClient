@@ -12,10 +12,10 @@ class Document(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     title: Mapped[str] = mapped_column(String(255), default="Untitled")
+    category: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     content_json: Mapped[str] = mapped_column(Text, default="{}")
     content_html: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     owner = relationship("User", back_populates="documents")
-

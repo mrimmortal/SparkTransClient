@@ -65,8 +65,6 @@ export function DiagnosticsPage({ context }: { context: WorkspaceContext }) {
         <dd>{context.templates.length}</dd>
         <dt>Macros</dt>
         <dd>{context.macros.length}</dd>
-        <dt>Settings</dt>
-        <dd>{context.settings.profile}</dd>
       </dl>
     </section>
   );

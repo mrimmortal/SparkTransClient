@@ -1,7 +1,10 @@
-import { Activity, ClipboardList, FileText, HeartPulse, LogOut, Plus, Settings, Wand2 } from "lucide-react";
-import { Navigate, NavLink, Route, Routes } from "react-router-dom";
+import { ClipboardList, FileText, FolderOpen, HeartPulse, LogOut, Plus, Settings, Wand2 } from "lucide-react";
+import { useState } from "react";
+import { Navigate, NavLink, Route, Routes, useNavigate } from "react-router-dom";
 import { DiagnosticsPage } from "../diagnostics/DiagnosticsPage";
+import { DocumentManagementModal } from "../documents/DocumentManagementModal";
 import { DocumentsPage } from "../documents/DocumentsPage";
+import { formatDocumentDate } from "../documents/documentManagement";
 import { MacrosPage } from "../macros/MacrosPage";
 import { MicroEditor } from "../micro-editor/MicroEditor";
 import { SettingsPage } from "../settings/SettingsPage";
@@ -9,6 +12,16 @@ import { TemplatesPage } from "../templates/TemplatesPage";
 import { WorkspaceContext } from "./types";
 
 export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
+  const navigate = useNavigate();
+  const [documentManagerOpen, setDocumentManagerOpen] = useState(false);
+  const recentDocuments = context.documents.slice(0, 5);
+
+  function openDocument(document: WorkspaceContext["activeDocument"]) {
+    if (!document) return;
+    context.setActiveDocument(document);
+    navigate("/documents");
+  }
+
   return (
     <main className="workspace">
       <aside className="sidebar">
@@ -20,17 +33,37 @@ export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
           <NavLink to="/settings" className={({ isActive }) => (isActive ? "nav active" : "nav")}><Settings size={16} /> Settings</NavLink>
           <NavLink to="/diagnostics" className={({ isActive }) => (isActive ? "nav active" : "nav")}><HeartPulse size={16} /> Diagnostics</NavLink>
         </nav>
-        <button className="full secondary" onClick={() => void context.newDocument()} disabled={Boolean(context.busy)}>
-          <Plus size={16} /> New document
-        </button>
-        <div className="document-list">
-          {context.documents.map((document) => (
-            <button key={document.id} className={document.id === context.activeDocument?.id ? "doc active" : "doc"} onClick={() => context.setActiveDocument(document)}>
-              {document.title}
+        <section className="sidebar-documents">
+          <div className="sidebar-section-header">
+            <span>Documents</span>
+            <span>{context.documents.length}</span>
+          </div>
+          <div className="sidebar-document-actions">
+            <button className="secondary" onClick={() => void context.newDocument()} disabled={Boolean(context.busy)}>
+              <Plus size={16} /> New
             </button>
-          ))}
-        </div>
-        <button className="full secondary" onClick={() => void context.logout()}>
+            <button className="secondary" onClick={() => setDocumentManagerOpen(true)}>
+              <FolderOpen size={16} /> Manage
+            </button>
+          </div>
+          <div className="document-list">
+            {recentDocuments.length === 0 ? (
+              <div className="sidebar-empty">No documents yet</div>
+            ) : (
+              recentDocuments.map((document) => (
+                <button
+                  key={document.id}
+                  className={document.id === context.activeDocument?.id ? "doc active" : "doc"}
+                  onClick={() => openDocument(document)}
+                >
+                  <span>{document.title}</span>
+                  <small>{document.category || formatDocumentDate(document.updated_at)}</small>
+                </button>
+              ))
+            )}
+          </div>
+        </section>
+        <button className="full secondary sign-out-button" onClick={() => void context.logout()}>
           <LogOut size={16} /> Sign out
         </button>
       </aside>
@@ -50,6 +83,7 @@ export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
       </section>
 
       {context.microOpen && <MicroEditor context={context} />}
+      {documentManagerOpen && <DocumentManagementModal context={context} onClose={() => setDocumentManagerOpen(false)} />}
     </main>
   );
 }

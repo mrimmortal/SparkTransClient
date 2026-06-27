@@ -608,6 +608,34 @@ Next:
 - Browser visual verification remains To verify because the in-app browser connector failed during setup.
 - Vite still reports the existing large chunk warning during production build.
 
+## 2026-06-27 - Dictation profile UI removal
+
+Changed:
+- Removed the non-functional dictation profile selector from Settings.
+- Removed the profile readout from Diagnostics and user-facing manual text.
+
+Validation:
+- `cd frontend && npm test -- src/features/settings/settingsFlow.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Backend settings still retain `profile` for API/storage compatibility.
+
+## 2026-06-27 - Document management modal
+
+Changed:
+- Added optional document categories across backend records, schemas, API responses, and SQLite startup compatibility.
+- Added a sidebar document section with recent documents plus a `Manage` modal for search, sort, category filtering, create, rename, categorize, duplicate, export, and delete.
+- Added focused backend and frontend coverage for document categories and document management filtering/sorting.
+
+Validation:
+- `cd backend && .venv/bin/pytest -q tests/test_macro_template_api.py`
+- `cd frontend && npm test -- src/lib/api.test.ts src/features/documents/documentManagement.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
 ## 2026-06-27 - Template marker voice navigation
 
 Changed:

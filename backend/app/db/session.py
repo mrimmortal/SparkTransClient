@@ -46,6 +46,7 @@ def init_db() -> None:
     Base.metadata.create_all(bind=engine)
     ensure_sqlite_settings_columns()
     ensure_sqlite_template_columns()
+    ensure_sqlite_document_columns()
 
 
 def ensure_sqlite_settings_columns() -> None:
@@ -83,3 +84,16 @@ def ensure_sqlite_template_columns() -> None:
         for name, ddl in columns.items():
             if name not in existing:
                 connection.execute(text(f"ALTER TABLE templates ADD COLUMN {name} {ddl}"))
+
+
+def ensure_sqlite_document_columns() -> None:
+    if not settings.database_url.startswith("sqlite"):
+        return
+    columns = {
+        "category": "VARCHAR(255)",
+    }
+    with engine.begin() as connection:
+        existing = {row[1] for row in connection.execute(text("PRAGMA table_info(documents)"))}
+        for name, ddl in columns.items():
+            if name not in existing:
+                connection.execute(text(f"ALTER TABLE documents ADD COLUMN {name} {ddl}"))

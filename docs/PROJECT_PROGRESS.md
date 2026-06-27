@@ -88,6 +88,7 @@ Smoke checks last recorded on 2026-06-20:
 - `[x]` PDF export backend endpoint.
 - `[x]` Frontend PDF download flow.
 - `[x]` Search/replace UI.
+- `[x]` Document categories and management modal.
 
 ## Templates
 

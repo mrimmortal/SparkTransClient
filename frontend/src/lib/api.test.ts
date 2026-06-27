@@ -36,6 +36,35 @@ describe("api client", () => {
     );
   });
 
+  it("sends document category fields in create and update requests", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ id: 7, title: "Visit", category: "Clinical", content_json: "{}", content_html: "" }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({ id: 7, title: "Visit", category: "Follow-up", content_json: "{}", content_html: "" }));
+
+    await api.createDocument("Visit", "", "Clinical");
+    await api.updateDocument(7, { category: "Follow-up" });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/documents",
+      expect.objectContaining({
+        credentials: "include",
+        method: "POST",
+        headers: expect.objectContaining({ "content-type": "application/json" }),
+        body: JSON.stringify({ title: "Visit", content_json: "{}", content_html: "", category: "Clinical" }),
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/documents/7",
+      expect.objectContaining({
+        credentials: "include",
+        method: "PATCH",
+        headers: expect.objectContaining({ "content-type": "application/json" }),
+        body: JSON.stringify({ category: "Follow-up" }),
+      }),
+    );
+  });
+
   it("parses JSON error detail when available", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ detail: "Template not found" }, { status: 404 }));
 

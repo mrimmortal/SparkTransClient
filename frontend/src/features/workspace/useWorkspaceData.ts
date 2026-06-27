@@ -4,6 +4,7 @@ import { api, DocumentRecord, MacroRecord, ShortcutBindingRecord, TemplateRecord
 import { confirmationMessages } from "../../lib/editorFlow";
 import { moveToFirstTemplateMarker, moveToFirstTemplateMarkerAtOrAfter } from "../../lib/templateMarkerNavigation";
 import { getTemplateDocumentTitle, highlightTemplatePlaceholders } from "../../lib/templateFlow";
+import { buildCopyTitle } from "../documents/documentManagement";
 import { defaultSettings } from "./defaultSettings";
 
 export function useWorkspaceData({ user }: { user: UserRecord | null }) {
@@ -104,6 +105,19 @@ export function useWorkspaceData({ user }: { user: UserRecord | null }) {
     });
   }
 
+  async function createManagedDocument(payload: { title: string; category: string | null; templateId: number | null }) {
+    await runTask("Creating document", async () => {
+      const title = payload.title.trim() || "Untitled document";
+      const category = normalizeCategory(payload.category);
+      const template = templates.find((item) => item.id === payload.templateId) ?? null;
+      const contentHtml = template ? highlightTemplatePlaceholders(template.content_html || "") : "";
+      const document = await api.createDocument(title, contentHtml, category);
+      pendingTemplateMarkerFocusRef.current = Boolean(template && settings.template_marker_navigation_enabled);
+      setDocuments((current) => [document, ...current]);
+      setActiveDocument(document);
+    });
+  }
+
   async function saveDocument() {
     const editor = editorRef.current;
     if (!activeDocument || !editor) return;
@@ -120,12 +134,18 @@ export function useWorkspaceData({ user }: { user: UserRecord | null }) {
 
   async function deleteDocument() {
     if (!activeDocument) return;
+    await deleteDocumentById(activeDocument.id);
+  }
+
+  async function deleteDocumentById(documentId: number) {
     if (settings.confirm_destructive_actions && !window.confirm(confirmationMessages.deleteDocument)) return;
     await runTask("Deleting document", async () => {
-      await api.deleteDocument(activeDocument.id);
+      await api.deleteDocument(documentId);
       setDocuments((current) => {
-        const nextDocuments = current.filter((item) => item.id !== activeDocument.id);
-        setActiveDocument(nextDocuments[0] ?? null);
+        const nextDocuments = current.filter((item) => item.id !== documentId);
+        if (activeDocument?.id === documentId) {
+          setActiveDocument(nextDocuments[0] ?? null);
+        }
         return nextDocuments;
       });
     });
@@ -133,14 +153,41 @@ export function useWorkspaceData({ user }: { user: UserRecord | null }) {
 
   async function exportDocument() {
     if (!activeDocument) return;
+    await exportDocumentById(activeDocument.id);
+  }
+
+  async function exportDocumentById(documentId: number) {
+    const selectedDocument = documents.find((item) => item.id === documentId) ?? activeDocument;
+    if (!selectedDocument || selectedDocument.id !== documentId) return;
     await runTask("Exporting PDF", async () => {
-      const blob = await api.exportDocumentPdf(activeDocument.id);
+      const blob = await api.exportDocumentPdf(documentId);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${activeDocument.title || "document"}.pdf`;
+      link.download = `${selectedDocument.title || "document"}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
+    });
+  }
+
+  async function updateDocumentMetadata(documentId: number, payload: { title: string; category: string | null }) {
+    await runTask("Updating document", async () => {
+      const updated = await api.updateDocument(documentId, {
+        title: payload.title.trim() || "Untitled document",
+        category: normalizeCategory(payload.category),
+      });
+      setDocuments((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+      setActiveDocument((current) => (current?.id === updated.id ? updated : current));
+    });
+  }
+
+  async function duplicateDocument(documentId: number) {
+    const source = documents.find((item) => item.id === documentId);
+    if (!source) return;
+    await runTask("Duplicating document", async () => {
+      const duplicate = await api.createDocument(buildCopyTitle(source.title), source.content_html, source.category, source.content_json);
+      setDocuments((current) => [duplicate, ...current]);
+      setActiveDocument(duplicate);
     });
   }
 
@@ -184,10 +231,20 @@ export function useWorkspaceData({ user }: { user: UserRecord | null }) {
     setMicroOpen,
     setMicroText,
     newDocument,
+    createManagedDocument,
     saveDocument,
     deleteDocument,
+    deleteDocumentById,
     exportDocument,
+    exportDocumentById,
+    updateDocumentMetadata,
+    duplicateDocument,
     insertTemplate,
     logoutWorkspace,
   };
+}
+
+function normalizeCategory(value: string | null): string | null {
+  const normalized = value?.trim() ?? "";
+  return normalized || null;
 }

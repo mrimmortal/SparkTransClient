@@ -1,6 +1,7 @@
 export type DocumentRecord = {
   id: number;
   title: string;
+  category: string | null;
   content_json: string;
   content_html: string;
   created_at: string;
@@ -131,9 +132,12 @@ export const api = {
   register: (email: string, password: string) => request<UserRecord>("/api/auth/register", { method: "POST", ...jsonBody({ email, password }) }),
   logout: () => request<void>("/api/auth/logout", { method: "POST" }, { responseMode: "void" }),
   documents: () => request<DocumentRecord[]>("/api/documents"),
-  createDocument: (title: string, content_html = "") =>
-    request<DocumentRecord>("/api/documents", { method: "POST", ...jsonBody({ title, content_json: "{}", content_html }) }),
-  updateDocument: (id: number, payload: Partial<Pick<DocumentRecord, "title" | "content_json" | "content_html">>) =>
+  createDocument: (title: string, content_html = "", category?: string | null, content_json = "{}") =>
+    request<DocumentRecord>("/api/documents", {
+      method: "POST",
+      ...jsonBody({ title, content_json, content_html, ...(category !== undefined ? { category } : {}) }),
+    }),
+  updateDocument: (id: number, payload: Partial<Pick<DocumentRecord, "title" | "category" | "content_json" | "content_html">>) =>
     request<DocumentRecord>(`/api/documents/${id}`, { method: "PATCH", ...jsonBody(payload) }),
   deleteDocument: (id: number) => request<void>(`/api/documents/${id}`, { method: "DELETE" }, { responseMode: "void" }),
   exportDocumentPdf: (id: number) => request<Blob>(`/api/documents/${id}/export/pdf`, { method: "POST" }, { responseMode: "blob" }),

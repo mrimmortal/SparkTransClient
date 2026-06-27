@@ -24,6 +24,10 @@ Authentication uses an HTTP-only cookie named by backend settings.
 | `DELETE` | `/api/documents/{document_id}` | Delete owned document. |
 | `POST` | `/api/documents/{document_id}/export/pdf` | Export owned document as PDF. |
 
+Document records include `id`, `title`, optional `category`, `content_json`,
+`content_html`, `created_at`, and `updated_at`. Create and update payloads
+accept optional `category`.
+
 ## Templates
 
 | Method | Path | Purpose |

@@ -29,7 +29,13 @@ def list_documents(user: User = Depends(current_user), db: Session = Depends(get
 
 @router.post("", response_model=DocumentRead, status_code=status.HTTP_201_CREATED)
 def create_document(payload: DocumentCreate, request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    document = Document(owner_id=user.id, title=payload.title, content_json=payload.content_json, content_html=sanitize_html(payload.content_html))
+    document = Document(
+        owner_id=user.id,
+        title=payload.title,
+        category=normalize_category(payload.category),
+        content_json=payload.content_json,
+        content_html=sanitize_html(payload.content_html),
+    )
     db.add(document)
     db.flush()
     audit_event(db, "document.create", user.id, "document", str(document.id), getattr(request.state, "request_id", None))
@@ -48,6 +54,8 @@ def update_document(document_id: int, payload: DocumentUpdate, request: Request,
     document = _owned_document(db, user, document_id)
     if payload.title is not None:
         document.title = payload.title
+    if "category" in payload.model_fields_set:
+        document.category = normalize_category(payload.category)
     if payload.content_json is not None:
         document.content_json = payload.content_json
     if payload.content_html is not None:
@@ -78,3 +86,9 @@ def export_document_pdf(document_id: int, request: Request, user: User = Depends
         headers={"content-disposition": f'attachment; filename="{document.title}.pdf"'},
     )
 
+
+def normalize_category(value: str | None) -> str | None:
+    if value is None:
+        return None
+    normalized = value.strip()
+    return normalized or None
