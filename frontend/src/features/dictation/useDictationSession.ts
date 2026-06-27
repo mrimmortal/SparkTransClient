@@ -79,20 +79,13 @@ export function useDictationSession({
   const lastSmartEditorDictationRangeRef = useRef<{ from: number; to: number; text: string } | null>(null);
   const matcherRef = useRef<CommandEmbeddingMatcher | null>(null);
   const templateEmbeddingsRef = useRef<Map<number, number[]>>(new Map());
+  const computedTemplatesHashRef = useRef("");
 
   useEffect(() => {
     const matcher = new CommandEmbeddingMatcher();
     matcherRef.current = matcher;
     matcher.init();
   }, []);
-
-  useEffect(() => {
-    const matcher = matcherRef.current;
-    if (!matcher?.ready) return;
-    matcher.computeTemplateEmbeddings(templates).then((embeddings) => {
-      templateEmbeddingsRef.current = embeddings;
-    });
-  }, [templates]);
 
   const realtimeText = useMemo(() => Object.values(transcripts.realtimeBySegment).join(" "), [transcripts]);
 
@@ -254,6 +247,15 @@ export function useDictationSession({
   async function insertFinalText(text: string) {
     const currentSettings = settingsRef.current;
     const matcher = matcherRef.current;
+
+    if (matcher?.ready) {
+      const currentHash = templatesRef.current.map((t) => t.id).join(",");
+      if (currentHash !== computedTemplatesHashRef.current) {
+        templateEmbeddingsRef.current = await matcher.computeTemplateEmbeddings(templatesRef.current);
+        computedTemplatesHashRef.current = currentHash;
+      }
+    }
+
     const template = await routeTemplateVoiceCommandSemantic(
       text,
       templatesRef.current,

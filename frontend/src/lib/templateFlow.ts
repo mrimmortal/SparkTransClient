@@ -110,7 +110,7 @@ export async function routeTemplateVoiceCommandSemantic(
   templateEmbeddings: Map<number, number[]> | null | undefined,
 ): Promise<TemplateRecord | null> {
   if (!options.voiceCommandsEnabled) return null;
-  if (!matcher?.ready || !templateEmbeddings) {
+  if (!matcher?.ready || !templateEmbeddings || templateEmbeddings.size === 0) {
     return routeTemplateVoiceCommand(text, templates, options);
   }
   const normalized = normalizeTemplateCommand(text);
