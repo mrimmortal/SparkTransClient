@@ -34,7 +34,7 @@ export const DOCUMENT_QUICK_TARGETS = [
   { value: "micro-editor", label: "Micro" },
 ] as const;
 
-export function DocumentQuickSettings({ context }: { context: WorkspaceContext }) {
+export function DocumentQuickSettings({ context, showTargets = true }: { context: WorkspaceContext; showTargets?: boolean }) {
   const [savingField, setSavingField] = useState<keyof UserSettingsRecord | null>(null);
   const saving = savingField !== null;
 
@@ -67,20 +67,22 @@ export function DocumentQuickSettings({ context }: { context: WorkspaceContext }
           );
         })}
       </div>
-      <div className="quick-target-group" role="group" aria-label="Default dictation target">
-        {DOCUMENT_QUICK_TARGETS.map((target) => (
-          <button
-            key={target.value}
-            type="button"
-            className={context.settings.default_editor_target === target.value ? "quick-toggle active" : "quick-toggle"}
-            aria-pressed={context.settings.default_editor_target === target.value}
-            disabled={saving}
-            onClick={() => void updateSetting("default_editor_target", target.value)}
-          >
-            {target.label}
-          </button>
-        ))}
-      </div>
+      {showTargets && (
+        <div className="quick-target-group" role="group" aria-label="Default dictation target">
+          {DOCUMENT_QUICK_TARGETS.map((target) => (
+            <button
+              key={target.value}
+              type="button"
+              className={context.settings.default_editor_target === target.value ? "quick-toggle active" : "quick-toggle"}
+              aria-pressed={context.settings.default_editor_target === target.value}
+              disabled={saving}
+              onClick={() => void updateSetting("default_editor_target", target.value)}
+            >
+              {target.label}
+            </button>
+          ))}
+        </div>
+      )}
       <span className="quick-settings-status">{savingField ? "Saving" : "Saved"}</span>
     </section>
   );

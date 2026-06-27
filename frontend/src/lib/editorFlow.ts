@@ -29,12 +29,18 @@ export type EditorToolbarItem = {
   label: string;
 };
 
+export type EditorTextMetrics = {
+  words: number;
+  characters: number;
+};
+
 export const editorToolbarItems: EditorToolbarItem[] = [
+  { command: "paragraph", label: "Paragraph" },
+  { command: "heading", label: "Heading" },
   { command: "bold", label: "Bold" },
   { command: "italic", label: "Italic" },
   { command: "underline", label: "Underline" },
-  { command: "heading", label: "Heading" },
-  { command: "paragraph", label: "Paragraph" },
+  { command: "clear-formatting", label: "Clear formatting" },
   { command: "bullet-list", label: "Bullet list" },
   { command: "ordered-list", label: "Numbered list" },
   { command: "blockquote", label: "Quote" },
@@ -42,7 +48,6 @@ export const editorToolbarItems: EditorToolbarItem[] = [
   { command: "horizontal-rule", label: "Horizontal rule" },
   { command: "undo", label: "Undo" },
   { command: "redo", label: "Redo" },
-  { command: "clear-formatting", label: "Clear formatting" },
 ];
 
 export const confirmationMessages = {
@@ -59,4 +64,43 @@ export function getSaveStatusLabel(input: SaveStatusInput): string {
 
 export function canSaveEditorDocument(input: EditorSaveInput): boolean {
   return input.hasActiveDocument && !input.saving && Boolean(input.text?.trim());
+}
+
+export function getEditorTextMetrics(text: string | null | undefined): EditorTextMetrics {
+  const value = text ?? "";
+  const words = value.trim() ? value.trim().split(/\s+/).length : 0;
+  return {
+    words,
+    characters: value.length,
+  };
+}
+
+export function formatEditorCountLabel(metrics: EditorTextMetrics): string {
+  return `Words: ${metrics.words} · Characters: ${metrics.characters}`;
+}
+
+export function formatQuickActionDate(date = new Date()): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+export function formatQuickActionTime(date = new Date()): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
+export function clearLastSentenceText(text: string): string {
+  const trimmed = text.trimEnd();
+  if (!trimmed) return "";
+  const matches = [...trimmed.matchAll(/[.!?](?=\s|$)/g)];
+  if (matches.length <= 1) return "";
+  const previousEnd = matches[matches.length - 2].index;
+  if (previousEnd === undefined) return "";
+  return trimmed.slice(0, previousEnd + 1).trimEnd();
 }

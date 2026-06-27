@@ -67,8 +67,25 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
       <form id="settings-form" className="settings-grid" onSubmit={(event) => void saveSettings(event)}>
         <section className="panel stack">
           <div className="panel-heading">
-            <h2>Dictation</h2>
+            <h2>Appearance</h2>
             <span className={settingsDirty ? "save-status dirty" : "save-status"}>{saving ? "Saving..." : settingsDirty ? "Unsaved" : "Saved"}</span>
+          </div>
+          <label>
+            Theme preset
+            <select
+              value={draftSettings.ui_theme}
+              onChange={(event) => void updateSetting("ui_theme", event.target.value as UserSettingsRecord["ui_theme"])}
+            >
+              <option value="neo-cool">Neo Cool</option>
+              <option value="neo-warm">Neo Warm</option>
+              <option value="neo-dark">Neo Dark</option>
+            </select>
+          </label>
+        </section>
+
+        <section className="panel stack">
+          <div className="panel-heading">
+            <h2>Dictation</h2>
           </div>
           <label className="compact-check">
             <input

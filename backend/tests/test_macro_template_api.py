@@ -172,6 +172,7 @@ def test_user_settings_defaults_and_update(client: TestClient):
     assert body["show_microphone_status"] is True
     assert body["template_marker_navigation_enabled"] is False
     assert body["template_marker_auto_advance_enabled"] is False
+    assert body["ui_theme"] == "neo-cool"
 
     updated = client.patch(
         "/api/settings",
@@ -193,6 +194,7 @@ def test_user_settings_defaults_and_update(client: TestClient):
             "show_microphone_status": False,
             "template_marker_navigation_enabled": True,
             "template_marker_auto_advance_enabled": True,
+            "ui_theme": "neo-dark",
         },
     )
 
@@ -215,7 +217,11 @@ def test_user_settings_defaults_and_update(client: TestClient):
     assert updated_body["show_microphone_status"] is False
     assert updated_body["template_marker_navigation_enabled"] is True
     assert updated_body["template_marker_auto_advance_enabled"] is True
+    assert updated_body["ui_theme"] == "neo-dark"
 
     refreshed = client.get("/api/settings")
     assert refreshed.status_code == 200
     assert refreshed.json() == updated_body
+
+    invalid_theme = client.patch("/api/settings", json={"ui_theme": "custom-purple"})
+    assert invalid_theme.status_code == 422

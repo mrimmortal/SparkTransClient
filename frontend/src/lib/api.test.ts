@@ -176,4 +176,20 @@ describe("api client", () => {
       }),
     );
   });
+
+  it("sends theme preset updates through the settings patch endpoint", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ ui_theme: "neo-dark" }));
+
+    await api.updateSettings({ ui_theme: "neo-dark" });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/settings",
+      expect.objectContaining({
+        credentials: "include",
+        method: "PATCH",
+        headers: expect.objectContaining({ "content-type": "application/json" }),
+        body: JSON.stringify({ ui_theme: "neo-dark" }),
+      }),
+    );
+  });
 });

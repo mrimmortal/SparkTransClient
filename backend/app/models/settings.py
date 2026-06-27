@@ -26,6 +26,7 @@ class UserSettings(Base):
     show_microphone_status: Mapped[bool] = mapped_column(Boolean, default=True)
     template_marker_navigation_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     template_marker_auto_advance_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    ui_theme: Mapped[str] = mapped_column(String(32), default="neo-cool")
 
 
 class ShortcutBinding(Base):

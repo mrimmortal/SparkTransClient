@@ -15,6 +15,7 @@ export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
   const navigate = useNavigate();
   const [documentManagerOpen, setDocumentManagerOpen] = useState(false);
   const recentDocuments = context.documents.slice(0, 5);
+  const userInitials = getUserInitials(context.user.email);
 
   function openDocument(document: WorkspaceContext["activeDocument"]) {
     if (!document) return;
@@ -23,7 +24,7 @@ export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
   }
 
   return (
-    <main className="workspace">
+    <main className={`workspace theme-${context.settings.ui_theme}`}>
       <aside className="sidebar">
         <div className="brand">SparkTrans</div>
         <nav>
@@ -63,9 +64,16 @@ export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
             )}
           </div>
         </section>
-        <button className="full secondary sign-out-button" onClick={() => void context.logout()}>
-          <LogOut size={16} /> Sign out
-        </button>
+        <section className="sidebar-account-card">
+          <span className="sidebar-account-avatar">{userInitials}</span>
+          <span className="sidebar-account-copy">
+            <strong>{context.user.email.split("@")[0] || "User"}</strong>
+            <small>{context.user.email}</small>
+          </span>
+          <button className="icon-button sign-out-button" aria-label="Sign out" onClick={() => void context.logout()}>
+            <LogOut size={16} />
+          </button>
+        </section>
       </aside>
 
       <section className="main-panel">
@@ -86,4 +94,10 @@ export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
       {documentManagerOpen && <DocumentManagementModal context={context} onClose={() => setDocumentManagerOpen(false)} />}
     </main>
   );
+}
+
+function getUserInitials(email: string): string {
+  const name = email.split("@")[0] || "User";
+  const parts = name.split(/[._\-\s]+/).filter(Boolean);
+  return (parts.length > 1 ? `${parts[0][0]}${parts[1][0]}` : name.slice(0, 2)).toUpperCase();
 }

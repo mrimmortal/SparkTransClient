@@ -75,6 +75,7 @@ User settings include:
 - `show_microphone_status`
 - `template_marker_navigation_enabled`
 - `template_marker_auto_advance_enabled`
+- `ui_theme`
 
 ## Health And Config
 

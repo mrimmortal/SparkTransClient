@@ -18,4 +18,5 @@ export const defaultSettings: UserSettingsRecord = {
   show_microphone_status: true,
   template_marker_navigation_enabled: false,
   template_marker_auto_advance_enabled: false,
+  ui_theme: "neo-cool",
 };

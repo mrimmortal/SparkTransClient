@@ -65,6 +65,7 @@ def ensure_sqlite_settings_columns() -> None:
         "show_microphone_status": "BOOLEAN DEFAULT 1 NOT NULL",
         "template_marker_navigation_enabled": "BOOLEAN DEFAULT 0 NOT NULL",
         "template_marker_auto_advance_enabled": "BOOLEAN DEFAULT 0 NOT NULL",
+        "ui_theme": "VARCHAR(32) DEFAULT 'neo-cool' NOT NULL",
     }
     with engine.begin() as connection:
         existing = {row[1] for row in connection.execute(text("PRAGMA table_info(user_settings)"))}

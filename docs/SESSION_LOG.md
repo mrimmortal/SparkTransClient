@@ -636,6 +636,54 @@ Next:
 - Browser visual verification remains To verify because the in-app browser connector failed during setup.
 - Vite still reports the existing large chunk warning during production build.
 
+## 2026-06-27 - Configurable neomorphic themes
+
+Changed:
+- Added persisted `ui_theme` settings support with `neo-cool`, `neo-warm`, and `neo-dark` presets.
+- Added a Settings appearance selector and applied saved theme classes to the workspace.
+- Refactored frontend styling around neomorphic theme variables, raised/inset controls, panels, editor, modal, and status surfaces.
+
+Validation:
+- `cd backend && .venv/bin/pytest -q tests/test_macro_template_api.py::test_user_settings_defaults_and_update`
+- `cd frontend && npm test -- src/features/settings/settingsFlow.test.ts src/lib/api.test.ts`
+- `cd frontend && npm run build`
+- Local HTTP smoke: backend health on `http://127.0.0.1:8000/api/health/live`, Vite HTML on `http://127.0.0.1:5175/`
+
+Next:
+- Browser visual verification remains To verify because browser control failed during setup.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Documents workspace mockup redesign
+
+Changed:
+- Reworked the Documents workspace into a mockup-inspired layout with preserved sidebar, document, dictation, quick setting, search/replace, toolbar, marker navigation, editor, footer, and Micro Editor controls.
+- Added a Documents right rail for dictation help, local editor quick actions, and diagnostics summary.
+- Added editor helper coverage for text metrics, date/time quick actions, and clear-last-sentence behavior.
+
+Validation:
+- `cd frontend && npm test -- src/lib/editorFlow.test.ts src/features/documents/DocumentQuickSettings.test.ts`
+- `cd frontend && npm run build`
+- Local HTTP smoke: Vite HTML on `http://127.0.0.1:5175/`
+
+Next:
+- Browser visual verification remains To verify.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-27 - Documents viewport scroll fix
+
+Changed:
+- Constrained the Documents workspace to the viewport so the footer dock stays visible.
+- Made the editor shell and right rail own their internal scrolling.
+- Added responsive sizing tokens for Documents controls, cards, text, spacing, and editor padding across desktop, tablet, and phone breakpoints.
+
+Validation:
+- `cd frontend && npm test -- src/lib/editorFlow.test.ts src/features/documents/DocumentQuickSettings.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Browser visual verification remains To verify.
+- Vite still reports the existing large chunk warning during production build.
+
 ## 2026-06-27 - Dictation profile UI removal
 
 Changed:
@@ -805,6 +853,35 @@ Validation:
 - `cd frontend && npm run build`
 - `cd backend && .venv/bin/pytest -q tests/test_macro_template_api.py`
 - `git diff --check`
+
+Next:
+- Browser visual verification remains To verify because the in-app browser connector failed during setup.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-28 - Template marker panel overlap fix
+
+Changed:
+- Switched the document main column from fixed grid rows to a vertical flex stack.
+- Made the editor shell the flexible scroll region so the optional marker panel no longer shares the editor row.
+
+Validation:
+- `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-06-28 - Compact Documents editor layout
+
+Changed:
+- Merged dictation status and primary document actions into the Documents header.
+- Moved quick settings and find/replace behind compact toggle buttons.
+- Added editor focus mode that hides secondary controls and the right rail while keeping save, dictation, toolbar, and marker actions available.
+- Slimmed the toolbar and template marker panel to increase Smart Editor vertical space.
+
+Validation:
+- `cd frontend && npm test -- src/lib/editorFlow.test.ts`
+- `cd frontend && npm run build`
+- Local HTTP smoke against `http://127.0.0.1:5174/`
 
 Next:
 - Browser visual verification remains To verify because the in-app browser connector failed during setup.

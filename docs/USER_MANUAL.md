@@ -169,8 +169,8 @@ Deleting a document asks for confirmation first.
 
 ## Settings
 
-Use `Settings` to adjust dictation behavior, transcript handling, microphone
-selection, document defaults, and safety prompts.
+Use `Settings` to adjust appearance, dictation behavior, transcript handling,
+microphone selection, document defaults, and safety prompts.
 The top-right `Save settings` button is enabled when settings have unsaved
 changes. Click it to persist the changes.
 The Documents page also includes quick toggles for common dictation workflow
@@ -180,7 +180,8 @@ Useful options include auto-connecting CoreSTT on the Documents page, allowing
 common voice-command variants, ignoring `[BLANK_AUDIO]`, preventing repeated
 final transcripts, enabling document auto-save, choosing a default template for
 new documents, voice navigation through template fields, template field
-auto-advance, and requiring confirmation before clearing or deleting data.
+auto-advance, choosing a neomorphic theme preset, and requiring confirmation
+before clearing or deleting data.
 The microphone section can list browser audio inputs and run a basic microphone
 permission check when the browser permits device access.
 

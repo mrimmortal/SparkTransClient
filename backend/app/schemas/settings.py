@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from app.schemas.common import ORMModel
@@ -21,6 +23,7 @@ class UserSettingsUpdate(BaseModel):
     show_microphone_status: bool | None = None
     template_marker_navigation_enabled: bool | None = None
     template_marker_auto_advance_enabled: bool | None = None
+    ui_theme: Literal["neo-cool", "neo-warm", "neo-dark"] | None = None
 
 
 class UserSettingsRead(ORMModel):
@@ -41,6 +44,7 @@ class UserSettingsRead(ORMModel):
     show_microphone_status: bool
     template_marker_navigation_enabled: bool
     template_marker_auto_advance_enabled: bool
+    ui_theme: Literal["neo-cool", "neo-warm", "neo-dark"]
 
 
 class ShortcutBindingWrite(BaseModel):

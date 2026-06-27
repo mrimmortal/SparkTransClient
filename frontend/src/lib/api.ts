@@ -29,6 +29,8 @@ export type UserRecord = {
   email: string;
 };
 
+export type UserThemePreset = "neo-cool" | "neo-warm" | "neo-dark";
+
 export type UserSettingsRecord = {
   audio_device_id: string | null;
   voice_commands_enabled: boolean;
@@ -47,6 +49,7 @@ export type UserSettingsRecord = {
   show_microphone_status: boolean;
   template_marker_navigation_enabled: boolean;
   template_marker_auto_advance_enabled: boolean;
+  ui_theme: UserThemePreset;
 };
 
 export type ShortcutBindingRecord = {

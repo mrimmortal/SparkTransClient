@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { canSaveEditorDocument, confirmationMessages, editorToolbarItems, getSaveStatusLabel } from "./editorFlow";
+import {
+  canSaveEditorDocument,
+  clearLastSentenceText,
+  confirmationMessages,
+  editorToolbarItems,
+  formatEditorCountLabel,
+  formatQuickActionDate,
+  formatQuickActionTime,
+  getEditorTextMetrics,
+  getSaveStatusLabel,
+} from "./editorFlow";
 
 describe("editor flow UX", () => {
   it("labels save state for saved, dirty, and saving documents", () => {
@@ -8,8 +18,8 @@ describe("editor flow UX", () => {
     expect(getSaveStatusLabel({ dirty: true, saving: true })).toBe("Saving...");
   });
 
-  it("defines the planned editor toolbar commands", () => {
-    expect(editorToolbarItems.map((item) => item.command)).toEqual([
+  it("defines every preserved editor toolbar command", () => {
+    expect(new Set(editorToolbarItems.map((item) => item.command))).toEqual(new Set([
       "bold",
       "italic",
       "underline",
@@ -23,7 +33,7 @@ describe("editor flow UX", () => {
       "undo",
       "redo",
       "clear-formatting",
-    ]);
+    ]));
   });
 
   it("allows manual save only for active documents with editor text", () => {
@@ -38,5 +48,25 @@ describe("editor flow UX", () => {
     expect(confirmationMessages.deleteDocument).toMatch(/Delete this document/i);
     expect(confirmationMessages.deleteTemplate).toMatch(/Delete this template/i);
     expect(confirmationMessages.deleteMacro).toMatch(/Delete this macro/i);
+  });
+
+  it("counts editor words and characters from visible text", () => {
+    expect(getEditorTextMetrics("Meeting notes\n\nFollow up today.")).toEqual({
+      words: 5,
+      characters: 31,
+    });
+    expect(formatEditorCountLabel({ words: 1, characters: 8 })).toBe("Words: 1 · Characters: 8");
+  });
+
+  it("formats deterministic date and time quick actions", () => {
+    const value = new Date("2026-06-27T09:05:00");
+    expect(formatQuickActionDate(value)).toBe("27 Jun 2026");
+    expect(formatQuickActionTime(value)).toBe("09:05");
+  });
+
+  it("clears only the last sentence from plain editor text", () => {
+    expect(clearLastSentenceText("First sentence. Second sentence.")).toBe("First sentence.");
+    expect(clearLastSentenceText("Only sentence")).toBe("");
+    expect(clearLastSentenceText("Keep this! Remove this?")).toBe("Keep this!");
   });
 });
