@@ -146,6 +146,18 @@ function Ensure-SupportedNode {
   throw "Node.js $MinNodeMajor+ with npm is still unavailable. Install it manually, then re-run this script."
 }
 
+function Ensure-BackendVenv {
+  param([pscustomobject]$PythonCommand)
+
+  if (-not (Test-Path $VenvPython)) {
+    & $PythonCommand.Executable @($PythonCommand.Arguments) -m venv (Join-Path $BackendDir ".venv")
+  }
+
+  if (-not (Test-Path $VenvPython)) {
+    throw "Virtual environment was not created at $VenvPython"
+  }
+}
+
 if ($Action -eq "help") {
   Show-Usage
   exit 0
@@ -153,10 +165,7 @@ if ($Action -eq "help") {
 
 $PythonCommand = Ensure-SupportedPython
 Ensure-SupportedNode
-
-if (-not (Test-Path $VenvPython)) {
-  & $PythonCommand.Executable @($PythonCommand.Arguments) -m venv (Join-Path $BackendDir ".venv")
-}
+Ensure-BackendVenv -PythonCommand $PythonCommand
 
 & $VenvPython -m pip install -r (Join-Path $BackendDir "requirements.txt")
 & $VenvPython (Join-Path $BackendDir "scripts\seed_sample_user.py")

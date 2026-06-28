@@ -147,6 +147,17 @@ ensure_supported_node() {
   return 1
 }
 
+ensure_backend_venv() {
+  if [[ ! -x "$BACKEND_DIR/.venv/bin/python" ]]; then
+    "$PYTHON_BIN" -m venv "$BACKEND_DIR/.venv"
+  fi
+
+  if [[ ! -x "$BACKEND_DIR/.venv/bin/python" ]]; then
+    echo "Virtual environment was not created at $BACKEND_DIR/.venv" >&2
+    return 1
+  fi
+}
+
 cleanup() {
   if [[ -n "${BACKEND_PID:-}" ]]; then
     kill "$BACKEND_PID" 2>/dev/null || true
@@ -173,10 +184,7 @@ esac
 
 ensure_supported_python
 ensure_supported_node
-
-if [[ ! -d "$BACKEND_DIR/.venv" ]]; then
-  "$PYTHON_BIN" -m venv "$BACKEND_DIR/.venv"
-fi
+ensure_backend_venv
 
 "$BACKEND_DIR/.venv/bin/python" -m pip install -r "$BACKEND_DIR/requirements.txt"
 "$BACKEND_DIR/.venv/bin/python" "$BACKEND_DIR/scripts/seed_sample_user.py"

@@ -76,6 +76,8 @@ Changed:
 - Rewrote direct-terminal deployment wrappers for macOS, Linux, and Windows.
 - Added simple Python 3.12+ and Node.js 22+ checks that ask before installing
   missing runtimes.
+- Added explicit backend virtual environment creation and verification before
+  installing Python dependencies.
 - Aligned dependency install and startup commands with `docs/COMMANDS.md`.
 - Added a focused script validation check for terminal deployment wrappers.
 
