@@ -70,6 +70,18 @@ Validation:
 - PowerShell syntax validation not run because `pwsh`/`powershell` is not
   available on this host.
 
+## 2026-06-28 - Terminal deployment runtime setup
+
+Changed:
+- Hardened direct-terminal deployment wrappers to require Python 3.12+ and
+  Node.js 22+ with npm.
+- Added OS package-manager install attempts for missing runtimes and clearer
+  manual-install failures when automatic setup is unavailable.
+- Added a focused script validation check for terminal deployment wrappers.
+
+Validation:
+- `bash scripts/test-deploy-terminal-scripts.sh`
+
 ## 2026-06-24 - Frontend module split
 
 Changed:

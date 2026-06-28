@@ -99,6 +99,9 @@ Backend:  http://127.0.0.1:8000
 
 Use Docker for server-style deployment. Use direct terminal startup when Docker
 is unavailable or when you want to run both services visibly in the terminal.
+The terminal wrappers require Python 3.12+ and Node.js 22+ with npm. They try
+to install missing runtimes with the available OS package manager and print
+manual install instructions when automatic installation is unavailable.
 
 ## Manual Commands
 

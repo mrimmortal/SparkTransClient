@@ -82,6 +82,10 @@ The terminal wrappers install dependencies, seed the sample user, build the
 frontend, start FastAPI on `http://127.0.0.1:8000`, and start Vite preview on
 `http://127.0.0.1:8080` in the foreground.
 
+The terminal wrappers require Python 3.12+ and Node.js 22+ with npm. They try
+to install missing runtimes with the available OS package manager and print
+manual install instructions when automatic installation is unavailable.
+
 ## Sample login
 
 ```text
