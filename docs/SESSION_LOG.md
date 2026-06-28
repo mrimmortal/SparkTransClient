@@ -73,10 +73,10 @@ Validation:
 ## 2026-06-28 - Terminal deployment runtime setup
 
 Changed:
-- Hardened direct-terminal deployment wrappers to require Python 3.12+ and
-  Node.js 22+ with npm.
-- Added OS package-manager install attempts for missing runtimes and clearer
-  manual-install failures when automatic setup is unavailable.
+- Rewrote direct-terminal deployment wrappers for macOS, Linux, and Windows.
+- Added simple Python 3.12+ and Node.js 22+ checks that ask before installing
+  missing runtimes.
+- Aligned dependency install and startup commands with `docs/COMMANDS.md`.
 - Added a focused script validation check for terminal deployment wrappers.
 
 Validation:

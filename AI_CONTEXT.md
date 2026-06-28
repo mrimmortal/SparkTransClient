@@ -43,8 +43,9 @@ proxy/client integration.
 - Vite dev proxy: `frontend/vite.config.ts` proxies `/api` and `/ws`
 - Docker compose: `docker-compose.yml`
 - Deployment wrappers: `scripts/deploy-docker-linux.sh`,
-  `scripts/deploy-docker-windows.ps1`, `scripts/deploy-terminal-linux.sh`,
-  and `scripts/deploy-terminal-windows.ps1`
+  `scripts/deploy-docker-windows.ps1`, `scripts/deploy-terminal-mac.sh`,
+  `scripts/deploy-terminal-linux.sh`, and
+  `scripts/deploy-terminal-windows.ps1`
 - SQLite default: `backend/data/app.db`
 - Upload volume/path in Docker: `/app/uploads`
 - Default CoreSTT URL: `ws://127.0.0.1:8020/ws/transcribe`

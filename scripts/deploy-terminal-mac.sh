@@ -18,7 +18,7 @@ usage() {
   cat <<EOF
 Usage: $0 [up|deploy]
 
-Linux direct terminal deployment.
+macOS direct terminal deployment.
 
 Requires:
   Python 3.12 or newer
@@ -41,15 +41,14 @@ confirm_install() {
   esac
 }
 
-run_sudo() {
-  if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
-    "$@"
-  elif command -v sudo >/dev/null 2>&1; then
-    sudo "$@"
-  else
-    echo "sudo is not available. Install manually, then re-run this script." >&2
-    return 1
+require_brew() {
+  if command -v brew >/dev/null 2>&1; then
+    return 0
   fi
+
+  echo "Homebrew is required for automatic install on macOS." >&2
+  echo "Install Homebrew or install the missing runtime manually, then re-run this script." >&2
+  return 1
 }
 
 install_python() {
@@ -58,19 +57,8 @@ install_python() {
     return 1
   }
 
-  if command -v apt-get >/dev/null 2>&1; then
-    run_sudo apt-get update
-    run_sudo apt-get install -y python3.12 python3.12-venv python3-pip
-  elif command -v dnf >/dev/null 2>&1; then
-    run_sudo dnf install -y python3.12 python3.12-pip
-  elif command -v yum >/dev/null 2>&1; then
-    run_sudo yum install -y python3.12 python3.12-pip
-  elif command -v pacman >/dev/null 2>&1; then
-    run_sudo pacman -Sy --needed python python-pip
-  else
-    echo "No supported Linux package manager found. Install Python $MIN_PYTHON_MAJOR.$MIN_PYTHON_MINOR+ manually." >&2
-    return 1
-  fi
+  require_brew
+  brew install python@3.12
 }
 
 install_node() {
@@ -79,19 +67,8 @@ install_node() {
     return 1
   }
 
-  if command -v apt-get >/dev/null 2>&1; then
-    run_sudo apt-get update
-    run_sudo apt-get install -y nodejs npm
-  elif command -v dnf >/dev/null 2>&1; then
-    run_sudo dnf install -y nodejs npm
-  elif command -v yum >/dev/null 2>&1; then
-    run_sudo yum install -y nodejs npm
-  elif command -v pacman >/dev/null 2>&1; then
-    run_sudo pacman -Sy --needed nodejs npm
-  else
-    echo "No supported Linux package manager found. Install Node.js $MIN_NODE_MAJOR+ manually." >&2
-    return 1
-  fi
+  require_brew
+  brew install node@22 || brew install node
 }
 
 find_python() {

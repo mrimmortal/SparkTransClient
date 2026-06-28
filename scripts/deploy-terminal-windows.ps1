@@ -16,7 +16,7 @@ $RootDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 $BackendDir = Join-Path $RootDir "backend"
 $FrontendDir = Join-Path $RootDir "frontend"
 $VenvPython = Join-Path $BackendDir ".venv\Scripts\python.exe"
-$VenvPip = Join-Path $BackendDir ".venv\Scripts\pip.exe"
+
 $MinPythonMajor = 3
 $MinPythonMinor = 12
 $MinNodeMajor = 22
@@ -24,35 +24,28 @@ $MinNodeMajor = 22
 function Show-Usage {
   Write-Output "Usage: .\scripts\deploy-terminal-windows.ps1 [-Action up|deploy]"
   Write-Output ""
-  Write-Output "Starts backend and frontend directly in this terminal without Docker."
+  Write-Output "Windows direct terminal deployment."
   Write-Output ""
   Write-Output "Requires:"
-  Write-Output "  Python  $MinPythonMajor.$MinPythonMinor or newer"
-  Write-Output "  Node.js $MinNodeMajor or newer, with npm"
+  Write-Output "  Python 3.12 or newer"
+  Write-Output "  Node.js 22 or newer, with npm"
+  Write-Output ""
+  Write-Output "Runs the project using docs/COMMANDS.md:"
+  Write-Output "  backend: python venv, pip install -r requirements.txt, seed user, uvicorn"
+  Write-Output "  frontend: npm install, npm run build, npm run preview"
 }
 
-function Show-PythonInstallInstructions {
-  Write-Error @"
-Python $MinPythonMajor.$MinPythonMinor or newer is required and was not found.
+function Confirm-Install {
+  param([string]$Name)
 
-Install Python $MinPythonMajor.$MinPythonMinor or newer, then re-run:
-  winget install --id Python.Python.3.12 --source winget
-  choco install python312 -y
-"@
-}
-
-function Show-NodeInstallInstructions {
-  Write-Error @"
-Node.js $MinNodeMajor or newer with npm is required and was not found.
-
-Install Node.js $MinNodeMajor or newer, then re-run:
-  winget install --id OpenJS.NodeJS.LTS --source winget
-  choco install nodejs-lts -y
-"@
+  $Answer = Read-Host "$Name is missing or unsupported. Install it now? [y/N]"
+  return $Answer -in @("y", "Y", "yes", "YES")
 }
 
 function Install-Python {
-  Write-Output "Python $MinPythonMajor.$MinPythonMinor or newer is not available. Attempting installation..."
+  if (-not (Confirm-Install "Python $MinPythonMajor.$MinPythonMinor+")) {
+    throw "Install Python $MinPythonMajor.$MinPythonMinor+ manually, then re-run this script."
+  }
 
   if ($null -ne (Get-Command winget -ErrorAction SilentlyContinue)) {
     & winget install --id Python.Python.3.12 --source winget --accept-package-agreements --accept-source-agreements
@@ -64,12 +57,13 @@ function Install-Python {
     return
   }
 
-  Show-PythonInstallInstructions
-  throw "Unable to install Python automatically."
+  throw "No supported Windows package manager found. Install Python $MinPythonMajor.$MinPythonMinor+ manually."
 }
 
 function Install-Node {
-  Write-Output "Node.js $MinNodeMajor or newer with npm is not available. Attempting installation..."
+  if (-not (Confirm-Install "Node.js $MinNodeMajor+ with npm")) {
+    throw "Install Node.js $MinNodeMajor+ with npm manually, then re-run this script."
+  }
 
   if ($null -ne (Get-Command winget -ErrorAction SilentlyContinue)) {
     & winget install --id OpenJS.NodeJS.LTS --source winget --accept-package-agreements --accept-source-agreements
@@ -81,8 +75,7 @@ function Install-Node {
     return
   }
 
-  Show-NodeInstallInstructions
-  throw "Unable to install Node.js automatically."
+  throw "No supported Windows package manager found. Install Node.js $MinNodeMajor+ manually."
 }
 
 function Get-PythonVersion {
@@ -96,7 +89,7 @@ function Get-PythonVersion {
   return [version]$Output.Trim()
 }
 
-function Find-SupportedPythonCommand {
+function Find-SupportedPython {
   $Candidates = @()
 
   if ($null -ne (Get-Command py -ErrorAction SilentlyContinue)) {
@@ -106,10 +99,6 @@ function Find-SupportedPythonCommand {
 
   if ($null -ne (Get-Command python -ErrorAction SilentlyContinue)) {
     $Candidates += [pscustomobject]@{ Executable = "python"; Arguments = @() }
-  }
-
-  if ($null -ne (Get-Command python3 -ErrorAction SilentlyContinue)) {
-    $Candidates += [pscustomobject]@{ Executable = "python3"; Arguments = @() }
   }
 
   foreach ($Candidate in $Candidates) {
@@ -123,26 +112,22 @@ function Find-SupportedPythonCommand {
 }
 
 function Ensure-SupportedPython {
-  $PythonCommand = Find-SupportedPythonCommand
+  $PythonCommand = Find-SupportedPython
   if ($null -ne $PythonCommand) {
     return $PythonCommand
   }
 
   Install-Python
-  $PythonCommand = Find-SupportedPythonCommand
+  $PythonCommand = Find-SupportedPython
   if ($null -ne $PythonCommand) {
     return $PythonCommand
   }
 
-  Show-PythonInstallInstructions
-  throw "Python $MinPythonMajor.$MinPythonMinor or newer is still unavailable after installation."
+  throw "Python $MinPythonMajor.$MinPythonMinor+ is still unavailable. Install it manually, then re-run this script."
 }
 
 function Ensure-SupportedNode {
-  $HasNode = $null -ne (Get-Command node -ErrorAction SilentlyContinue)
-  $HasNpm = $null -ne (Get-Command npm -ErrorAction SilentlyContinue)
-
-  if ($HasNode -and $HasNpm) {
+  if ($null -ne (Get-Command node -ErrorAction SilentlyContinue) -and $null -ne (Get-Command npm -ErrorAction SilentlyContinue)) {
     $NodeMajor = [int](& node -p "Number(process.versions.node.split('.')[0])")
     if ($LASTEXITCODE -eq 0 -and $NodeMajor -ge $MinNodeMajor) {
       return
@@ -151,17 +136,14 @@ function Ensure-SupportedNode {
 
   Install-Node
 
-  $HasNode = $null -ne (Get-Command node -ErrorAction SilentlyContinue)
-  $HasNpm = $null -ne (Get-Command npm -ErrorAction SilentlyContinue)
-  if ($HasNode -and $HasNpm) {
+  if ($null -ne (Get-Command node -ErrorAction SilentlyContinue) -and $null -ne (Get-Command npm -ErrorAction SilentlyContinue)) {
     $NodeMajor = [int](& node -p "Number(process.versions.node.split('.')[0])")
     if ($LASTEXITCODE -eq 0 -and $NodeMajor -ge $MinNodeMajor) {
       return
     }
   }
 
-  Show-NodeInstallInstructions
-  throw "Node.js $MinNodeMajor or newer with npm is still unavailable after installation."
+  throw "Node.js $MinNodeMajor+ with npm is still unavailable. Install it manually, then re-run this script."
 }
 
 if ($Action -eq "help") {
@@ -176,22 +158,10 @@ if (-not (Test-Path $VenvPython)) {
   & $PythonCommand.Executable @($PythonCommand.Arguments) -m venv (Join-Path $BackendDir ".venv")
 }
 
-if (-not (Test-Path $VenvPython)) {
-  throw "Virtual environment Python was not created at $VenvPython"
-}
-
-if (-not (Test-Path $VenvPip)) {
-  throw "Virtual environment pip was not created at $VenvPip"
-}
-
-& $VenvPip install -r (Join-Path $BackendDir "requirements.txt")
+& $VenvPython -m pip install -r (Join-Path $BackendDir "requirements.txt")
 & $VenvPython (Join-Path $BackendDir "scripts\seed_sample_user.py")
 
-if (Test-Path (Join-Path $FrontendDir "package-lock.json")) {
-  & npm --prefix $FrontendDir ci
-} else {
-  & npm --prefix $FrontendDir install
-}
+& npm --prefix $FrontendDir install
 & npm --prefix $FrontendDir run build
 
 $BackendArgs = @(
@@ -218,8 +188,7 @@ Write-Output "CoreSTT expected at ws://127.0.0.1:8020/ws/transcribe for real dic
 Write-Output "Press Ctrl+C to stop both servers."
 
 try {
-  $ProcessIds = @($BackendProcess.Id, $FrontendProcess.Id)
-  Wait-Process -Id $ProcessIds
+  Wait-Process -Id @($BackendProcess.Id, $FrontendProcess.Id)
 } finally {
   if (-not $BackendProcess.HasExited) {
     Stop-Process -Id $BackendProcess.Id -Force

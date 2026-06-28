@@ -67,6 +67,10 @@ Docker deployment wrappers:
 Direct terminal deployment wrappers:
 
 ```bash
+./scripts/deploy-terminal-mac.sh up
+```
+
+```bash
 ./scripts/deploy-terminal-linux.sh up
 ```
 
@@ -82,9 +86,10 @@ The terminal wrappers install dependencies, seed the sample user, build the
 frontend, start FastAPI on `http://127.0.0.1:8000`, and start Vite preview on
 `http://127.0.0.1:8080` in the foreground.
 
-The terminal wrappers require Python 3.12+ and Node.js 22+ with npm. They try
-to install missing runtimes with the available OS package manager and print
-manual install instructions when automatic installation is unavailable.
+The terminal wrappers require Python 3.12+ and Node.js 22+ with npm. If a
+runtime is missing or unsupported, the wrapper asks before installing it with
+the platform package manager. If installation is declined or unavailable, it
+prints a manual install message and exits.
 
 ## Sample login
 
