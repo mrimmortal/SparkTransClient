@@ -1,5 +1,71 @@
 # Session Log
 
+## 2026-07-08 - Repeated voice undo command dedupe
+
+Changed:
+- Bypassed duplicate final-transcript text filtering for recognized voice
+  command phrases so repeated commands like `undo` behave like repeated toolbar
+  button clicks.
+- Kept duplicate transcript protection for normal dictated text.
+
+Validation:
+- `cd frontend && npm test -- src/lib/corestt.test.ts`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+## 2026-07-08 - Voice undo command alignment
+
+Changed:
+- Routed voice `undo` and `redo` through a focused editor-flow helper that
+  matches the TipTap toolbar history command sequence.
+- Added unit coverage for the voice history command sequence.
+
+Validation:
+- `cd frontend && npm test -- src/lib/editorFlow.test.ts`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+## 2026-07-07 - Next line list continuation
+
+Changed:
+- Updated the `next line` voice command to use Enter-like editor behavior.
+- In active bullet or numbered lists, `next line` now splits the current list
+  item so the next dictated text continues the list.
+- Outside lists, `next line` uses normal block splitting instead of a hard
+  break.
+
+Validation:
+- `cd frontend && npm test -- src/lib/editorFlow.test.ts`
+- `cd frontend && npm test -- src/lib/corestt.test.ts src/lib/commandEmbeddings.test.ts src/lib/dictationFlow.test.ts src/lib/editorFlow.test.ts`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+## 2026-07-07 - List voice command insertion behavior
+
+Changed:
+- Updated bullet and numbered list voice commands so starting a list creates a
+  fresh editor position before enabling list mode instead of converting the
+  existing paragraph above the cursor.
+- Added focused editor-flow coverage for start/stop list command sequencing.
+
+Validation:
+- `cd frontend && npm test -- src/lib/editorFlow.test.ts`
+- `cd frontend && npm test -- src/lib/corestt.test.ts src/lib/commandEmbeddings.test.ts src/lib/dictationFlow.test.ts src/lib/editorFlow.test.ts`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+- `cd frontend && npm test`
+
+## 2026-07-07 - Explicit start/stop voice command modes
+
+Changed:
+- Added explicit `start`/`stop` voice command routing for bold, italic,
+  underline, upper/lower case modes, list modes, heading, quote, code block,
+  paragraph, and horizontal rule insertion.
+- Made `next line` the primary line-break command while keeping `new line`,
+  `newline`, and `line break` as command variants.
+- Applied upper/lower case modes to future dictated insertions and updated
+  in-app help plus user-facing command docs.
+
+Validation:
+- `cd frontend && npm test -- src/lib/corestt.test.ts src/lib/commandEmbeddings.test.ts src/lib/dictationFlow.test.ts`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
 ## 2026-06-27 - Semantic voice command matching
 
 Changed:

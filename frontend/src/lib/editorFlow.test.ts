@@ -9,6 +9,9 @@ import {
   formatQuickActionTime,
   getEditorTextMetrics,
   getSaveStatusLabel,
+  runEnterLikeVoiceCommand,
+  runHistoryVoiceCommand,
+  runListModeVoiceCommand,
 } from "./editorFlow";
 
 describe("editor flow UX", () => {
@@ -68,5 +71,145 @@ describe("editor flow UX", () => {
     expect(clearLastSentenceText("First sentence. Second sentence.")).toBe("First sentence.");
     expect(clearLastSentenceText("Only sentence")).toBe("");
     expect(clearLastSentenceText("Keep this! Remove this?")).toBe("Keep this!");
+  });
+
+  it("starts list voice commands from a fresh block instead of converting existing text", () => {
+    const calls: string[] = [];
+    const editor = {
+      isActive: () => false,
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        createParagraphNear() {
+          calls.push("createParagraphNear");
+          return this;
+        },
+        toggleBulletList() {
+          calls.push("toggleBulletList");
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(runListModeVoiceCommand(editor, "bullet")).toBe(true);
+    expect(calls).toEqual(["focus", "createParagraphNear", "toggleBulletList", "run"]);
+  });
+
+  it("continues active lists when next line is spoken", () => {
+    const calls: string[] = [];
+    const editor = {
+      isActive: (name: string) => name === "bulletList",
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        splitListItem(name: string) {
+          calls.push(`splitListItem:${name}`);
+          return this;
+        },
+        splitBlock() {
+          calls.push("splitBlock");
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(runEnterLikeVoiceCommand(editor)).toBe(true);
+    expect(calls).toEqual(["focus", "splitListItem:listItem", "run"]);
+  });
+
+  it("uses normal enter behavior for next line outside lists", () => {
+    const calls: string[] = [];
+    const editor = {
+      isActive: () => false,
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        splitListItem(name: string) {
+          calls.push(`splitListItem:${name}`);
+          return this;
+        },
+        splitBlock() {
+          calls.push("splitBlock");
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(runEnterLikeVoiceCommand(editor)).toBe(true);
+    expect(calls).toEqual(["focus", "splitBlock", "run"]);
+  });
+
+  it("runs voice undo and redo like the TipTap toolbar history buttons", () => {
+    const calls: string[] = [];
+    const editor = {
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        undo() {
+          calls.push("undo");
+          return this;
+        },
+        redo() {
+          calls.push("redo");
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(runHistoryVoiceCommand(editor, "undo")).toBe(true);
+    expect(runHistoryVoiceCommand(editor, "redo")).toBe(true);
+    expect(calls).toEqual(["focus", "undo", "run", "focus", "redo", "run"]);
+  });
+
+  it("stops list voice commands without creating another list item", () => {
+    const calls: string[] = [];
+    const editor = {
+      isActive: (name: string) => name === "orderedList",
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        createParagraphNear() {
+          calls.push("createParagraphNear");
+          return this;
+        },
+        toggleOrderedList() {
+          calls.push("toggleOrderedList");
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(runListModeVoiceCommand(editor, "ordered", "stop")).toBe(true);
+    expect(calls).toEqual(["focus", "toggleOrderedList", "run"]);
   });
 });

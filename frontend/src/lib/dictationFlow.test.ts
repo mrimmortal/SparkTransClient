@@ -66,7 +66,14 @@ describe("dictation flow UX", () => {
   it("keeps current voice commands and template phrases discoverable", () => {
     const help = getDictationHelpContent();
 
-    expect(help.editorControls).toContain("new line / newline");
+    expect(help.editorControls).toContain("next line");
+    expect(help.editorControls).toContain("new paragraph");
+    expect(help.editorControls).toContain("start bullet list / stop bullet list");
+    expect(help.editorControls).toContain("start numbered list / stop numbered list");
+    expect(help.editorControls).toContain("start heading / stop heading");
+    expect(help.editorControls).toContain("start quote / stop quote");
+    expect(help.editorControls).toContain("start code block / stop code block");
+    expect(help.editorControls).toContain("insert horizontal rule");
     expect(help.editorControls).toContain("clear all / clear everything");
     expect(help.editorControls).toContain("scratch that");
     expect(help.editorControls).toContain("delete last word / delete previous word");
@@ -75,9 +82,11 @@ describe("dictation flow UX", () => {
     expect(help.editorControls).toContain("redo / redo that");
     expect(help.editorControls).toContain("save document");
     expect(help.recordingControls).toContain("stop recording / stop dictation / pause recording");
-    expect(help.formattingCommands).toContain("bold");
-    expect(help.formattingCommands).toContain("italic");
-    expect(help.formattingCommands).toContain("underline");
+    expect(help.formattingCommands).toContain("start bold / stop bold");
+    expect(help.formattingCommands).toContain("start italic / stop italic");
+    expect(help.formattingCommands).toContain("start underline / stop underline");
+    expect(help.formattingCommands).toContain("start upper case / stop upper case");
+    expect(help.formattingCommands).toContain("start lower case / stop lower case");
     expect(help.formattingCommands).toContain("clear formatting");
     expect(help.punctuationPhrases).toContain("comma");
     expect(help.punctuationPhrases).toContain("full stop / period");

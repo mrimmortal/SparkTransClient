@@ -28,6 +28,8 @@ export type FinalRoute =
   | { kind: "command"; command: string }
   | { kind: "insert"; text: string };
 
+export type DictationCaseMode = "normal" | "upper" | "lower";
+
 export type TranscriptRoutingOptions = {
   voiceCommandsEnabled?: boolean;
   macrosEnabled?: boolean;
@@ -124,12 +126,20 @@ export function shouldInsertFinalTranscriptText(
   return previousMs === undefined || nowMs - previousMs > (options.windowMs ?? FINAL_TRANSCRIPT_TEXT_DEDUPE_MS);
 }
 
+export function shouldCheckFinalTranscriptTextDedupe(
+  text: string,
+  target: EditorTarget,
+  options: TranscriptRoutingOptions = {},
+): boolean {
+  return routeFinalText(text, target, [], { ...options, macrosEnabled: false }).kind !== "command";
+}
+
 export function isBlankAudioTranscript(text: string): boolean {
   return normalizeTranscriptText(text).replace(/[\[\](){}]/g, "") === "blank_audio";
 }
 
 const smartEditorCommands = new Map<string, string>([
-  ["new line", "insert-newline"],
+  ["next line", "insert-newline"],
   ["new paragraph", "insert-paragraph"],
   ["undo", "undo"],
   ["redo", "redo"],
@@ -139,15 +149,38 @@ const smartEditorCommands = new Map<string, string>([
   ["delete last word", "delete-last-word"],
   ["delete last sentence", "delete-last-sentence"],
   ["save document", "save-document"],
-  ["bold", "bold"],
-  ["italic", "italic"],
-  ["underline", "underline"],
+  ["start bold", "start-bold"],
+  ["stop bold", "stop-bold"],
+  ["start italic", "start-italic"],
+  ["stop italic", "stop-italic"],
+  ["start underline", "start-underline"],
+  ["stop underline", "stop-underline"],
+  ["start upper case", "start-upper-case"],
+  ["stop upper case", "stop-upper-case"],
+  ["start lower case", "start-lower-case"],
+  ["stop lower case", "stop-lower-case"],
+  ["start bullet list", "start-bullet-list"],
+  ["stop bullet list", "stop-bullet-list"],
+  ["start numbered list", "start-numbered-list"],
+  ["stop numbered list", "stop-numbered-list"],
+  ["start heading", "start-heading"],
+  ["stop heading", "stop-heading"],
+  ["start paragraph", "start-paragraph"],
+  ["normal text", "start-paragraph"],
+  ["start quote", "start-quote"],
+  ["stop quote", "stop-quote"],
+  ["start code block", "start-code-block"],
+  ["stop code block", "stop-code-block"],
+  ["insert horizontal rule", "insert-horizontal-rule"],
   ["clear formatting", "clear-formatting"],
 ]);
 
 const smartEditorCommandVariants = new Map<string, string>([
+  ["new line", "insert-newline"],
   ["newline", "insert-newline"],
+  ["line break", "insert-newline"],
   ["new para", "insert-paragraph"],
+  ["next paragraph", "insert-paragraph"],
   ["select everything", "select-all"],
   ["clear everything", "clear-all"],
   ["stop dictation", "stop-dictation"],
@@ -156,6 +189,53 @@ const smartEditorCommandVariants = new Map<string, string>([
   ["delete previous word", "delete-last-word"],
   ["undo that", "undo"],
   ["redo that", "redo"],
+  ["bold", "start-bold"],
+  ["bold on", "start-bold"],
+  ["turn on bold", "start-bold"],
+  ["bold off", "stop-bold"],
+  ["turn off bold", "stop-bold"],
+  ["italic", "start-italic"],
+  ["italic on", "start-italic"],
+  ["turn on italic", "start-italic"],
+  ["italic off", "stop-italic"],
+  ["turn off italic", "stop-italic"],
+  ["underline", "start-underline"],
+  ["underline on", "start-underline"],
+  ["turn on underline", "start-underline"],
+  ["underline off", "stop-underline"],
+  ["start uppercase", "start-upper-case"],
+  ["uppercase on", "start-upper-case"],
+  ["all caps on", "start-upper-case"],
+  ["uppercase off", "stop-upper-case"],
+  ["all caps off", "stop-upper-case"],
+  ["start lowercase", "start-lower-case"],
+  ["lowercase on", "start-lower-case"],
+  ["lowercase off", "stop-lower-case"],
+  ["start bullet", "start-bullet-list"],
+  ["start bullets", "start-bullet-list"],
+  ["bullets on", "start-bullet-list"],
+  ["stop bullets", "stop-bullet-list"],
+  ["end bullets", "stop-bullet-list"],
+  ["start numbers", "start-numbered-list"],
+  ["numbered list on", "start-numbered-list"],
+  ["stop numbers", "stop-numbered-list"],
+  ["end numbered list", "stop-numbered-list"],
+  ["heading on", "start-heading"],
+  ["make heading", "start-heading"],
+  ["normal heading off", "stop-heading"],
+  ["plain text", "start-paragraph"],
+  ["paragraph mode", "start-paragraph"],
+  ["normal paragraph", "start-paragraph"],
+  ["start block quote", "start-quote"],
+  ["quote on", "start-quote"],
+  ["stop block quote", "stop-quote"],
+  ["quote off", "stop-quote"],
+  ["start code", "start-code-block"],
+  ["code block on", "start-code-block"],
+  ["stop code", "stop-code-block"],
+  ["code block off", "stop-code-block"],
+  ["insert line", "insert-horizontal-rule"],
+  ["horizontal line", "insert-horizontal-rule"],
 ]);
 
 const templateMarkerCommands = new Map<string, string>([
@@ -223,6 +303,12 @@ export function routeFinalText(
   }
   const insertText = voiceCommandsEnabled ? convertSpokenPunctuation(text) : text;
   return { kind: "insert", text: macrosEnabled ? expandMacros(insertText, macros) : insertText };
+}
+
+export function applyDictationCaseMode(text: string, mode: DictationCaseMode): string {
+  if (mode === "upper") return text.toUpperCase();
+  if (mode === "lower") return text.toLowerCase();
+  return text;
 }
 
 function normalizeVoiceCommand(value: string): string {

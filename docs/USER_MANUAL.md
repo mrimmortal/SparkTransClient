@@ -87,8 +87,10 @@ target is set to Micro Editor:
 
 | Spoken text | Action |
 |---|---|
-| `new line`, `newline` | Insert line break |
-| `new paragraph`, `new para` | Insert paragraph |
+| `next line` | Move like the Enter key; continues active bullet or numbered lists |
+| `new line`, `newline`, `line break` | Insert line break when command variants are enabled |
+| `new paragraph` | Insert paragraph |
+| `new para`, `next paragraph` | Insert paragraph when command variants are enabled |
 | `undo` | Undo editor change |
 | `redo` | Redo editor change |
 | `undo that` | Undo editor change |
@@ -97,16 +99,27 @@ target is set to Micro Editor:
 | `delete last word`, `delete previous word` | Delete the word before the cursor or the selected text |
 | `delete last sentence` | Delete text back to the previous sentence boundary or paragraph start |
 | `save document` | Save the current document |
-| `bold` | Toggle bold formatting |
-| `italic` | Toggle italic formatting |
-| `underline` | Toggle underline formatting |
+| `start bold`, `stop bold` | Turn bold formatting on or off |
+| `start italic`, `stop italic` | Turn italic formatting on or off |
+| `start underline`, `stop underline` | Turn underline formatting on or off |
+| `start upper case`, `stop upper case` | Convert future dictated text to uppercase, or return to normal casing |
+| `start lower case`, `stop lower case` | Convert future dictated text to lowercase, or return to normal casing |
+| `start bullet list`, `stop bullet list` | Enter or exit bullet list mode |
+| `start numbered list`, `stop numbered list` | Enter or exit numbered list mode |
+| `start heading`, `stop heading` | Apply heading style or return to paragraph text |
+| `start paragraph`, `normal text` | Return to paragraph text |
+| `start quote`, `stop quote` | Enter or exit quote block mode |
+| `start code block`, `stop code block` | Enter or exit code block mode |
+| `insert horizontal rule` | Insert a horizontal rule |
 | `clear formatting` | Clear active formatting and block style |
 | `select all`, `select everything` | Select editor content |
 | `clear all`, `clear everything` | Ask before clearing editor content |
 | `stop recording`, `stop dictation`, `pause recording` | Stop active dictation |
 
 Outside the Smart Editor, recognized phrases are inserted as plain text.
-Recording control phrases work while dictation is running.
+Recording control phrases work while dictation is running. Short formatting
+phrases such as `bold`, `italic`, `underline`, `bold on`, and `all caps on`
+are supported only when common voice-command variants are enabled in Settings.
 
 Spoken punctuation is converted in final dictated text when voice commands are
 enabled. For example, `hello comma world full stop` inserts `hello, world.`.

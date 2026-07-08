@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  applyDictationCaseMode,
   buildAudioPacket,
   applyTranscriptEvent,
   isBlankAudioTranscript,
   routeFinalText,
+  shouldCheckFinalTranscriptTextDedupe,
   shouldInsertFinalTranscript,
   shouldInsertFinalTranscriptText,
 } from "./corestt";
@@ -147,6 +149,14 @@ describe("transcript routing", () => {
     expect(shouldInsertFinalTranscriptText(recentFinalText, "Start concentration.", 8000)).toBe(true);
   });
 
+  it("skips duplicate text filtering for voice command phrases", () => {
+    expect(shouldCheckFinalTranscriptTextDedupe("undo", "smart-editor")).toBe(false);
+    expect(shouldCheckFinalTranscriptTextDedupe("undo that", "smart-editor")).toBe(false);
+    expect(shouldCheckFinalTranscriptTextDedupe("redo", "smart-editor")).toBe(false);
+    expect(shouldCheckFinalTranscriptTextDedupe("next line", "smart-editor")).toBe(false);
+    expect(shouldCheckFinalTranscriptTextDedupe("normal dictated text", "smart-editor")).toBe(true);
+  });
+
   it("honors final transcript text dedupe settings", () => {
     const disabled = new Map<string, number>();
     expect(shouldInsertFinalTranscriptText(disabled, "Repeat me.", 1000, { enabled: false })).toBe(true);
@@ -175,7 +185,7 @@ describe("transcript routing", () => {
   });
 
   it("routes smart editor commands case-insensitively and ignores dictated punctuation", () => {
-    expect(routeFinalText("New line.", "smart-editor", [])).toEqual({ kind: "command", command: "insert-newline" });
+    expect(routeFinalText("Next line.", "smart-editor", [])).toEqual({ kind: "command", command: "insert-newline" });
     expect(routeFinalText("new   paragraph,", "smart-editor", [])).toEqual({ kind: "command", command: "insert-paragraph" });
     expect(routeFinalText("SELECT ALL:", "smart-editor", [])).toEqual({ kind: "command", command: "select-all" });
     expect(routeFinalText("clear all!", "smart-editor", [])).toEqual({ kind: "command", command: "clear-all" });
@@ -183,9 +193,12 @@ describe("transcript routing", () => {
   });
 
   it("routes common STT variants of smart editor commands", () => {
+    expect(routeFinalText("new line", "smart-editor", [])).toEqual({ kind: "command", command: "insert-newline" });
     expect(routeFinalText("newline", "smart-editor", [])).toEqual({ kind: "command", command: "insert-newline" });
     expect(routeFinalText("new-line", "smart-editor", [])).toEqual({ kind: "command", command: "insert-newline" });
+    expect(routeFinalText("line break", "smart-editor", [])).toEqual({ kind: "command", command: "insert-newline" });
     expect(routeFinalText("new para", "smart-editor", [])).toEqual({ kind: "command", command: "insert-paragraph" });
+    expect(routeFinalText("next paragraph", "smart-editor", [])).toEqual({ kind: "command", command: "insert-paragraph" });
     expect(routeFinalText("select everything", "smart-editor", [])).toEqual({ kind: "command", command: "select-all" });
     expect(routeFinalText("clear everything", "smart-editor", [])).toEqual({ kind: "command", command: "clear-all" });
     expect(routeFinalText("stop dictation", "smart-editor", [])).toEqual({ kind: "command", command: "stop-dictation" });
@@ -236,12 +249,16 @@ describe("transcript routing", () => {
 
   it("can disable flexible smart editor command variants", () => {
     expect(routeFinalText("new line", "smart-editor", [], { voiceCommandVariantsEnabled: false })).toEqual({
-      kind: "command",
-      command: "insert-newline",
+      kind: "insert",
+      text: "new line",
     });
     expect(routeFinalText("newline", "smart-editor", [], { voiceCommandVariantsEnabled: false })).toEqual({
       kind: "insert",
       text: "newline",
+    });
+    expect(routeFinalText("bold", "smart-editor", [], { voiceCommandVariantsEnabled: false })).toEqual({
+      kind: "insert",
+      text: "bold",
     });
   });
 
@@ -257,11 +274,46 @@ describe("transcript routing", () => {
     expect(result).toEqual({ kind: "insert", text: "stop recording" });
   });
 
-  it("routes spoken formatting commands to the smart editor", () => {
-    expect(routeFinalText("bold", "smart-editor", [])).toEqual({ kind: "command", command: "bold" });
-    expect(routeFinalText("italic.", "smart-editor", [])).toEqual({ kind: "command", command: "italic" });
-    expect(routeFinalText("underline", "smart-editor", [])).toEqual({ kind: "command", command: "underline" });
+  it("routes explicit formatting, case, and TipTap control commands to the smart editor", () => {
+    expect(routeFinalText("start bold", "smart-editor", [])).toEqual({ kind: "command", command: "start-bold" });
+    expect(routeFinalText("stop bold", "smart-editor", [])).toEqual({ kind: "command", command: "stop-bold" });
+    expect(routeFinalText("start italic.", "smart-editor", [])).toEqual({ kind: "command", command: "start-italic" });
+    expect(routeFinalText("stop italic", "smart-editor", [])).toEqual({ kind: "command", command: "stop-italic" });
+    expect(routeFinalText("start underline", "smart-editor", [])).toEqual({ kind: "command", command: "start-underline" });
+    expect(routeFinalText("stop underline", "smart-editor", [])).toEqual({ kind: "command", command: "stop-underline" });
+    expect(routeFinalText("start upper case", "smart-editor", [])).toEqual({ kind: "command", command: "start-upper-case" });
+    expect(routeFinalText("stop upper case", "smart-editor", [])).toEqual({ kind: "command", command: "stop-upper-case" });
+    expect(routeFinalText("start lower case", "smart-editor", [])).toEqual({ kind: "command", command: "start-lower-case" });
+    expect(routeFinalText("stop lower case", "smart-editor", [])).toEqual({ kind: "command", command: "stop-lower-case" });
+    expect(routeFinalText("start bullet list", "smart-editor", [])).toEqual({ kind: "command", command: "start-bullet-list" });
+    expect(routeFinalText("stop bullet list", "smart-editor", [])).toEqual({ kind: "command", command: "stop-bullet-list" });
+    expect(routeFinalText("start numbered list", "smart-editor", [])).toEqual({ kind: "command", command: "start-numbered-list" });
+    expect(routeFinalText("stop numbered list", "smart-editor", [])).toEqual({ kind: "command", command: "stop-numbered-list" });
+    expect(routeFinalText("start heading", "smart-editor", [])).toEqual({ kind: "command", command: "start-heading" });
+    expect(routeFinalText("stop heading", "smart-editor", [])).toEqual({ kind: "command", command: "stop-heading" });
+    expect(routeFinalText("start paragraph", "smart-editor", [])).toEqual({ kind: "command", command: "start-paragraph" });
+    expect(routeFinalText("normal text", "smart-editor", [])).toEqual({ kind: "command", command: "start-paragraph" });
+    expect(routeFinalText("start quote", "smart-editor", [])).toEqual({ kind: "command", command: "start-quote" });
+    expect(routeFinalText("stop quote", "smart-editor", [])).toEqual({ kind: "command", command: "stop-quote" });
+    expect(routeFinalText("start code block", "smart-editor", [])).toEqual({ kind: "command", command: "start-code-block" });
+    expect(routeFinalText("stop code block", "smart-editor", [])).toEqual({ kind: "command", command: "stop-code-block" });
+    expect(routeFinalText("insert horizontal rule", "smart-editor", [])).toEqual({ kind: "command", command: "insert-horizontal-rule" });
     expect(routeFinalText("clear formatting", "smart-editor", [])).toEqual({ kind: "command", command: "clear-formatting" });
+  });
+
+  it("routes common formatting and TipTap variants only when variants are enabled", () => {
+    expect(routeFinalText("bold on", "smart-editor", [])).toEqual({ kind: "command", command: "start-bold" });
+    expect(routeFinalText("turn off italic", "smart-editor", [])).toEqual({ kind: "command", command: "stop-italic" });
+    expect(routeFinalText("all caps on", "smart-editor", [])).toEqual({ kind: "command", command: "start-upper-case" });
+    expect(routeFinalText("lowercase off", "smart-editor", [])).toEqual({ kind: "command", command: "stop-lower-case" });
+    expect(routeFinalText("start bullets", "smart-editor", [])).toEqual({ kind: "command", command: "start-bullet-list" });
+    expect(routeFinalText("end numbered list", "smart-editor", [])).toEqual({ kind: "command", command: "stop-numbered-list" });
+    expect(routeFinalText("plain text", "smart-editor", [])).toEqual({ kind: "command", command: "start-paragraph" });
+    expect(routeFinalText("horizontal line", "smart-editor", [])).toEqual({ kind: "command", command: "insert-horizontal-rule" });
+    expect(routeFinalText("bold on", "smart-editor", [], { voiceCommandVariantsEnabled: false })).toEqual({
+      kind: "insert",
+      text: "bold on",
+    });
   });
 
   it("converts standalone spoken punctuation to insertable punctuation", () => {
@@ -274,6 +326,12 @@ describe("transcript routing", () => {
     const result = routeFinalText("hello comma world full stop", "smart-editor", []);
 
     expect(result).toEqual({ kind: "insert", text: "hello, world." });
+  });
+
+  it("applies dictation case modes to routed insert text", () => {
+    expect(applyDictationCaseMode("Mixed Case", "normal")).toBe("Mixed Case");
+    expect(applyDictationCaseMode("Mixed Case", "upper")).toBe("MIXED CASE");
+    expect(applyDictationCaseMode("Mixed Case", "lower")).toBe("mixed case");
   });
 
   it("does not convert spoken punctuation when voice commands are disabled", () => {

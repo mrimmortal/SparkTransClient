@@ -34,6 +34,37 @@ export type EditorTextMetrics = {
   characters: number;
 };
 
+type ChainRunner = {
+  focus: () => ChainRunner;
+  createParagraphNear?: () => ChainRunner;
+  splitBlock?: () => ChainRunner;
+  splitListItem?: (name: string) => ChainRunner;
+  toggleBulletList?: () => ChainRunner;
+  toggleOrderedList?: () => ChainRunner;
+  run: () => boolean;
+};
+
+type ListModeEditor = {
+  isActive: (name: string) => boolean;
+  chain: () => ChainRunner;
+};
+
+type EnterLikeEditor = {
+  isActive: (name: string) => boolean;
+  chain: () => ChainRunner;
+};
+
+type HistoryChainRunner = {
+  focus: () => HistoryChainRunner;
+  undo: () => HistoryChainRunner;
+  redo: () => HistoryChainRunner;
+  run: () => boolean;
+};
+
+type HistoryEditor = {
+  chain: () => HistoryChainRunner;
+};
+
 export const editorToolbarItems: EditorToolbarItem[] = [
   { command: "paragraph", label: "Paragraph" },
   { command: "heading", label: "Heading" },
@@ -103,4 +134,37 @@ export function clearLastSentenceText(text: string): string {
   const previousEnd = matches[matches.length - 2].index;
   if (previousEnd === undefined) return "";
   return trimmed.slice(0, previousEnd + 1).trimEnd();
+}
+
+export function runListModeVoiceCommand(editor: ListModeEditor, listType: "bullet" | "ordered", action: "start" | "stop" = "start"): boolean {
+  const activeName = listType === "bullet" ? "bulletList" : "orderedList";
+  const toggle = listType === "bullet" ? "toggleBulletList" : "toggleOrderedList";
+  const isActive = editor.isActive(activeName);
+
+  if (action === "stop") {
+    if (!isActive) return false;
+    const chain = editor.chain().focus();
+    const toggleList = chain[toggle];
+    return toggleList ? toggleList.call(chain).run() : false;
+  }
+
+  if (isActive) return false;
+  const chain = editor.chain().focus();
+  if (!chain.createParagraphNear) return false;
+  const listChain = chain.createParagraphNear();
+  const toggleList = listChain[toggle];
+  return toggleList ? toggleList.call(listChain).run() : false;
+}
+
+export function runEnterLikeVoiceCommand(editor: EnterLikeEditor): boolean {
+  const chain = editor.chain().focus();
+  if (editor.isActive("bulletList") || editor.isActive("orderedList")) {
+    return chain.splitListItem ? chain.splitListItem("listItem").run() : false;
+  }
+  return chain.splitBlock ? chain.splitBlock().run() : false;
+}
+
+export function runHistoryVoiceCommand(editor: HistoryEditor, action: "undo" | "redo"): boolean {
+  const chain = editor.chain().focus();
+  return action === "undo" ? chain.undo().run() : chain.redo().run();
 }

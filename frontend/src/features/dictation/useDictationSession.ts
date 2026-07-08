@@ -3,17 +3,20 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MacroRecord, TemplateRecord, UserSettingsRecord } from "../../lib/api";
 import { CommandEmbeddingMatcher } from "../../lib/commandEmbeddings";
 import {
+  applyDictationCaseMode,
   applyTranscriptEvent,
   ConnectionState,
+  DictationCaseMode,
   isBlankAudioTranscript,
   resolveSttUrl,
   routeFinalText,
   routeFinalTextSemantic,
+  shouldCheckFinalTranscriptTextDedupe,
   shouldInsertFinalTranscript,
   shouldInsertFinalTranscriptText,
   TranscriptState,
 } from "../../lib/corestt";
-import { confirmationMessages } from "../../lib/editorFlow";
+import { confirmationMessages, runEnterLikeVoiceCommand, runHistoryVoiceCommand, runListModeVoiceCommand } from "../../lib/editorFlow";
 import { getDeleteLastSentenceRange, getDeleteLastWordRange, TextblockDeleteRange } from "../../lib/editorVoiceCommands";
 import { getMicrophoneCaptureErrorMessage, isMicrophoneCaptureSupported, MicrophoneCapture } from "../../lib/micCapture";
 import {
@@ -77,6 +80,7 @@ export function useDictationSession({
   const recentFinalTranscriptTextRef = useRef(new Map<string, number>());
   const recentTemplateVoiceCommandsRef = useRef(new Map<string, number>());
   const lastSmartEditorDictationRangeRef = useRef<{ from: number; to: number; text: string } | null>(null);
+  const dictationCaseModeRef = useRef<DictationCaseMode>("normal");
   const matcherRef = useRef<CommandEmbeddingMatcher | null>(null);
   const templateEmbeddingsRef = useRef<Map<number, number[]>>(new Map());
   const computedTemplatesHashRef = useRef("");
@@ -149,10 +153,7 @@ export function useDictationSession({
             typed.text &&
             !(settingsRef.current.ignore_blank_audio_enabled && isBlankAudioTranscript(typed.text)) &&
             shouldInsertFinalTranscript(insertedFinalSegmentsRef.current, typed.segmentId) &&
-            shouldInsertFinalTranscriptText(recentFinalTranscriptTextRef.current, typed.text, Date.now(), {
-              enabled: settingsRef.current.duplicate_transcript_protection_enabled,
-              windowMs: settingsRef.current.duplicate_transcript_window_ms,
-            })
+            shouldRouteFinalTranscriptText(typed.text)
           ) {
             insertFinalText(typed.text);
           }
@@ -244,6 +245,21 @@ export function useDictationSession({
     setMicStatus("stopped");
   }
 
+  function shouldRouteFinalTranscriptText(text: string): boolean {
+    const currentSettings = settingsRef.current;
+    const target = microOpenRef.current || currentSettings.default_editor_target === "micro-editor" ? "micro-editor" : "smart-editor";
+    const routingOptions = {
+      voiceCommandsEnabled: currentSettings.voice_commands_enabled,
+      voiceCommandVariantsEnabled: currentSettings.voice_command_variants_enabled,
+      templateMarkerNavigationEnabled: currentSettings.template_marker_navigation_enabled,
+    };
+    if (!shouldCheckFinalTranscriptTextDedupe(text, target, routingOptions)) return true;
+    return shouldInsertFinalTranscriptText(recentFinalTranscriptTextRef.current, text, Date.now(), {
+      enabled: currentSettings.duplicate_transcript_protection_enabled,
+      windowMs: currentSettings.duplicate_transcript_window_ms,
+    });
+  }
+
   async function insertFinalText(text: string) {
     const currentSettings = settingsRef.current;
     const matcher = matcherRef.current;
@@ -286,17 +302,18 @@ export function useDictationSession({
       runCommand(routed.command);
       return;
     }
+    const routedText = applyDictationCaseMode(routed.text, dictationCaseModeRef.current);
     if (target === "micro-editor") {
       setMicroOpen(true);
       lastSmartEditorDictationRangeRef.current = null;
-      setMicroText((current) => `${current}${current ? " " : ""}${routed.text}`);
+      setMicroText((current) => `${current}${current ? " " : ""}${routedText}`);
     } else {
       const currentEditor = editorRef.current;
       if (!currentEditor) return;
-      const insertedText = `${routed.text} `;
+      const insertedText = `${routedText} `;
       if (
         currentSettings.template_marker_navigation_enabled &&
-        replaceSelectedTemplateMarker(currentEditor, routed.text, { autoAdvance: currentSettings.template_marker_auto_advance_enabled })
+        replaceSelectedTemplateMarker(currentEditor, routedText, { autoAdvance: currentSettings.template_marker_auto_advance_enabled })
       ) {
         lastSmartEditorDictationRangeRef.current = null;
         return;
@@ -311,6 +328,22 @@ export function useDictationSession({
   function runCommand(command: string) {
     if (command === "stop-dictation") {
       stopDictation();
+      return;
+    }
+    if (command === "start-upper-case") {
+      dictationCaseModeRef.current = "upper";
+      return;
+    }
+    if (command === "stop-upper-case") {
+      if (dictationCaseModeRef.current === "upper") dictationCaseModeRef.current = "normal";
+      return;
+    }
+    if (command === "start-lower-case") {
+      dictationCaseModeRef.current = "lower";
+      return;
+    }
+    if (command === "stop-lower-case") {
+      if (dictationCaseModeRef.current === "lower") dictationCaseModeRef.current = "normal";
       return;
     }
     const currentEditor = editorRef.current;
@@ -351,15 +384,98 @@ export function useDictationSession({
       cancelTemplateMarkerNavigation(currentEditor);
       return;
     }
-    if (command === "insert-newline") currentEditor.chain().focus().setHardBreak().run();
-    if (command === "insert-paragraph") currentEditor.chain().focus().createParagraphNear().run();
-    if (command === "undo") currentEditor.chain().focus().undo().run();
-    if (command === "redo") currentEditor.chain().focus().redo().run();
-    if (command === "bold") currentEditor.chain().focus().toggleBold().run();
-    if (command === "italic") currentEditor.chain().focus().toggleItalic().run();
-    if (command === "underline") currentEditor.chain().focus().toggleUnderline().run();
-    if (command === "clear-formatting") currentEditor.chain().focus().unsetAllMarks().clearNodes().run();
-    if (command === "select-all") currentEditor.commands.selectAll();
+    if (command === "insert-newline") {
+      runEnterLikeVoiceCommand(currentEditor);
+      return;
+    }
+    if (command === "insert-paragraph") {
+      currentEditor.chain().focus().createParagraphNear().run();
+      return;
+    }
+    if (command === "undo") {
+      runHistoryVoiceCommand(currentEditor, "undo");
+      return;
+    }
+    if (command === "redo") {
+      runHistoryVoiceCommand(currentEditor, "redo");
+      return;
+    }
+    if (command === "start-bold") {
+      if (!currentEditor.isActive("bold")) currentEditor.chain().focus().toggleBold().run();
+      return;
+    }
+    if (command === "stop-bold") {
+      if (currentEditor.isActive("bold")) currentEditor.chain().focus().toggleBold().run();
+      return;
+    }
+    if (command === "start-italic") {
+      if (!currentEditor.isActive("italic")) currentEditor.chain().focus().toggleItalic().run();
+      return;
+    }
+    if (command === "stop-italic") {
+      if (currentEditor.isActive("italic")) currentEditor.chain().focus().toggleItalic().run();
+      return;
+    }
+    if (command === "start-underline") {
+      if (!currentEditor.isActive("underline")) currentEditor.chain().focus().toggleUnderline().run();
+      return;
+    }
+    if (command === "stop-underline") {
+      if (currentEditor.isActive("underline")) currentEditor.chain().focus().toggleUnderline().run();
+      return;
+    }
+    if (command === "start-bullet-list") {
+      runListModeVoiceCommand(currentEditor, "bullet");
+      return;
+    }
+    if (command === "stop-bullet-list") {
+      runListModeVoiceCommand(currentEditor, "bullet", "stop");
+      return;
+    }
+    if (command === "start-numbered-list") {
+      runListModeVoiceCommand(currentEditor, "ordered");
+      return;
+    }
+    if (command === "stop-numbered-list") {
+      runListModeVoiceCommand(currentEditor, "ordered", "stop");
+      return;
+    }
+    if (command === "start-heading") {
+      if (!currentEditor.isActive("heading", { level: 2 })) currentEditor.chain().focus().toggleHeading({ level: 2 }).run();
+      return;
+    }
+    if (command === "stop-heading" || command === "start-paragraph") {
+      currentEditor.chain().focus().setParagraph().run();
+      return;
+    }
+    if (command === "start-quote") {
+      if (!currentEditor.isActive("blockquote")) currentEditor.chain().focus().toggleBlockquote().run();
+      return;
+    }
+    if (command === "stop-quote") {
+      if (currentEditor.isActive("blockquote")) currentEditor.chain().focus().toggleBlockquote().run();
+      return;
+    }
+    if (command === "start-code-block") {
+      if (!currentEditor.isActive("codeBlock")) currentEditor.chain().focus().toggleCodeBlock().run();
+      return;
+    }
+    if (command === "stop-code-block") {
+      if (currentEditor.isActive("codeBlock")) currentEditor.chain().focus().toggleCodeBlock().run();
+      return;
+    }
+    if (command === "insert-horizontal-rule") {
+      currentEditor.chain().focus().setHorizontalRule().run();
+      return;
+    }
+    if (command === "clear-formatting") {
+      currentEditor.chain().focus().unsetAllMarks().clearNodes().run();
+      return;
+    }
+    if (command === "select-all") {
+      currentEditor.commands.selectAll();
+      return;
+    }
     if (command === "clear-all" && (!settingsRef.current.confirm_destructive_actions || window.confirm(confirmationMessages.clearEditor))) {
       currentEditor.commands.clearContent();
     }

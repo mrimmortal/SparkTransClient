@@ -35,8 +35,8 @@ describe("cosineSimilarity", () => {
 });
 
 describe("getAllCommandEntries", () => {
-  it("returns 29 entries", () => {
-    expect(getAllCommandEntries()).toHaveLength(29);
+  it("returns the full command catalog", () => {
+    expect(getAllCommandEntries().length).toBeGreaterThan(60);
   });
 
   it("each entry has trigger, command, and valid source", () => {
@@ -54,7 +54,13 @@ describe("getAllCommandEntries", () => {
     const commands = entries.map(([, cmd]) => cmd);
     expect(commands).toContain("insert-newline");
     expect(commands).toContain("stop-dictation");
-    expect(commands).toContain("bold");
+    expect(commands).toContain("start-bold");
+    expect(commands).toContain("stop-bold");
+    expect(commands).toContain("start-upper-case");
+    expect(commands).toContain("stop-lower-case");
+    expect(commands).toContain("start-bullet-list");
+    expect(commands).toContain("stop-numbered-list");
+    expect(commands).toContain("insert-horizontal-rule");
     expect(commands).toContain("next-template-field");
     expect(commands).toContain("scratch-that");
   });
@@ -96,9 +102,9 @@ describe("CommandEmbeddingMatcher.matchEmbedding", () => {
     const matcher = new CommandEmbeddingMatcher();
     (matcher as any)._ready = true;
     (matcher as any).commandEntries = new Map([
-      ["new line", { command: "insert-newline", source: "smart-editor", embedding: [1, 0, 0] }],
+      ["next line", { command: "insert-newline", source: "smart-editor", embedding: [1, 0, 0] }],
       ["undo", { command: "undo", source: "smart-editor", embedding: [0, 1, 0] }],
-      ["bold", { command: "bold", source: "smart-editor", embedding: [0, 0, 1] }],
+      ["start bold", { command: "start-bold", source: "smart-editor", embedding: [0, 0, 1] }],
       ["next field", { command: "next-template-field", source: "template-marker", embedding: [0.7, 0.7, 0] }],
     ]);
     return matcher;
@@ -138,15 +144,16 @@ describe("routeFinalTextSemantic with mock matcher", () => {
     const matcher = new CommandEmbeddingMatcher();
     (matcher as any)._ready = true;
     (matcher as any).extractor = async (text: string) => {
-      if (text === "bold") return { data: new Float32Array([0.95, 0.05, 0]) };
-      if (text === "make it bold") return { data: new Float32Array([0.85, 0.1, 0.05]) };
+      if (text === "start bold") return { data: new Float32Array([0.95, 0.05, 0]) };
+      if (text === "bold on") return { data: new Float32Array([0.85, 0.1, 0.05]) };
       if (text === "stop recording") return { data: new Float32Array([0.05, 0.05, 0.95]) };
       if (text === "stop dictation") return { data: new Float32Array([0.1, 0.85, 0.05]) };
       if (text === "next field") return { data: new Float32Array([0.45, 0.45, 0.45]) };
       return { data: new Float32Array([0, 0, 0]) };
     };
     (matcher as any).commandEntries = new Map([
-      ["bold", { command: "bold", source: "smart-editor", embedding: [1, 0, 0] }],
+      ["start bold", { command: "start-bold", source: "smart-editor", embedding: [1, 0, 0] }],
+      ["bold on", { command: "start-bold", source: "variant", embedding: [0.8, 0.2, 0] }],
       ["stop recording", { command: "stop-dictation", source: "smart-editor", embedding: [0, 0, 1] }],
       ["stop dictation", { command: "stop-dictation", source: "variant", embedding: [0.1, 0.9, 0] }],
       ["next field", { command: "next-template-field", source: "template-marker", embedding: [0.5, 0.5, 0.5] }],
@@ -156,18 +163,18 @@ describe("routeFinalTextSemantic with mock matcher", () => {
 
   it("routes exact match as command", async () => {
     const matcher = await createReadyMatcher();
-    const result = await routeFinalTextSemantic("bold", "smart-editor", [], matcher, {
+    const result = await routeFinalTextSemantic("start bold", "smart-editor", [], matcher, {
       voiceCommandsEnabled: true,
     });
-    expect(result).toEqual({ kind: "command", command: "bold" });
+    expect(result).toEqual({ kind: "command", command: "start-bold" });
   });
 
   it("routes semantic variant as command", async () => {
     const matcher = await createReadyMatcher();
-    const result = await routeFinalTextSemantic("make it bold", "smart-editor", [], matcher, {
+    const result = await routeFinalTextSemantic("bold on", "smart-editor", [], matcher, {
       voiceCommandsEnabled: true,
     });
-    expect(result).toEqual({ kind: "command", command: "bold" });
+    expect(result).toEqual({ kind: "command", command: "start-bold" });
   });
 
   it("falls back to insert for non-command text", async () => {
@@ -180,7 +187,7 @@ describe("routeFinalTextSemantic with mock matcher", () => {
 
   it("respects voiceCommandsEnabled setting", async () => {
     const matcher = await createReadyMatcher();
-    const result = await routeFinalTextSemantic("bold", "smart-editor", [], matcher, {
+    const result = await routeFinalTextSemantic("start bold", "smart-editor", [], matcher, {
       voiceCommandsEnabled: false,
     });
     expect(result.kind).toBe("insert");
@@ -227,14 +234,14 @@ describe("routeFinalTextSemantic with mock matcher", () => {
 
   it("falls back to exact matching when matcher not ready", async () => {
     const matcher = new CommandEmbeddingMatcher();
-    const result = await routeFinalTextSemantic("new line", "smart-editor", [], matcher, {
+    const result = await routeFinalTextSemantic("next line", "smart-editor", [], matcher, {
       voiceCommandsEnabled: true,
     });
     expect(result).toEqual({ kind: "command", command: "insert-newline" });
   });
 
   it("falls back to exact matching when matcher is null", async () => {
-    const result = await routeFinalTextSemantic("new line", "smart-editor", [], null, {
+    const result = await routeFinalTextSemantic("next line", "smart-editor", [], null, {
       voiceCommandsEnabled: true,
     });
     expect(result).toEqual({ kind: "command", command: "insert-newline" });
