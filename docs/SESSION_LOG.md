@@ -1,5 +1,110 @@
 # Session Log
 
+## 2026-07-09 - Compact Settings rows
+
+Changed:
+- Reworked non-profile Settings sections into compact top-heading rows instead
+  of the previous left-title rail layout.
+- Added reusable Settings row/toggle helpers, dependent row styling, full-width
+  mobile controls, and a microphone status pill.
+- Added focused helper coverage for microphone status badge tone selection.
+
+Validation:
+- `cd frontend && npm test`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+Next:
+- Browser visual verification remains To verify because local dev server
+  escalation was not approved.
+
+## 2026-07-09 - Transcription profile CRUD layout redesign
+
+Changed:
+- Reworked Settings transcription profiles from a dropdown/editor split into an
+  inline master-detail layout with a profile list and profile editor.
+- Added explicit New profile behavior, inline delete confirmation, active
+  profile badges, and responsive profile-list/action styling.
+- Added focused helper coverage for profile list names, new profile drafts, and
+  post-delete profile selection.
+
+Validation:
+- `cd frontend && npm test`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+Next:
+- Browser visual verification remains To verify because local dev server
+  escalation was not approved.
+
+## 2026-07-09 - Stronger recording state for floating action
+
+Changed:
+- Changed the floating transcription recording state from subtle primary-color
+  glow to a red filled button with stronger red pulse.
+- Added recording-action color tokens so the active recording state remains
+  visible across light, warm, and dark themes.
+
+Validation:
+- `cd frontend && npm test -- floatingActionPosition`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+## 2026-07-09 - Recording glow for floating transcription action
+
+Changed:
+- Added a recording-state class to the floating transcription action while
+  dictation is streaming or microphone capture is active.
+- Added a glowing pulse effect for recording state with a reduced-motion
+  fallback.
+- Covered the floating action class selection with a focused unit test.
+
+Validation:
+- `cd frontend && npm test -- floatingActionPosition`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+## 2026-07-09 - Draggable transcription action
+
+Changed:
+- Made the floating transcription action pill-shaped and draggable within the
+  viewport.
+- Persisted the floating action position in browser local storage and clamped it
+  after viewport resize.
+- Added focused tests for default and clamped floating action positioning.
+
+Validation:
+- `cd frontend && npm test -- floatingActionPosition`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+## 2026-07-09 - Floating transcription action
+
+Changed:
+- Added a fixed bottom-right transcription action to the Documents page that
+  reuses the existing dictation start/stop/connect behavior.
+- Styled the action above other app UI with safe-area-aware positioning and a
+  full-width mobile treatment.
+
+Validation:
+- `cd frontend && npm test`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+## 2026-07-09 - Application responsive UI pass
+
+Changed:
+- Added a tablet breakpoint for the document workspace so the editor and right
+  rail collapse before controls become cramped.
+- Improved mobile sidebar behavior with horizontal navigation, bounded document
+  list height, and safer account/action wrapping.
+- Improved mobile behavior for document headers, action rows, manager grids,
+  settings sections, modals, toasts, and the floating micro editor.
+- Made shared button rows wrap by default and used dynamic viewport height where
+  supported.
+
+Validation:
+- `cd frontend && npm test`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+Next:
+- Rendered browser verification remains To verify because the in-app browser
+  connector failed before attaching in this environment.
+
 ## 2026-07-09 - Settings page visual polish
 
 Changed:

@@ -20,6 +20,9 @@
   --neo-warning-bg: #fff4d3;
   --neo-danger: #b42318;
   --neo-danger-bg: #ffe6e3;
+  --recording-action-bg: #dc2626;
+  --recording-action-border: #991b1b;
+  --recording-action-text: #fff;
   --neo-shadow-light: rgb(255 255 255 / 88%);
   --neo-shadow-dark: rgb(126 144 166 / 38%);
   --neo-raised-shadow: 8px 8px 18px var(--neo-shadow-dark), -8px -8px 18px var(--neo-shadow-light);
@@ -87,6 +90,9 @@
   --neo-warning-bg: #483819;
   --neo-danger: #ffb4aa;
   --neo-danger-bg: #4f2623;
+  --recording-action-bg: #ef4444;
+  --recording-action-border: #fca5a5;
+  --recording-action-text: #111827;
   --neo-shadow-light: rgb(69 80 96 / 52%);
   --neo-shadow-dark: rgb(5 10 16 / 62%);
   --neo-overlay: rgb(5 10 16 / 62%);
@@ -220,6 +226,7 @@ input[type="checkbox"] {
 
 .button-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -392,6 +399,7 @@ nav {
   flex-direction: column;
   min-width: 0;
   height: 100vh;
+  height: 100dvh;
   min-height: 0;
   overflow: hidden;
 }
@@ -499,6 +507,72 @@ nav {
 
 .compact-dictation-action {
   min-width: 136px;
+}
+
+.floating-transcription-action {
+  bottom: max(22px, env(safe-area-inset-bottom, 0px));
+  border-radius: 999px;
+  box-shadow: 8px 8px 18px color-mix(in srgb, var(--neo-shadow-dark), transparent 6%), -5px -5px 12px var(--neo-shadow-light);
+  cursor: grab;
+  gap: 8px;
+  min-height: 46px;
+  min-width: 168px;
+  padding: 0 18px;
+  position: fixed;
+  right: max(22px, env(safe-area-inset-right, 0px));
+  touch-action: none;
+  user-select: none;
+  z-index: 11000;
+}
+
+.floating-transcription-action:active {
+  cursor: grabbing;
+}
+
+.floating-transcription-action.disabled {
+  cursor: grab;
+  opacity: 0.72;
+}
+
+.floating-transcription-action.recording {
+  animation: transcription-recording-glow 1.8s ease-in-out infinite;
+  background: var(--recording-action-bg);
+  border-color: var(--recording-action-border);
+  box-shadow:
+    0 0 0 7px color-mix(in srgb, var(--recording-action-bg), transparent 78%),
+    0 0 34px color-mix(in srgb, var(--recording-action-bg), transparent 20%),
+    8px 8px 18px color-mix(in srgb, var(--neo-shadow-dark), transparent 6%),
+    -5px -5px 12px var(--neo-shadow-light);
+  color: var(--recording-action-text);
+}
+
+.floating-transcription-action.recording svg {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, currentColor, transparent 25%));
+}
+
+@keyframes transcription-recording-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 6px color-mix(in srgb, var(--recording-action-bg), transparent 80%),
+      0 0 28px color-mix(in srgb, var(--recording-action-bg), transparent 28%),
+      8px 8px 18px color-mix(in srgb, var(--neo-shadow-dark), transparent 6%),
+      -5px -5px 12px var(--neo-shadow-light);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 13px color-mix(in srgb, var(--recording-action-bg), transparent 82%),
+      0 0 48px color-mix(in srgb, var(--recording-action-bg), transparent 12%),
+      8px 8px 18px color-mix(in srgb, var(--neo-shadow-dark), transparent 6%),
+      -5px -5px 12px var(--neo-shadow-light);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-transcription-action.recording {
+    animation: none;
+  }
 }
 
 .document-status-inline {
@@ -1265,17 +1339,11 @@ button.danger {
   border-radius: 8px;
   box-shadow: 3px 3px 9px color-mix(in srgb, var(--neo-shadow-dark), transparent 20%), -3px -3px 9px var(--neo-shadow-light);
   display: grid;
-  grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
-  gap: 22px;
+  gap: 14px;
   padding: 20px;
 }
 
-.settings-section-header {
-  border-right: 1px solid var(--neo-border);
-  padding-right: 18px;
-}
-
-.settings-section-header h2 {
+.settings-section-title {
   font-size: 16px;
   line-height: 1.25;
   margin: 0;
@@ -1284,8 +1352,7 @@ button.danger {
 .settings-section-body {
   display: grid;
   align-items: start;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px 18px;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -1308,6 +1375,89 @@ button.danger {
 
 .settings-section-wide .settings-section-body {
   grid-template-columns: 1fr;
+}
+
+.settings-row {
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--neo-border), transparent 24%);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 360px);
+  min-width: 0;
+  padding: 12px;
+}
+
+.settings-row-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.settings-row-copy > span:first-child {
+  color: var(--neo-text);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.settings-row-control {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.settings-row-control > select,
+.settings-row-control > input:not([type="checkbox"]) {
+  width: 100%;
+}
+
+.settings-toggle-row .settings-row-control {
+  justify-content: flex-end;
+}
+
+.settings-toggle-row input[type="checkbox"] {
+  flex: 0 0 auto;
+  min-height: 18px;
+  width: 18px;
+}
+
+.settings-dependent-row {
+  margin-left: 18px;
+}
+
+.settings-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.settings-status-pill {
+  border: 1px solid var(--neo-border);
+  border-radius: 999px;
+  color: var(--neo-muted);
+  display: inline-flex;
+  font-size: var(--app-compact-text);
+  font-weight: 700;
+  justify-content: center;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 6px 10px;
+  text-align: center;
+}
+
+.settings-status-pill.success {
+  background: var(--neo-success-bg);
+  border-color: color-mix(in srgb, var(--neo-success), var(--neo-border) 45%);
+  color: var(--neo-success);
+}
+
+.settings-status-pill.danger {
+  background: var(--neo-danger-bg);
+  border-color: color-mix(in srgb, var(--neo-danger), var(--neo-border) 45%);
+  color: var(--neo-danger);
 }
 
 .manager-grid.two {
@@ -1598,19 +1748,99 @@ details input {
 
 .domain-profile-settings {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
   gap: 22px;
   align-items: start;
 }
 
 .domain-profile-picker,
 .domain-profile-editor {
+  display: grid;
+  gap: 14px;
   min-width: 0;
 }
 
 .domain-profile-picker {
   border-right: 1px solid var(--neo-border);
   padding-right: 18px;
+}
+
+.domain-profile-panel-header,
+.domain-profile-editor-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.domain-profile-panel-header > div,
+.domain-profile-editor-header > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.domain-profile-panel-header h3,
+.domain-profile-editor-header h3 {
+  font-size: 14px;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.domain-profile-panel-header span,
+.domain-profile-editor-header span {
+  color: var(--neo-muted);
+  font-size: var(--app-compact-text);
+}
+
+.domain-profile-list {
+  display: grid;
+  gap: 8px;
+  max-height: 280px;
+  overflow: auto;
+  padding: 2px 4px 2px 2px;
+}
+
+.domain-profile-list-item {
+  align-items: center;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  justify-content: stretch;
+  min-height: 42px;
+  padding: 8px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.domain-profile-list-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.domain-profile-list-item strong,
+.domain-profile-active-badge {
+  background: var(--neo-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--neo-accent), var(--neo-border) 45%);
+  border-radius: 999px;
+  color: var(--neo-accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+
+.domain-profile-list-item.active {
+  border-color: var(--neo-accent);
+  box-shadow: var(--neo-inset-shadow-small);
+}
+
+.domain-profile-new-button {
+  width: 100%;
 }
 
 .domain-profile-form {
@@ -1629,8 +1859,26 @@ details input {
 }
 
 .domain-profile-actions {
+  align-items: center;
+  display: flex;
   flex-wrap: wrap;
+  gap: 10px;
   justify-content: flex-end;
+}
+
+.domain-profile-delete-confirm {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.domain-profile-delete-confirm span {
+  color: var(--neo-danger);
+  font-size: var(--app-compact-text);
+  font-weight: 700;
 }
 
 .diagnostics-grid {
@@ -1759,6 +2007,54 @@ details input {
   color: var(--neo-text);
 }
 
+@media (max-width: 1180px) {
+  .document-workspace-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .documents-page {
+    overflow: auto;
+  }
+
+  .document-workspace-main {
+    overflow: visible;
+  }
+
+  .document-right-rail {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    overflow: visible;
+  }
+
+  .document-hero-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .document-control-cluster,
+  .document-status-inline,
+  .document-primary-actions {
+    justify-content: flex-start;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .title-input {
+    width: min(520px, 100%);
+  }
+
+  .manager-grid,
+  .manager-grid.two {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .dictation-help-panel {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+}
+
 @keyframes toast-slide-in {
   from {
     transform: translateX(100%);
@@ -1788,6 +2084,7 @@ details input {
   .workspace {
     grid-template-columns: 1fr;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
   }
 
@@ -1812,8 +2109,29 @@ details input {
     border-right: 0;
     border-bottom: 1px solid var(--neo-border);
     min-height: auto;
-    max-height: 34vh;
+    max-height: 38vh;
     overflow: auto;
+  }
+
+  .sidebar nav {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .sidebar .nav {
+    flex: 0 0 auto;
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .sidebar-documents {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .document-list {
+    max-height: 110px;
   }
 
   .topbar {
@@ -1825,6 +2143,7 @@ details input {
   .document-status-inline {
     justify-content: flex-start;
     min-width: 0;
+    width: 100%;
   }
 
   .toolbar {
@@ -1835,6 +2154,10 @@ details input {
   .dictation-help-panel,
   .document-quick-settings {
     grid-template-columns: 1fr;
+  }
+
+  .document-quick-settings {
+    align-items: stretch;
   }
 
   .document-footer-dock {
@@ -1866,6 +2189,7 @@ details input {
 
   .smart-editor {
     padding: var(--app-editor-padding-block) var(--app-editor-padding-inline);
+    max-width: none;
   }
 
   .diagnostics {
@@ -1877,6 +2201,10 @@ details input {
   .manager-grid,
   .manager-grid.two {
     grid-template-columns: 1fr;
+  }
+
+  .manager-page {
+    padding: 16px;
   }
 
   .page-header {
@@ -1895,14 +2223,32 @@ details input {
     padding: 16px;
   }
 
-  .settings-section-header,
   .domain-profile-picker {
     border-right: 0;
     padding-right: 0;
   }
 
-  .settings-section-body {
+  .settings-row {
     grid-template-columns: 1fr;
+  }
+
+  .settings-row-control,
+  .settings-toggle-row .settings-row-control,
+  .settings-button-row {
+    justify-content: flex-start;
+  }
+
+  .settings-dependent-row {
+    margin-left: 0;
+  }
+
+  .domain-profile-list {
+    max-height: 220px;
+  }
+
+  .domain-profile-actions,
+  .domain-profile-delete-confirm {
+    justify-content: flex-start;
   }
 
   .table-row,
@@ -1917,6 +2263,7 @@ details input {
 
   .document-modal {
     max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
   }
 
   .document-create-panel,
@@ -1930,6 +2277,11 @@ details input {
     grid-row: auto;
     grid-column: auto;
     justify-content: flex-start;
+  }
+
+  .document-row-actions button,
+  .document-create-button {
+    flex: 1 1 140px;
   }
 }
 
@@ -1949,6 +2301,7 @@ details input {
 
   .document-title-group {
     align-items: flex-start;
+    width: 100%;
   }
 
   .document-icon-card {
@@ -1965,17 +2318,126 @@ details input {
   .quick-toggle-group,
   .footer-action-row,
   .document-control-cluster,
-  .document-status-inline {
+  .document-status-inline,
+  .page-header-actions,
+  .sidebar-document-actions {
     width: 100%;
   }
 
   .document-primary-actions button,
-  .quick-toggle {
+  .quick-toggle,
+  .sidebar-document-actions button {
     flex: 1 1 auto;
+  }
+
+  .floating-transcription-action {
+    bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    min-width: 0;
+    right: 12px;
+  }
+
+  .document-icon-card {
+    flex: 0 0 auto;
+  }
+
+  .document-title-copy {
+    width: 100%;
+  }
+
+  .page-header-actions button {
+    flex: 1 1 auto;
+  }
+
+  .sidebar {
+    gap: 10px;
+    max-height: 42vh;
+    padding: 10px;
+  }
+
+  .sidebar-account-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .sidebar-account-card .sign-out-button {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .manager-page {
+    padding: 12px;
+  }
+
+  .settings-section {
+    padding: 14px;
+  }
+
+  .settings-row {
+    padding: 10px;
+  }
+
+  .settings-row-control,
+  .settings-button-row,
+  .settings-button-row button {
+    width: 100%;
+  }
+
+  .settings-toggle-row .settings-row-control {
+    width: auto;
+  }
+
+  .domain-profile-panel-header,
+  .domain-profile-editor-header,
+  .domain-profile-actions,
+  .domain-profile-delete-confirm {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .domain-profile-actions button,
+  .domain-profile-delete-confirm button {
+    width: 100%;
   }
 
   .search-replace label {
     min-width: 100%;
+  }
+
+  .modal-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .modal-header button {
+    align-self: flex-end;
+  }
+
+  .document-modal-list {
+    padding: 10px;
+  }
+
+  .document-create-panel,
+  .document-modal-filters {
+    padding: 12px;
+  }
+
+  .micro-editor {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+  }
+
+  .toast-container {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+  }
+
+  .toast-item {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
   }
 
   .diagnostics-summary dl {

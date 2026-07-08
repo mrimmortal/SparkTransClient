@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { MouseEvent, PointerEvent } from "react";
 import {
   ArrowRight,
   Calendar,
@@ -49,9 +50,24 @@ import { DocumentQuickSettings, DOCUMENT_QUICK_TARGETS } from "./DocumentQuickSe
 import { formatDocumentDate } from "./documentManagement";
 import { EditorEmptyState } from "./EditorEmptyState";
 import { EditorToolbar } from "./EditorToolbar";
+import { buildFloatingActionClassName, clampFloatingActionPosition, getDefaultFloatingActionPosition } from "./floatingActionPosition";
+import type { FloatingActionPosition, FloatingActionSize } from "./floatingActionPosition";
+
+const FLOATING_ACTION_STORAGE_KEY = "sparktrans.floatingTranscriptionActionPosition";
+const FLOATING_ACTION_MARGIN = 22;
+const FLOATING_ACTION_DEFAULT_SIZE: FloatingActionSize = { width: 168, height: 46 };
 
 export function DocumentsPage({ context }: { context: WorkspaceContext }) {
   const navigate = useNavigate();
+  const floatingActionRef = useRef<HTMLButtonElement | null>(null);
+  const floatingActionDragRef = useRef<{
+    pointerId: number;
+    startClientX: number;
+    startClientY: number;
+    startPosition: FloatingActionPosition;
+    moved: boolean;
+  } | null>(null);
+  const suppressFloatingActionClickRef = useRef(false);
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
@@ -66,6 +82,7 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
     currentIndex: -1,
     total: 0,
   });
+  const [floatingActionPosition, setFloatingActionPosition] = useState<FloatingActionPosition | null>(() => loadFloatingActionPosition());
   const savingDocument = context.busy === "Saving document";
   const saveStatus = getSaveStatusLabel({ dirty: editorDirty, saving: savingDocument });
   const canSaveActiveDocument = canSaveEditorDocument({
@@ -143,6 +160,24 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
     context.editor,
   ]);
 
+  useEffect(() => {
+    const syncFloatingActionPosition = () => {
+      setFloatingActionPosition((current) => {
+        const size = getFloatingActionSize(floatingActionRef.current);
+        const viewport = getFloatingActionViewport();
+        const next = current
+          ? clampFloatingActionPosition({ position: current, viewport, size, margin: FLOATING_ACTION_MARGIN })
+          : getDefaultFloatingActionPosition({ viewport, size, margin: FLOATING_ACTION_MARGIN });
+        saveFloatingActionPosition(next);
+        return next;
+      });
+    };
+
+    syncFloatingActionPosition();
+    window.addEventListener("resize", syncFloatingActionPosition);
+    return () => window.removeEventListener("resize", syncFloatingActionPosition);
+  }, []);
+
   function replaceInDocument() {
     if (!context.editor || !findText) return;
     const html = context.editor.getHTML();
@@ -164,6 +199,68 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
       return;
     }
     context.connectStt();
+  }
+
+  function handleFloatingActionPointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (event.button !== 0) return;
+    const size = getFloatingActionSize(event.currentTarget);
+    const viewport = getFloatingActionViewport();
+    const startPosition =
+      floatingActionPosition ?? getDefaultFloatingActionPosition({ viewport, size, margin: FLOATING_ACTION_MARGIN });
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    suppressFloatingActionClickRef.current = false;
+    floatingActionDragRef.current = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startPosition,
+      moved: false,
+    };
+  }
+
+  function handleFloatingActionPointerMove(event: PointerEvent<HTMLButtonElement>) {
+    const drag = floatingActionDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - drag.startClientX;
+    const deltaY = event.clientY - drag.startClientY;
+    if (!drag.moved && Math.abs(deltaX) <= 4 && Math.abs(deltaY) <= 4) return;
+    drag.moved = true;
+
+    const next = clampFloatingActionPosition({
+      position: {
+        x: drag.startPosition.x + deltaX,
+        y: drag.startPosition.y + deltaY,
+      },
+      viewport: getFloatingActionViewport(),
+      size: getFloatingActionSize(event.currentTarget),
+      margin: FLOATING_ACTION_MARGIN,
+    });
+    setFloatingActionPosition(next);
+    saveFloatingActionPosition(next);
+  }
+
+  function handleFloatingActionPointerEnd(event: PointerEvent<HTMLButtonElement>) {
+    const drag = floatingActionDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    suppressFloatingActionClickRef.current = drag.moved;
+    floatingActionDragRef.current = null;
+    if (floatingActionPosition) saveFloatingActionPosition(floatingActionPosition);
+  }
+
+  function handleFloatingActionClick(event: MouseEvent<HTMLButtonElement>) {
+    if (suppressFloatingActionClickRef.current) {
+      event.preventDefault();
+      suppressFloatingActionClickRef.current = false;
+      return;
+    }
+    if (dictationAction.disabled) return;
+    runDictationAction();
   }
 
   function runMarkerNavigation(action: "first" | "previous" | "next" | "skip" | "exit") {
@@ -380,8 +477,62 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
           />
         )}
       </div>
+      <button
+        ref={floatingActionRef}
+        type="button"
+        className={buildFloatingActionClassName({ disabled: dictationAction.disabled, recording: dictationRunning })}
+        style={
+          floatingActionPosition
+            ? {
+                bottom: "auto",
+                left: `${floatingActionPosition.x}px`,
+                right: "auto",
+                top: `${floatingActionPosition.y}px`,
+              }
+            : undefined
+        }
+        aria-disabled={dictationAction.disabled}
+        onClick={handleFloatingActionClick}
+        onPointerCancel={handleFloatingActionPointerEnd}
+        onPointerDown={handleFloatingActionPointerDown}
+        onPointerMove={handleFloatingActionPointerMove}
+        onPointerUp={handleFloatingActionPointerEnd}
+      >
+        {dictationAction.intent === "stop" ? <Pause size={18} /> : <Mic size={18} />}
+        {dictationAction.label}
+      </button>
     </section>
   );
+}
+
+function getFloatingActionViewport() {
+  return { width: window.innerWidth, height: window.innerHeight };
+}
+
+function getFloatingActionSize(element: HTMLElement | null): FloatingActionSize {
+  const rect = element?.getBoundingClientRect();
+  if (!rect || rect.width <= 0 || rect.height <= 0) return FLOATING_ACTION_DEFAULT_SIZE;
+  return { width: rect.width, height: rect.height };
+}
+
+function loadFloatingActionPosition(): FloatingActionPosition | null {
+  try {
+    const stored = window.localStorage.getItem(FLOATING_ACTION_STORAGE_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored) as Partial<FloatingActionPosition>;
+    if (typeof parsed.x !== "number" || typeof parsed.y !== "number") return null;
+    return parsed as FloatingActionPosition;
+  } catch {
+    return null;
+  }
+}
+
+function saveFloatingActionPosition(position: FloatingActionPosition) {
+  try {
+    window.localStorage.setItem(FLOATING_ACTION_STORAGE_KEY, JSON.stringify(position));
+  } catch {
+    // Position persistence is optional; dragging should still work without storage.
+  }
 }
 
 function DocumentRightRail({

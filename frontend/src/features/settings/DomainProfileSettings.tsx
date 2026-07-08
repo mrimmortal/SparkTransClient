@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, Save, Trash2 } from "lucide-react";
+import { Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { api, DomainProfilesResponse, UserSettingsRecord } from "../../lib/api";
-import { buildDomainProfilePayload, domainProfileToDraft, DomainProfileFormDraft } from "./domainProfileForm";
+import {
+  buildAvailableProfileNames,
+  buildDomainProfilePayload,
+  createNewDomainProfileDraft,
+  domainProfileToDraft,
+  DomainProfileFormDraft,
+  getNextProfileNameAfterDelete,
+} from "./domainProfileForm";
 
 type DomainProfileSettingsProps = {
   profile: string;
@@ -15,13 +22,15 @@ export function DomainProfileSettings({ profile, onProfileChange, setWarning }: 
   const [draft, setDraft] = useState<DomainProfileFormDraft>(() => domainProfileToDraft(undefined));
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleteConfirming, setDeleteConfirming] = useState(false);
 
-  const availableProfiles = useMemo(() => {
-    const names = new Set(profiles.domainProfiles);
-    if (profile) names.add(profile);
-    if (editingName) names.add(editingName);
-    return Array.from(names).sort((left, right) => left.localeCompare(right));
-  }, [editingName, profile, profiles.domainProfiles]);
+  const availableProfiles = useMemo(
+    () => buildAvailableProfileNames({ domainProfiles: profiles.domainProfiles, activeProfile: profile, editingName }),
+    [editingName, profile, profiles.domainProfiles],
+  );
+  const trimmedEditingName = editingName.trim();
+  const selectedProfileExists = profiles.domainProfiles.includes(trimmedEditingName);
+  const canDeleteProfile = Boolean(trimmedEditingName && selectedProfileExists);
 
   useEffect(() => {
     void loadProfiles();
@@ -39,6 +48,7 @@ export function DomainProfileSettings({ profile, onProfileChange, setWarning }: 
       const nextName = profile || response.domainProfiles[0] || "general";
       setEditingName(nextName);
       setDraft(domainProfileToDraft(response.profiles[nextName]));
+      setDeleteConfirming(false);
     } catch (error) {
       setWarning(error instanceof Error ? error.message : "Unable to load domain profiles.");
     } finally {
@@ -47,28 +57,37 @@ export function DomainProfileSettings({ profile, onProfileChange, setWarning }: 
   }
 
   function selectProfile(nextProfile: string) {
-    onProfileChange(nextProfile);
+    if (profiles.domainProfiles.includes(nextProfile)) onProfileChange(nextProfile);
     setEditingName(nextProfile);
     setDraft(domainProfileToDraft(profiles.profiles[nextProfile]));
+    setDeleteConfirming(false);
   }
 
   function updateDraft<Field extends keyof DomainProfileFormDraft>(field: Field, value: DomainProfileFormDraft[Field]) {
     setDraft((current) => ({ ...current, [field]: value }));
+    setDeleteConfirming(false);
+  }
+
+  function createProfile() {
+    const next = createNewDomainProfileDraft(availableProfiles);
+    setEditingName(next.name);
+    setDraft(next.draft);
+    setDeleteConfirming(false);
   }
 
   async function saveProfile() {
-    const name = editingName.trim();
-    if (!name) {
+    if (!trimmedEditingName) {
       setWarning("Domain profile name is required.");
       return;
     }
     setSaving(true);
     try {
-      const response = await api.updateDomainProfile(name, buildDomainProfilePayload(draft));
+      const response = await api.updateDomainProfile(trimmedEditingName, buildDomainProfilePayload(draft));
       setProfiles(response);
-      onProfileChange(name);
-      setEditingName(name);
-      setDraft(domainProfileToDraft(response.profiles[name] ?? response.profile));
+      onProfileChange(trimmedEditingName);
+      setEditingName(trimmedEditingName);
+      setDraft(domainProfileToDraft(response.profiles[trimmedEditingName] ?? response.profile));
+      setDeleteConfirming(false);
     } catch (error) {
       setWarning(error instanceof Error ? error.message : "Unable to save domain profile.");
     } finally {
@@ -77,16 +96,16 @@ export function DomainProfileSettings({ profile, onProfileChange, setWarning }: 
   }
 
   async function deleteProfile() {
-    const name = editingName.trim();
-    if (!name) return;
+    if (!canDeleteProfile) return;
     setSaving(true);
     try {
-      const response = await api.deleteDomainProfile(name);
+      const response = await api.deleteDomainProfile(trimmedEditingName);
       setProfiles(response);
-      const nextName = response.domainProfiles.includes(profile) ? profile : response.domainProfiles[0] || "general";
+      const nextName = getNextProfileNameAfterDelete({ domainProfiles: response.domainProfiles, activeProfile: profile });
       onProfileChange(nextName);
       setEditingName(nextName);
       setDraft(domainProfileToDraft(response.profiles[nextName]));
+      setDeleteConfirming(false);
     } catch (error) {
       setWarning(error instanceof Error ? error.message : "Unable to delete domain profile.");
     } finally {
@@ -96,30 +115,57 @@ export function DomainProfileSettings({ profile, onProfileChange, setWarning }: 
 
   return (
     <div className="domain-profile-settings">
-      <div className="domain-profile-picker stack">
-        <div className="settings-subsection-heading">
-          <h3>Active profile</h3>
-          <button type="button" onClick={() => void loadProfiles()} disabled={loading || saving} title="Refresh domain profiles">
-            <RefreshCw size={16} /> {loading ? "Loading" : "Refresh"}
+      <div className="domain-profile-picker">
+        <div className="domain-profile-panel-header">
+          <div>
+            <h3>Profiles</h3>
+            <span>{loading ? "Loading profiles" : `${availableProfiles.length} available`}</span>
+          </div>
+          <button className="icon-button" type="button" onClick={() => void loadProfiles()} disabled={loading || saving} title="Refresh domain profiles" aria-label="Refresh domain profiles">
+            <RefreshCw size={16} />
           </button>
         </div>
-        <label>
-          Profile
-          <select value={profile} onChange={(event) => selectProfile(event.target.value)} disabled={loading || saving}>
-            {availableProfiles.map((name) => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
-        </label>
+        <div className="domain-profile-list" role="list" aria-label="Transcription profiles">
+          {availableProfiles.map((name) => {
+            const active = name === profile;
+            const selected = name === editingName;
+            return (
+              <button
+                key={name}
+                type="button"
+                className={selected ? "domain-profile-list-item active" : "domain-profile-list-item"}
+                onClick={() => selectProfile(name)}
+                disabled={loading || saving}
+              >
+                <span>{name}</span>
+                {active && <strong>Active</strong>}
+              </button>
+            );
+          })}
+        </div>
+        <button className="domain-profile-new-button" type="button" onClick={createProfile} disabled={loading || saving}>
+          <Plus size={16} /> New profile
+        </button>
       </div>
-      <div className="domain-profile-editor stack">
-        <div className="settings-subsection-heading">
-          <h3>Profile definition</h3>
+      <div className="domain-profile-editor">
+        <div className="domain-profile-editor-header">
+          <div>
+            <h3>Profile definition</h3>
+            <span>{selectedProfileExists ? "Editing saved profile" : "New unsaved profile"}</span>
+          </div>
+          {trimmedEditingName === profile && <span className="domain-profile-active-badge">Active profile</span>}
         </div>
         <div className="domain-profile-form">
           <label>
             Profile name
-            <input value={editingName} onChange={(event) => setEditingName(event.target.value)} disabled={saving} />
+            <input
+              value={editingName}
+              onChange={(event) => {
+                setEditingName(event.target.value);
+                setDeleteConfirming(false);
+              }}
+              disabled={saving}
+            />
           </label>
           <label>
             Initial prompt
@@ -149,12 +195,24 @@ export function DomainProfileSettings({ profile, onProfileChange, setWarning }: 
             />
           </label>
         </div>
-        <div className="button-row domain-profile-actions">
-          <button className="primary" type="button" onClick={() => void saveProfile()} disabled={saving || !editingName.trim()}>
+        <div className="domain-profile-actions">
+          {deleteConfirming ? (
+            <div className="domain-profile-delete-confirm">
+              <span>Delete {trimmedEditingName}?</span>
+              <button className="danger" type="button" onClick={() => void deleteProfile()} disabled={saving || !canDeleteProfile}>
+                <Trash2 size={16} /> Confirm
+              </button>
+              <button type="button" onClick={() => setDeleteConfirming(false)} disabled={saving}>
+                <X size={16} /> Cancel
+              </button>
+            </div>
+          ) : (
+            <button className="danger" type="button" onClick={() => setDeleteConfirming(true)} disabled={saving || !canDeleteProfile}>
+              <Trash2 size={16} /> Delete
+            </button>
+          )}
+          <button className="primary" type="button" onClick={() => void saveProfile()} disabled={saving || !trimmedEditingName}>
             <Save size={16} /> {saving ? "Saving" : "Save profile"}
-          </button>
-          <button className="danger" type="button" onClick={() => void deleteProfile()} disabled={saving || !editingName.trim()}>
-            <Trash2 size={16} /> Delete
           </button>
         </div>
       </div>
