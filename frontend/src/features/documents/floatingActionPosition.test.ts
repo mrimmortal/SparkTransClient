@@ -12,6 +12,29 @@ describe("floating action position", () => {
     ).toEqual({ x: 1010, y: 732 });
   });
 
+  it("can default to the lower-right workspace area after a reserved left rail", () => {
+    expect(
+      getDefaultFloatingActionPosition({
+        viewport: { width: 1200, height: 800 },
+        size: { width: 168, height: 46 },
+        margin: 22,
+        reservedLeft: 320,
+      }),
+    ).toEqual({ x: 1010, y: 732 });
+  });
+
+  it("can reserve a left rail when clamping first-time placement", () => {
+    expect(
+      clampFloatingActionPosition({
+        position: { x: 40, y: 720 },
+        viewport: { width: 1200, height: 800 },
+        size: { width: 168, height: 46 },
+        margin: 22,
+        reservedLeft: 320,
+      }),
+    ).toEqual({ x: 342, y: 720 });
+  });
+
   it("clamps dragged positions inside the viewport", () => {
     expect(
       clampFloatingActionPosition({

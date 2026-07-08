@@ -7,8 +7,10 @@ import { confirmationMessages } from "../../lib/editorFlow";
 import { WorkspaceContext } from "../workspace/types";
 import { withWarning } from "../workspace/withWarning";
 import { MacroRow } from "./MacroRow";
+import { getMacrosLayoutCopy } from "./macrosUi";
 
 export function MacrosPage({ context }: { context: WorkspaceContext }) {
+  const layoutCopy = getMacrosLayoutCopy();
   const [trigger, setTrigger] = useState("");
   const [replacement, setReplacement] = useState("");
   const [creating, setCreating] = useState(false);
@@ -49,17 +51,18 @@ export function MacrosPage({ context }: { context: WorkspaceContext }) {
   return (
     <section className="manager-page">
       <PageHeader title="Macros" />
-      <div className="manager-grid two">
-        <section className="panel">
-          <form onSubmit={(event) => void createMacro(event)} className="stack">
-            <h2>New macro</h2>
+      <div className="macro-manager-grid">
+        <section className="macro-section macro-builder-section">
+          <form onSubmit={(event) => void createMacro(event)} className="macro-builder-form">
+            <h2 className="macro-section-title">{layoutCopy.builderTitle}</h2>
             <input placeholder="Trigger phrase" value={trigger} onChange={(event) => setTrigger(event.target.value)} />
             <textarea placeholder="Replacement text" value={replacement} onChange={(event) => setReplacement(event.target.value)} />
             <button className="primary" type="submit" disabled={creating || !canSaveMacroDraft(createDraft)}><Plus size={16} /> {creating ? "Creating" : "Create macro"}</button>
           </form>
         </section>
-        <section className="panel wide">
-          <div className="table-list">
+        <section className="macro-section macro-library-section">
+          <h2 className="macro-section-title">{layoutCopy.libraryTitle}</h2>
+          <div className="table-list macro-list">
             {context.macros.map((macro) => (
               <MacroRow key={macro.id} macro={macro} onSave={updateMacro} onDelete={deleteMacro} />
             ))}

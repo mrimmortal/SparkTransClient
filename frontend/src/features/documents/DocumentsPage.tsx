@@ -15,7 +15,6 @@ import {
   Mic,
   Minimize2,
   Pause,
-  Play,
   Save,
   Search,
   SlidersHorizontal,
@@ -52,6 +51,7 @@ import { EditorEmptyState } from "./EditorEmptyState";
 import { EditorToolbar } from "./EditorToolbar";
 import { buildFloatingActionClassName, clampFloatingActionPosition, getDefaultFloatingActionPosition } from "./floatingActionPosition";
 import type { FloatingActionPosition, FloatingActionSize } from "./floatingActionPosition";
+import { buildDictationCommandGroups, getQuickActionLabel, getRightRailStatusTone } from "./rightRail";
 
 const FLOATING_ACTION_STORAGE_KEY = "sparktrans.floatingTranscriptionActionPosition";
 const FLOATING_ACTION_MARGIN = 22;
@@ -167,7 +167,12 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
         const viewport = getFloatingActionViewport();
         const next = current
           ? clampFloatingActionPosition({ position: current, viewport, size, margin: FLOATING_ACTION_MARGIN })
-          : getDefaultFloatingActionPosition({ viewport, size, margin: FLOATING_ACTION_MARGIN });
+          : getDefaultFloatingActionPosition({
+              viewport,
+              size,
+              margin: FLOATING_ACTION_MARGIN,
+              reservedLeft: getFloatingActionReservedLeft(),
+            });
         saveFloatingActionPosition(next);
         return next;
       });
@@ -206,7 +211,13 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
     const size = getFloatingActionSize(event.currentTarget);
     const viewport = getFloatingActionViewport();
     const startPosition =
-      floatingActionPosition ?? getDefaultFloatingActionPosition({ viewport, size, margin: FLOATING_ACTION_MARGIN });
+      floatingActionPosition ??
+      getDefaultFloatingActionPosition({
+        viewport,
+        size,
+        margin: FLOATING_ACTION_MARGIN,
+        reservedLeft: getFloatingActionReservedLeft(),
+      });
 
     event.currentTarget.setPointerCapture(event.pointerId);
     suppressFloatingActionClickRef.current = false;
@@ -320,10 +331,6 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
             </div>
             <div className="document-control-cluster">
               <div className="document-status-inline">
-                <button className="primary compact-dictation-action" onClick={runDictationAction} disabled={dictationAction.disabled}>
-                  {dictationAction.intent === "stop" ? <Pause size={16} /> : <Mic size={16} />}
-                  {dictationAction.label}
-                </button>
                 <span className={`status ${context.connectionState.toLowerCase()}`}>
                   <span className="status-dot" aria-hidden="true" /> {context.connectionState}
                 </span>
@@ -444,9 +451,6 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
             <span>{formatElapsedTime(dictationSeconds)}</span>
             <span className="footer-action-row">
               <button className="icon-button" title="Micro Editor" aria-label="Micro Editor" onClick={() => context.setMicroOpen(!context.microOpen)}><Keyboard size={16} /></button>
-              <button className="icon-button" title={dictationAction.label} aria-label={dictationAction.label} onClick={runDictationAction} disabled={dictationAction.disabled}>
-                {dictationAction.intent === "stop" ? <Pause size={16} /> : <Play size={16} />}
-              </button>
               <button className="icon-button" title="Settings" aria-label="Settings" onClick={() => navigate("/settings")}><SlidersHorizontal size={16} /></button>
               <button
                 className={editorFocusMode ? "icon-button active" : "icon-button"}
@@ -515,6 +519,12 @@ function getFloatingActionSize(element: HTMLElement | null): FloatingActionSize 
   return { width: rect.width, height: rect.height };
 }
 
+function getFloatingActionReservedLeft(): number {
+  const sidebar = document.querySelector<HTMLElement>(".sidebar");
+  const rect = sidebar?.getBoundingClientRect();
+  return rect && rect.width > 0 ? rect.right : 0;
+}
+
 function loadFloatingActionPosition(): FloatingActionPosition | null {
   try {
     const stored = window.localStorage.getItem(FLOATING_ACTION_STORAGE_KEY);
@@ -561,11 +571,43 @@ function DocumentRightRail({
   onDiagnostics: () => void;
 }) {
   const help = getDictationHelpContent();
+  const commandGroups = buildDictationCommandGroups(help);
   const quickActionsDisabled = !context.activeDocument || !context.editor;
+  const statusTone = getRightRailStatusTone(connectionReady, microphoneActive);
 
   return (
     <aside className="document-right-rail">
-      <section className="right-rail-card">
+      <section className="right-rail-card status-card">
+        <header>
+          <h2><HeartPulse size={18} /> Dictation Status</h2>
+        </header>
+        <div className="diagnostics-summary">
+          <span className={`right-rail-status-pill ${statusTone}`}>
+            <span className="status-dot" aria-hidden="true" /> {microphoneActive ? "Recording active" : connectionReady ? "CoreSTT ready" : context.connectionState}
+          </span>
+          <div className="right-rail-status-grid">
+            <span className="right-rail-status-row"><span>Microphone</span><strong>{formatMicStatus(context.micStatus)}</strong></span>
+            <span className="right-rail-status-row"><span>Audio packets</span><strong>{context.audioPacketCount}</strong></span>
+            <span className="right-rail-status-row"><span>Target</span><strong>{getEditorTargetLabel(activeTarget)}</strong></span>
+            <span className="right-rail-status-row"><span>Capture</span><strong>{microphoneActive ? "Active" : "Not capturing"}</strong></span>
+          </div>
+          <button type="button" onClick={onDiagnostics}><HeartPulse size={16} /> Diagnostics</button>
+        </div>
+      </section>
+
+      <section className="right-rail-card actions-card">
+        <header>
+          <h2><SlidersHorizontal size={18} /> Quick Actions</h2>
+        </header>
+        <div className="right-rail-actions">
+          <button type="button" onClick={onInsertDate} disabled={quickActionsDisabled}><Calendar size={16} /> {getQuickActionLabel("date")}</button>
+          <button type="button" onClick={onInsertTime} disabled={quickActionsDisabled}><Clock size={16} /> {getQuickActionLabel("time")}</button>
+          <button type="button" onClick={onClearLastSentence} disabled={quickActionsDisabled}><Eraser size={16} /> {getQuickActionLabel("clearSentence")}</button>
+          <button type="button" onClick={onUndo} disabled={quickActionsDisabled}><Undo2 size={16} /> {getQuickActionLabel("undo")}</button>
+        </div>
+      </section>
+
+      <section className="right-rail-card help-card">
         <header>
           <h2><HelpCircle size={18} /> Dictation Help</h2>
           <button className="icon-button" aria-label={helpOpen ? "Hide dictation help" : "Show dictation help"} onClick={onToggleHelp}>
@@ -575,52 +617,22 @@ function DocumentRightRail({
         <div className="tip-card">
           <strong>Tip</strong>
           <p>Use voice commands to format, navigate, and edit hands-free.</p>
-          {!helpOpen && <button type="button" onClick={onToggleHelp}>View all commands <ArrowRight size={14} /></button>}
+          {!helpOpen && <button type="button" onClick={onToggleHelp}>View commands <ArrowRight size={14} /></button>}
         </div>
         {helpOpen && (
           <div className="right-rail-command-list">
-            <strong>Formatting</strong>
-            <span>{help.formattingCommands.join(", ")}</span>
-            <strong>Editing</strong>
-            <span>{help.editorControls.join(", ")}</span>
-            <strong>Templates</strong>
-            <span>{help.templatePhrases.join(", ")}</span>
+            {commandGroups.map((group) => (
+              <section className="right-rail-command-group" key={group.title}>
+                <strong>{group.title}</strong>
+                <span className="right-rail-command-chip-list">
+                  {group.commands.map((command) => (
+                    <span className="right-rail-command-chip" key={command}>{command}</span>
+                  ))}
+                </span>
+              </section>
+            ))}
           </div>
         )}
-      </section>
-
-      <section className="right-rail-card">
-        <header>
-          <h2><SlidersHorizontal size={18} /> Quick Actions</h2>
-        </header>
-        <div className="right-rail-actions">
-          <button type="button" onClick={onInsertDate} disabled={quickActionsDisabled}><Calendar size={16} /> Insert current date</button>
-          <button type="button" onClick={onInsertTime} disabled={quickActionsDisabled}><Clock size={16} /> Insert current time</button>
-          <button type="button" onClick={onClearLastSentence} disabled={quickActionsDisabled}><Eraser size={16} /> Clear last sentence</button>
-          <button type="button" onClick={onUndo} disabled={quickActionsDisabled}><Undo2 size={16} /> Undo last action</button>
-        </div>
-      </section>
-
-      <section className="right-rail-card">
-        <header>
-          <h2><HeartPulse size={18} /> Dictation Status</h2>
-        </header>
-        <div className="diagnostics-summary">
-          <span className={connectionReady ? "summary-good" : "summary-warn"}>
-            <span className="status-dot" aria-hidden="true" /> {connectionReady ? "CoreSTT ready" : context.connectionState}
-          </span>
-          <dl>
-            <dt>Microphone</dt>
-            <dd>{formatMicStatus(context.micStatus)}</dd>
-            <dt>Audio packets</dt>
-            <dd>{context.audioPacketCount}</dd>
-            <dt>Target</dt>
-            <dd>{getEditorTargetLabel(activeTarget)}</dd>
-            <dt>Capture</dt>
-            <dd>{microphoneActive ? "Active" : "Not capturing"}</dd>
-          </dl>
-          <button type="button" onClick={onDiagnostics}><HeartPulse size={16} /> Diagnostics</button>
-        </div>
       </section>
     </aside>
   );

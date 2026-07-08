@@ -1,5 +1,41 @@
 # Session Log
 
+## 2026-07-09 - Documents right rail assistant panel
+
+Changed:
+- Reordered the Documents right rail to show Dictation Status first, Quick
+  Actions second, and Dictation Help last.
+- Reworked status into a prominent tone-based pill plus compact scan rows.
+- Rendered expanded dictation commands as grouped chips instead of long comma
+  text, and made quick actions a compact grid.
+- Added focused helper tests for command grouping and status tone selection.
+
+Validation:
+- `cd frontend && npm test`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+Next:
+- Browser visual verification remains To verify because local dev server
+  escalation was not approved.
+
+## 2026-07-09 - Documents workspace focused UX polish
+
+Changed:
+- Removed duplicate dictation controls from the Documents header and footer so
+  the floating transcription action is the single primary start/stop control.
+- Lightened the document header, editor toolbar, editor canvas, footer dock, and
+  right rail card styling to make the editor feel more prominent.
+- Tightened right rail spacing and responsive document layout rules while
+  preserving existing document, dictation, and editor behavior.
+
+Validation:
+- `cd frontend && npm test`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+Next:
+- Browser visual verification remains To verify because local dev server
+  escalation was not approved.
+
 ## 2026-07-09 - Compact Settings rows
 
 Changed:
@@ -1174,4 +1210,109 @@ Validation:
 
 Next:
 - Browser visual verification remains To verify because the in-app browser connector failed during setup.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Documents right rail final polish
+
+Changed:
+- Shortened right rail quick action labels and added role-specific card classes for status, actions, and help.
+- Reduced passive dictation status visual weight while keeping active recording more prominent.
+- Made first-time floating transcription placement respect the left sidebar boundary while preserving saved user positions.
+- Removed native toolbar button titles where accessible labels already exist to reduce hover tooltip noise.
+
+Validation:
+- `cd frontend && npm test -- rightRail`
+- `cd frontend && npm test -- floatingActionPosition`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+
+Next:
+- Browser visual verification remains To verify unless a local dev server is available.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Sidebar brand lockup
+
+Changed:
+- Replaced the plain sidebar brand text with a compact product lockup.
+- Added an `ST` brand mark, SparkTrans wordmark, and clinical dictation subtitle.
+- Added a small workspace brand helper with focused coverage.
+
+Validation:
+- `cd frontend && npm test -- workspaceBrand`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify unless a local dev server is available.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Next Line Spark brand reference update
+
+Changed:
+- Updated the sidebar brand lockup to match the provided brand reference.
+- Changed the wordmark to `NEXT LINE`, secondary brand text to `Spark`, and the mark to a teal `N` treatment.
+- Kept the implementation as styled app UI rather than importing the raw reference image.
+
+Validation:
+- `cd frontend && npm test -- workspaceBrand`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify unless a local dev server is available.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Templates page Settings-style polish
+
+Changed:
+- Restyled the Templates page with Settings-style section cards, spacing, and hierarchy.
+- Split the page into a clearer template library and template definition layout.
+- Added a dedicated preview section and responsive stacking for tablet/mobile widths.
+- Added a small templates UI helper with focused coverage for section copy.
+
+Validation:
+- `cd frontend && npm test -- templatesUi`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify unless a local dev server is available.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Macros page Settings-style polish
+
+Changed:
+- Restyled the Macros page with Settings-style section cards, spacing, and hierarchy.
+- Split the page into a macro builder section and macro library section.
+- Added macro-specific responsive stacking for tablet/mobile widths.
+- Added a small macros UI helper with focused coverage for section copy.
+
+Validation:
+- `cd frontend && npm test -- macrosUi`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify unless a local dev server is available.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Macro row UX refinement
+
+Changed:
+- Replaced the oversized macro enabled checkbox presentation with a compact switch and status pill.
+- Grouped macro row actions into a clearer Save/Delete action area.
+- Adjusted macro row proportions and responsive behavior so fields stay primary.
+
+Validation:
+- `cd frontend && npm test -- macrosUi`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify unless a local dev server is available.
 - Vite still reports the existing large chunk warning during production build.

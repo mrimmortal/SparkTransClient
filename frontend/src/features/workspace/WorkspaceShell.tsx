@@ -11,9 +11,11 @@ import { getSuccessMessage, ToastContainer, ToastItem } from "../../components/T
 import { SettingsPage } from "../settings/SettingsPage";
 import { TemplatesPage } from "../templates/TemplatesPage";
 import { WorkspaceContext } from "./types";
+import { getWorkspaceBrand } from "./workspaceBrand";
 
 export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
   const navigate = useNavigate();
+  const brand = getWorkspaceBrand();
   const [documentManagerOpen, setDocumentManagerOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const toastIdRef = useRef(0);
@@ -54,7 +56,20 @@ export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
   return (
     <main className={`workspace theme-${context.settings.ui_theme}`}>
       <aside className="sidebar">
-        <div className="brand">SparkTrans</div>
+        <div className="brand-lockup" aria-label={brand.ariaLabel}>
+          <span className="brand-mark" aria-hidden="true">
+            <span>{brand.mark}</span>
+            <span className="brand-mark-lines">
+              <span />
+              <span />
+              <span />
+            </span>
+          </span>
+          <span className="brand-copy">
+            <strong>{brand.name}</strong>
+            <small>{brand.subtitle}</small>
+          </span>
+        </div>
         <nav>
           <NavLink to="/documents" className={({ isActive }) => (isActive ? "nav active" : "nav")}><FileText size={16} /> Documents</NavLink>
           <NavLink to="/templates" className={({ isActive }) => (isActive ? "nav active" : "nav")}><ClipboardList size={16} /> Templates</NavLink>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Save, Trash2 } from "lucide-react";
 import { MacroRecord } from "../../lib/api";
 import { canSaveMacroDraft, normalizeMacroDraft } from "../../lib/macroFlow";
+import { getMacroRowStatus } from "./macrosUi";
 
 export function MacroRow({
   macro,
@@ -23,6 +24,7 @@ export function MacroRow({
     normalizedDraft.trigger !== macro.trigger ||
     normalizedDraft.replacement !== macro.replacement ||
     normalizedDraft.enabled !== macro.enabled;
+  const status = getMacroRowStatus(draft.enabled);
 
   async function saveDraft(nextDraft = draft) {
     setError("");
@@ -59,15 +61,26 @@ export function MacroRow({
   }
 
   return (
-    <div className={dirty ? "table-row dirty" : "table-row"}>
+    <div className={dirty ? "table-row macro-row dirty" : "table-row macro-row"}>
       <input aria-label="Macro trigger" value={draft.trigger} onChange={(event) => setDraft({ ...draft, trigger: event.target.value })} />
       <input aria-label="Macro replacement" value={draft.replacement} onChange={(event) => setDraft({ ...draft, replacement: event.target.value })} />
-      <label className="compact-check">
-        <input type="checkbox" checked={draft.enabled} onChange={(event) => void toggleEnabled(event.target.checked)} disabled={saving} />
-        Enabled
-      </label>
-      <button onClick={() => void saveDraft()} disabled={saving || !dirty || !canSaveMacroDraft(draft)}><Save size={16} /> {saving ? "Saving" : "Save"}</button>
-      <button onClick={() => void deleteDraft()} disabled={saving}><Trash2 size={16} /> Delete</button>
+      <div className="macro-row-controls">
+        <label className="macro-switch">
+          <input
+            type="checkbox"
+            aria-label={draft.enabled ? "Disable macro" : "Enable macro"}
+            checked={draft.enabled}
+            onChange={(event) => void toggleEnabled(event.target.checked)}
+            disabled={saving}
+          />
+          <span aria-hidden="true" />
+        </label>
+        <span className={status.className}>{status.label}</span>
+      </div>
+      <div className="macro-row-actions">
+        <button onClick={() => void saveDraft()} disabled={saving || !dirty || !canSaveMacroDraft(draft)}><Save size={16} /> {saving ? "Saving" : "Save"}</button>
+        <button onClick={() => void deleteDraft()} disabled={saving}><Trash2 size={16} /> Delete</button>
+      </div>
       {(dirty || error) && <span className={error ? "row-message error" : "row-message"}>{error || "Unsaved"}</span>}
     </div>
   );

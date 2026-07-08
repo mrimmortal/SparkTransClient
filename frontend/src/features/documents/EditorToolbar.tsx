@@ -56,7 +56,6 @@ export function EditorToolbar({ editor, disabled }: { editor: Editor | null; dis
           key={item.command}
           type="button"
           className={isToolbarCommandActive(item.command) ? "icon-button active" : "icon-button"}
-          title={item.label}
           aria-label={item.label}
           onClick={() => runToolbarCommand(item.command)}
           disabled={disabled}

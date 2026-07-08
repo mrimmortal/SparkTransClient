@@ -16,9 +16,11 @@ import {
 import { confirmationMessages } from "../../lib/editorFlow";
 import { WorkspaceContext } from "../workspace/types";
 import { withWarning } from "../workspace/withWarning";
+import { getTemplatesLayoutCopy } from "./templatesUi";
 
 export function TemplatesPage({ context }: { context: WorkspaceContext }) {
   const navigate = useNavigate();
+  const layoutCopy = getTemplatesLayoutCopy();
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [name, setName] = useState("");
@@ -117,46 +119,52 @@ export function TemplatesPage({ context }: { context: WorkspaceContext }) {
   return (
     <section className="manager-page">
       <PageHeader title="Templates" />
-      <div className="manager-grid two template-manager-grid">
-        <section className="panel">
-          <div className="inline-form">
-            <input placeholder="Search templates" value={query} onChange={(event) => setQuery(event.target.value)} />
-            <button onClick={() => void searchTemplates()}><Search size={16} /> Search</button>
-          </div>
-          <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
-            <option value="">All categories</option>
-            {categories.map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
-          </select>
-          <label className="file-button">
-            <Upload size={16} /> {uploading ? "Uploading" : "Upload .docx"}
-            <input type="file" accept=".docx" onChange={(event) => void uploadTemplate(event)} disabled={uploading} />
-          </label>
-          <details className="template-create">
-            <summary><Plus size={16} /> New template</summary>
-            <form onSubmit={(event) => void createTemplate(event)} className="stack">
-              <input placeholder="Template name" value={name} onChange={(event) => setName(event.target.value)} />
-              <input placeholder="Category" value={category} onChange={(event) => setCategory(event.target.value)} />
-              <textarea placeholder="Template HTML" value={content} onChange={(event) => setContent(event.target.value)} />
-              <button className="primary" type="submit" disabled={creating || !canSaveTemplateDraft(templateDraft)}>
-                <Plus size={16} /> {creating ? "Creating" : "Create template"}
-              </button>
-            </form>
-          </details>
-          <div className="list">
-            {visibleTemplates.map((template) => (
-              <button key={template.id} className={template.id === selected?.id ? "doc active" : "doc"} onClick={() => setSelected(template)}>
-                {template.name}
-                {template.category ? <span className="template-category"><Tag size={12} /> {template.category}</span> : null}
-              </button>
-            ))}
+      <div className="template-manager-grid">
+        <section className="template-section template-library-section">
+          <h2 className="template-section-title">{layoutCopy.libraryTitle}</h2>
+          <div className="template-section-body">
+            <div className="template-search-row">
+              <input placeholder="Search templates" value={query} onChange={(event) => setQuery(event.target.value)} />
+              <button onClick={() => void searchTemplates()}><Search size={16} /> Search</button>
+            </div>
+            <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+              <option value="">All categories</option>
+              {categories.map((item) => (
+                <option key={item} value={item}>{item}</option>
+              ))}
+            </select>
+            <div className="template-library-actions">
+              <label className="file-button">
+                <Upload size={16} /> {uploading ? "Uploading" : "Upload .docx"}
+                <input type="file" accept=".docx" onChange={(event) => void uploadTemplate(event)} disabled={uploading} />
+              </label>
+            </div>
+            <details className="template-create">
+              <summary><Plus size={16} /> New template</summary>
+              <form onSubmit={(event) => void createTemplate(event)} className="stack">
+                <input placeholder="Template name" value={name} onChange={(event) => setName(event.target.value)} />
+                <input placeholder="Category" value={category} onChange={(event) => setCategory(event.target.value)} />
+                <textarea placeholder="Template HTML" value={content} onChange={(event) => setContent(event.target.value)} />
+                <button className="primary" type="submit" disabled={creating || !canSaveTemplateDraft(templateDraft)}>
+                  <Plus size={16} /> {creating ? "Creating" : "Create template"}
+                </button>
+              </form>
+            </details>
+            <div className="list template-list">
+              {visibleTemplates.map((template) => (
+                <button key={template.id} className={template.id === selected?.id ? "doc active" : "doc"} onClick={() => setSelected(template)}>
+                  {template.name}
+                  {template.category ? <span className="template-category"><Tag size={12} /> {template.category}</span> : null}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section className="panel wide">
+        <section className="template-section template-editor-section">
           {selected ? (
             <div className="stack template-editor">
+              <h2 className="template-section-title">{layoutCopy.editorTitle}</h2>
               <div className="template-edit-fields">
                 <input value={selected.name} onChange={(event) => setSelected({ ...selected, name: event.target.value })} />
                 <input value={selected.category ?? ""} placeholder="Category" onChange={(event) => setSelected({ ...selected, category: event.target.value })} />
@@ -179,7 +187,10 @@ export function TemplatesPage({ context }: { context: WorkspaceContext }) {
                 </button>
                 <button onClick={() => void deleteTemplate()} disabled={saving}><Trash2 size={16} /> Delete</button>
               </div>
-              <div className="preview" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+              <section className="template-preview-section">
+                <h2 className="template-section-title">{layoutCopy.previewTitle}</h2>
+                <div className="preview" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+              </section>
             </div>
           ) : (
             <EmptyState title="No template selected" text="Select a template or create a new one." />
