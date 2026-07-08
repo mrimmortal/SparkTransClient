@@ -183,7 +183,7 @@ export function useDictationSession({
     if (!sttRef.current) {
       connectStt();
     }
-    sttRef.current?.start();
+    sttRef.current?.start({ domain: settingsRef.current.profile });
   }
 
   function stopDictation() {

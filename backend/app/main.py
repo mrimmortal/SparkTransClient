@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
-from app.api import auth, documents, health, macros, settings, stt_proxy, templates
+from app.api import auth, documents, domain_profiles, health, macros, settings, stt_proxy, templates
 from app.core.config import get_settings
 from app.core.logging import configure_logging, request_log_middleware
 from app.db.session import init_db
@@ -29,6 +29,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix="/api")
     app.include_router(auth.router, prefix="/api")
     app.include_router(documents.router, prefix="/api")
+    app.include_router(domain_profiles.router, prefix="/api")
     app.include_router(templates.router, prefix="/api")
     app.include_router(macros.router, prefix="/api")
     app.include_router(settings.router, prefix="/api")
@@ -37,4 +38,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-

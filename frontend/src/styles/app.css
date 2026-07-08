@@ -1524,6 +1524,26 @@ details input {
   gap: 3px;
 }
 
+.domain-profile-settings {
+  border-top: 1px solid var(--neo-border);
+  margin-top: 4px;
+  padding-top: 12px;
+}
+
+.domain-profile-settings h3 {
+  font-size: 14px;
+  margin: 0;
+}
+
+.domain-profile-form textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.domain-profile-actions {
+  flex-wrap: wrap;
+}
+
 .diagnostics-grid {
   display: grid;
   grid-template-columns: 160px minmax(0, 1fr);

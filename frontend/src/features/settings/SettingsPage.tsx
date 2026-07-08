@@ -4,6 +4,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { api, UserSettingsRecord } from "../../lib/api";
 import { WorkspaceContext } from "../workspace/types";
 import { withWarning } from "../workspace/withWarning";
+import { DomainProfileSettings } from "./DomainProfileSettings";
 
 export function SettingsPage({ context }: { context: WorkspaceContext }) {
   const [draftSettings, setDraftSettings] = useState(context.settings);
@@ -129,6 +130,11 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
               <option value="micro-editor">Micro Editor</option>
             </select>
           </label>
+          <DomainProfileSettings
+            profile={draftSettings.profile}
+            onProfileChange={(nextProfile) => void updateSetting("profile", nextProfile)}
+            setWarning={context.setWarning}
+          />
         </section>
 
         <section className="panel stack">

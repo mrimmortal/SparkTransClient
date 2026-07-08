@@ -86,6 +86,18 @@ User settings include:
 | `GET` | `/api/health/version` | Version metadata. |
 | `GET` | `/api/config` | Public frontend config. |
 
+## Domain Profiles
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/api/domain-profiles` | Proxy CoreSTT editable domain profile details. |
+| `PUT` | `/api/domain-profiles/{name}` | Proxy create or replace for one CoreSTT domain profile. |
+| `DELETE` | `/api/domain-profiles/{name}` | Proxy delete for one CoreSTT domain profile. |
+
+Domain profile routes require the current SparkTransClient user session. The
+proxy derives the CoreSTT HTTP origin from `CORESTT_WS_URL` and forwards to
+CoreSTT `/api/domain-profiles`.
+
 ## WebSocket
 
 | Path | Purpose |

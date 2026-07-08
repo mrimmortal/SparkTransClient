@@ -7,6 +7,10 @@ type SttClientOptions = {
   onRetry?: (attempt: number, delayMs: number) => void;
 };
 
+type SttStartOptions = {
+  domain?: string | null;
+};
+
 export class SttClient {
   private socket: WebSocket | null = null;
   private sequence = 0;
@@ -15,6 +19,7 @@ export class SttClient {
   private reconnectTimer: number | undefined;
   private reconnectAttempt = 0;
   private streamRequested = false;
+  private startOptions: SttStartOptions = {};
   private manualClose = false;
 
   constructor(private url: string, private options: SttClientOptions) {}
@@ -46,8 +51,9 @@ export class SttClient {
     };
   }
 
-  start() {
+  start(options: SttStartOptions = {}) {
     this.streamRequested = true;
+    this.startOptions = options;
     if (!this.socket) {
       this.connect();
       return;
@@ -116,7 +122,7 @@ export class SttClient {
     if (message.type === "warning") this.options.onWarning(message.message ?? "Warning from transcription service");
     if (message.type === "error") {
       this.options.onWarning(message.message ?? "Transcription error");
-      if (message.where === "audio_packet" || message.where === "command") {
+      if (message.where === "audio_packet" || message.where === "command" || message.where === "domain") {
         this.streamRequested = false;
         this.clearReconnect();
         this.stopPing();
@@ -128,7 +134,8 @@ export class SttClient {
 
   private sendStart() {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
-    this.socket.send(JSON.stringify({ type: "start" }));
+    const domain = this.startOptions.domain?.trim();
+    this.socket.send(JSON.stringify(domain ? { type: "start", domain } : { type: "start" }));
     this.setState("STREAMING");
     this.startPing();
   }

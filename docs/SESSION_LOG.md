@@ -1,5 +1,71 @@
 # Session Log
 
+## 2026-07-08 - Domain profile backend proxy
+
+Changed:
+- Added authenticated backend proxy routes for `GET`, `PUT`, and `DELETE`
+  `/api/domain-profiles`.
+- Proxy routes derive the CoreSTT HTTP origin from `CORESTT_WS_URL` and forward
+  requests to CoreSTT `/api/domain-profiles`.
+- Added backend proxy tests and updated API/module docs.
+
+Validation:
+- `cd backend && .venv/bin/pytest tests/test_domain_profiles_proxy.py -q`
+- `cd backend && .venv/bin/pytest -q`
+- `python3 -m compileall backend/app`
+
+## 2026-07-08 - Domain profile dropdown fallback
+
+Changed:
+- Updated domain profile response normalization to derive dropdown profile names
+  from the `profiles` object keys when no `domainProfiles` or
+  `domain_profiles` list is returned.
+- Added focused API client coverage for profile-object-only responses.
+
+Validation:
+- `cd frontend && npm test -- src/lib/api.test.ts src/features/settings/domainProfileForm.test.ts src/lib/corestt.test.ts`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+## 2026-07-08 - Domain profile response normalization
+
+Changed:
+- Normalized domain profile API responses so the frontend accepts both
+  `domainProfiles` and `domain_profiles` profile lists.
+- Added API client coverage for snake_case profile-list responses.
+
+Validation:
+- `cd frontend && npm test -- src/lib/api.test.ts src/features/settings/domainProfileForm.test.ts src/lib/corestt.test.ts`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+## 2026-07-08 - Domain profile settings UI
+
+Changed:
+- Added a Settings-page domain profile component that loads, selects, saves,
+  and deletes transcription profiles through the frontend API client.
+- Reused `settings.profile` as the selected dictation domain.
+- Added focused form serialization helpers and tests for profile prompt/hotword
+  payloads.
+
+Validation:
+- `cd frontend && npm test -- src/features/settings/domainProfileForm.test.ts src/lib/api.test.ts src/lib/corestt.test.ts`
+- `cd frontend && npm test`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+## 2026-07-08 - Domain profile client calls
+
+Changed:
+- Added frontend API client methods for `GET`, `PUT`, and `DELETE`
+  `/api/domain-profiles`.
+- Updated `SttClient.start()` to accept an optional domain profile and send it
+  in the WebSocket `start` control message.
+- Wired dictation start to use the existing `settings.profile` value as the
+  selected domain.
+- Treated CoreSTT `error` messages with `where: "domain"` as non-retryable.
+
+Validation:
+- `cd frontend && npm test -- src/lib/api.test.ts src/lib/corestt.test.ts`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
 ## 2026-07-08 - Repeated voice undo command dedupe
 
 Changed:

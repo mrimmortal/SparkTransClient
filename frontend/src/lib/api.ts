@@ -77,6 +77,30 @@ export type PublicConfig = {
   audioFormat: string;
 };
 
+export type DomainProfile = {
+  initial_prompt: string | null;
+  initial_prompt_realtime: string | null;
+  hotwords?: string | string[] | null;
+};
+
+export type DomainProfilesResponse = {
+  domainProfiles: string[];
+  profiles: Record<string, DomainProfile>;
+};
+
+export type DomainProfileUpdateResponse = DomainProfilesResponse & {
+  profile: DomainProfile;
+};
+
+type RawDomainProfilesResponse = Partial<DomainProfilesResponse> & {
+  domain_profiles?: string[];
+  profiles?: Record<string, DomainProfile>;
+};
+
+type RawDomainProfileUpdateResponse = RawDomainProfilesResponse & {
+  profile?: DomainProfile;
+};
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 type ResponseMode = "json" | "blob" | "void";
@@ -129,6 +153,23 @@ async function readErrorMessage(response: Response): Promise<string> {
   return detail || fallback;
 }
 
+export function normalizeDomainProfilesResponse(response: RawDomainProfilesResponse): DomainProfilesResponse {
+  const profiles = response.profiles ?? {};
+  const domainProfiles = response.domainProfiles ?? response.domain_profiles ?? Object.keys(profiles);
+  return {
+    domainProfiles,
+    profiles,
+  };
+}
+
+function normalizeDomainProfileUpdateResponse(response: RawDomainProfileUpdateResponse): DomainProfileUpdateResponse {
+  const normalized = normalizeDomainProfilesResponse(response);
+  return {
+    ...normalized,
+    profile: response.profile ?? { initial_prompt: null, initial_prompt_realtime: null, hotwords: null },
+  };
+}
+
 export const api = {
   me: () => request<UserRecord>("/api/auth/me"),
   login: (email: string, password: string) => request<UserRecord>("/api/auth/login", { method: "POST", ...jsonBody({ email, password }) }),
@@ -170,4 +211,11 @@ export const api = {
   healthReady: () => request<HealthStatus>("/api/health/ready"),
   version: () => request<VersionInfo>("/api/health/version"),
   config: () => request<PublicConfig>("/api/config"),
+  domainProfiles: async () => normalizeDomainProfilesResponse(await request<RawDomainProfilesResponse>("/api/domain-profiles")),
+  updateDomainProfile: (name: string, payload: DomainProfile) =>
+    request<RawDomainProfileUpdateResponse>(`/api/domain-profiles/${encodeURIComponent(name)}`, { method: "PUT", ...jsonBody(payload) }).then(
+      normalizeDomainProfileUpdateResponse,
+    ),
+  deleteDomainProfile: async (name: string) =>
+    normalizeDomainProfilesResponse(await request<RawDomainProfilesResponse>(`/api/domain-profiles/${encodeURIComponent(name)}`, { method: "DELETE" })),
 };

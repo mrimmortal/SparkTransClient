@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { api } from "./api";
+import { api, normalizeDomainProfilesResponse } from "./api";
 
 const jsonResponse = (body: unknown, init: ResponseInit = {}) =>
   new Response(JSON.stringify(body), {
@@ -191,5 +191,89 @@ describe("api client", () => {
         body: JSON.stringify({ ui_theme: "neo-dark" }),
       }),
     );
+  });
+
+  it("calls domain profile endpoints with encoded names and JSON payloads", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ domainProfiles: ["general"], profiles: {} }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({ profile: {}, domainProfiles: ["general", "medical"], profiles: {} }));
+    fetchMock.mockResolvedValueOnce(jsonResponse({ domainProfiles: ["general"], profiles: {} }));
+
+    await api.domainProfiles();
+    await api.updateDomainProfile("medical notes", {
+      initial_prompt: "Medical dictation.",
+      initial_prompt_realtime: null,
+      hotwords: ["hypertension"],
+    });
+    await api.deleteDomainProfile("medical notes");
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/domain-profiles",
+      expect.objectContaining({ credentials: "include" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/domain-profiles/medical%20notes",
+      expect.objectContaining({
+        credentials: "include",
+        method: "PUT",
+        headers: expect.objectContaining({ "content-type": "application/json" }),
+        body: JSON.stringify({
+          initial_prompt: "Medical dictation.",
+          initial_prompt_realtime: null,
+          hotwords: ["hypertension"],
+        }),
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      "/api/domain-profiles/medical%20notes",
+      expect.objectContaining({ credentials: "include", method: "DELETE" }),
+    );
+  });
+
+  it("normalizes snake_case domain profile responses from the API", () => {
+    expect(
+      normalizeDomainProfilesResponse({
+        domain_profiles: ["general", "medical"],
+        profiles: {
+          medical: {
+            initial_prompt: "Medical dictation.",
+            initial_prompt_realtime: null,
+            hotwords: ["hypertension"],
+          },
+        },
+      }),
+    ).toEqual({
+      domainProfiles: ["general", "medical"],
+      profiles: {
+        medical: {
+          initial_prompt: "Medical dictation.",
+          initial_prompt_realtime: null,
+          hotwords: ["hypertension"],
+        },
+      },
+    });
+  });
+
+  it("derives domain profile names from profile object keys when list is missing", () => {
+    expect(
+      normalizeDomainProfilesResponse({
+        profiles: {
+          legal: {
+            initial_prompt: null,
+            initial_prompt_realtime: null,
+            hotwords: null,
+          },
+          medical: {
+            initial_prompt: "Medical dictation.",
+            initial_prompt_realtime: null,
+            hotwords: ["hypertension"],
+          },
+        },
+      }),
+    ).toMatchObject({
+      domainProfiles: ["legal", "medical"],
+    });
   });
 });

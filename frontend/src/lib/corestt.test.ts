@@ -445,6 +445,17 @@ describe("SttClient streaming lifecycle", () => {
     expect(states).toContain("STREAMING");
   });
 
+  it("sends selected domain when queued start runs after ready", () => {
+    const { client } = makeClient();
+
+    client.start({ domain: "medical" });
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    socket.receive({ type: "ready" });
+
+    expect(socket.sent[0]).toBe(JSON.stringify({ type: "start", domain: "medical" }));
+  });
+
   it("sends audio packets only while streaming", () => {
     const { client } = makeClient();
 
@@ -493,6 +504,22 @@ describe("SttClient streaming lifecycle", () => {
     vi.runOnlyPendingTimers();
 
     expect(warnings).toEqual(["bad packet"]);
+    expect(retryAttempts).toEqual([]);
+  });
+
+  it("does not reconnect after a non-retryable domain error", () => {
+    const { client, warnings, retryAttempts } = makeClient();
+
+    client.start({ domain: "missing" });
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    socket.receive({ type: "ready" });
+    socket.receive({ type: "error", where: "domain", message: "Unknown domain profile: missing" });
+    socket.closeFromServer();
+
+    vi.runOnlyPendingTimers();
+
+    expect(warnings).toEqual(["Unknown domain profile: missing"]);
     expect(retryAttempts).toEqual([]);
   });
 });

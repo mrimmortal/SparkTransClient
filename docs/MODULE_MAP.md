@@ -15,7 +15,7 @@ Use this map to find the smallest relevant file set for future work.
 | Templates | `backend/app/api/templates.py`, `backend/app/services/templates.py` | `backend/tests/test_macro_template_api.py` |
 | Macros | `backend/app/api/macros.py`, `backend/app/models/macro.py` | `backend/tests/test_macro_template_api.py` |
 | Settings/shortcuts | `backend/app/api/settings.py`, `backend/app/models/settings.py` | To add API tests |
-| CoreSTT protocol/proxy | `backend/app/services/corestt_protocol.py`, `backend/app/api/stt_proxy.py` | `backend/tests/test_corestt_packet.py`, `backend/tests/test_stt_proxy.py` |
+| CoreSTT protocol/proxy | `backend/app/services/corestt_protocol.py`, `backend/app/api/stt_proxy.py`, `backend/app/api/domain_profiles.py` | `backend/tests/test_corestt_packet.py`, `backend/tests/test_stt_proxy.py`, `backend/tests/test_domain_profiles_proxy.py` |
 
 ## Frontend
 
