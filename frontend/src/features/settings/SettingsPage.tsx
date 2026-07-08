@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { Mic, Save } from "lucide-react";
 import { PageHeader } from "../../components/PageHeader";
 import { api, UserSettingsRecord } from "../../lib/api";
@@ -60,17 +60,16 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
       <PageHeader
         title="Settings"
         actions={
-          <button className="primary" type="submit" form="settings-form" disabled={!canSave}>
-            <Save size={16} /> {saving ? "Saving" : "Save settings"}
-          </button>
+          <>
+            <span className={settingsDirty ? "save-status dirty" : "save-status"}>{saving ? "Saving..." : settingsDirty ? "Unsaved" : "Saved"}</span>
+            <button className="primary" type="submit" form="settings-form" disabled={!canSave}>
+              <Save size={16} /> {saving ? "Saving" : "Save settings"}
+            </button>
+          </>
         }
       />
-      <form id="settings-form" className="settings-grid" onSubmit={(event) => void saveSettings(event)}>
-        <section className="panel stack">
-          <div className="panel-heading">
-            <h2>Appearance</h2>
-            <span className={settingsDirty ? "save-status dirty" : "save-status"}>{saving ? "Saving..." : settingsDirty ? "Unsaved" : "Saved"}</span>
-          </div>
+      <form id="settings-form" className="settings-layout" onSubmit={(event) => void saveSettings(event)}>
+        <SettingsSection title="Appearance">
           <label>
             Theme preset
             <select
@@ -82,12 +81,9 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
               <option value="neo-dark">Neo Dark</option>
             </select>
           </label>
-        </section>
+        </SettingsSection>
 
-        <section className="panel stack">
-          <div className="panel-heading">
-            <h2>Dictation</h2>
-          </div>
+        <SettingsSection title="Dictation">
           <label className="compact-check">
             <input
               type="checkbox"
@@ -130,15 +126,17 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
               <option value="micro-editor">Micro Editor</option>
             </select>
           </label>
+        </SettingsSection>
+
+        <SettingsSection title="Transcription profiles" className="settings-section-wide">
           <DomainProfileSettings
             profile={draftSettings.profile}
             onProfileChange={(nextProfile) => void updateSetting("profile", nextProfile)}
             setWarning={context.setWarning}
           />
-        </section>
+        </SettingsSection>
 
-        <section className="panel stack">
-          <h2>Transcript handling</h2>
+        <SettingsSection title="Transcript handling">
           <label className="compact-check">
             <input
               type="checkbox"
@@ -187,10 +185,9 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
               <option value={60}>1 minute</option>
             </select>
           </label>
-        </section>
+        </SettingsSection>
 
-        <section className="panel stack">
-          <h2>Microphone</h2>
+        <SettingsSection title="Microphone">
           <div className="button-row">
             <button type="button" onClick={() => void loadDevices()}><Mic size={16} /> Load devices</button>
             <button type="button" onClick={() => void checkMicrophone()}>Check microphone</button>
@@ -221,10 +218,9 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
               onChange={(event) => void updateSetting("audio_device_id", event.target.value || null)}
             />
           </details>
-        </section>
+        </SettingsSection>
 
-        <section className="panel stack">
-          <h2>Documents and safety</h2>
+        <SettingsSection title="Documents and safety">
           <label>
             Default template for new documents
             <select
@@ -268,8 +264,19 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
               <span className="settings-note">Select the next template marker after dictated text replaces the current one.</span>
             </span>
           </label>
-        </section>
+        </SettingsSection>
       </form>
+    </section>
+  );
+}
+
+function SettingsSection({ title, className = "", children }: { title: string; className?: string; children: ReactNode }) {
+  return (
+    <section className={`settings-section ${className}`.trim()}>
+      <div className="settings-section-header">
+        <h2>{title}</h2>
+      </div>
+      <div className="settings-section-body">{children}</div>
     </section>
   );
 }

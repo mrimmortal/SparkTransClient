@@ -1,5 +1,43 @@
 # Session Log
 
+## 2026-07-09 - Settings page visual polish
+
+Changed:
+- Refined Settings page spacing, hierarchy, and contrast for a more
+  professional productivity-app layout.
+- Strengthened section/card/input contrast, increased section rhythm, and made
+  Settings controls more consistent in size.
+- Improved transcription profile layout spacing and marked profile deletion as
+  a danger action.
+- Tightened responsive behavior for Settings section headers and profile editor
+  columns.
+
+Validation:
+- `cd frontend && npm test`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+Next:
+- Browser visual verification remains To verify because the in-app browser
+  connector failed before attaching.
+
+## 2026-07-08 - Settings page layout refresh
+
+Changed:
+- Reworked the Settings page from a compact three-column grid into clearer
+  full-width sections for appearance, dictation, transcription profiles,
+  transcript handling, microphone, and documents/safety.
+- Moved the domain profile UI into its own section and separated active-profile
+  selection from profile definition editing.
+- Added responsive CSS so settings sections collapse to one column on mobile.
+
+Validation:
+- `cd frontend && npm test`
+- `cd frontend && npm run build` — passes with existing large chunk warning
+
+Next:
+- Browser visual verification not run because starting the local Vite dev server
+  outside the sandbox was not approved.
+
 ## 2026-07-08 - Domain profile backend proxy
 
 Changed:

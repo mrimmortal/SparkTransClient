@@ -95,62 +95,69 @@ export function DomainProfileSettings({ profile, onProfileChange, setWarning }: 
   }
 
   return (
-    <section className="domain-profile-settings stack">
-      <div className="panel-heading">
-        <h3>Transcription profile</h3>
-        <button type="button" onClick={() => void loadProfiles()} disabled={loading || saving} title="Refresh domain profiles">
-          <RefreshCw size={16} /> {loading ? "Loading" : "Refresh"}
-        </button>
+    <div className="domain-profile-settings">
+      <div className="domain-profile-picker stack">
+        <div className="settings-subsection-heading">
+          <h3>Active profile</h3>
+          <button type="button" onClick={() => void loadProfiles()} disabled={loading || saving} title="Refresh domain profiles">
+            <RefreshCw size={16} /> {loading ? "Loading" : "Refresh"}
+          </button>
+        </div>
+        <label>
+          Profile
+          <select value={profile} onChange={(event) => selectProfile(event.target.value)} disabled={loading || saving}>
+            {availableProfiles.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        </label>
       </div>
-      <label>
-        Active profile
-        <select value={profile} onChange={(event) => selectProfile(event.target.value)} disabled={loading || saving}>
-          {availableProfiles.map((name) => (
-            <option key={name} value={name}>{name}</option>
-          ))}
-        </select>
-      </label>
-      <div className="domain-profile-form stack">
-        <label>
-          Profile name
-          <input value={editingName} onChange={(event) => setEditingName(event.target.value)} disabled={saving} />
-        </label>
-        <label>
-          Initial prompt
-          <textarea
-            rows={3}
-            value={draft.initialPrompt}
-            onChange={(event) => updateDraft("initialPrompt", event.target.value)}
-            disabled={saving}
-          />
-        </label>
-        <label>
-          Realtime prompt
-          <textarea
-            rows={2}
-            value={draft.realtimePrompt}
-            onChange={(event) => updateDraft("realtimePrompt", event.target.value)}
-            disabled={saving}
-          />
-        </label>
-        <label>
-          Hotwords
-          <textarea
-            rows={3}
-            value={draft.hotwordsText}
-            onChange={(event) => updateDraft("hotwordsText", event.target.value)}
-            disabled={saving}
-          />
-        </label>
+      <div className="domain-profile-editor stack">
+        <div className="settings-subsection-heading">
+          <h3>Profile definition</h3>
+        </div>
+        <div className="domain-profile-form">
+          <label>
+            Profile name
+            <input value={editingName} onChange={(event) => setEditingName(event.target.value)} disabled={saving} />
+          </label>
+          <label>
+            Initial prompt
+            <textarea
+              rows={3}
+              value={draft.initialPrompt}
+              onChange={(event) => updateDraft("initialPrompt", event.target.value)}
+              disabled={saving}
+            />
+          </label>
+          <label>
+            Realtime prompt
+            <textarea
+              rows={2}
+              value={draft.realtimePrompt}
+              onChange={(event) => updateDraft("realtimePrompt", event.target.value)}
+              disabled={saving}
+            />
+          </label>
+          <label>
+            Hotwords
+            <textarea
+              rows={3}
+              value={draft.hotwordsText}
+              onChange={(event) => updateDraft("hotwordsText", event.target.value)}
+              disabled={saving}
+            />
+          </label>
+        </div>
         <div className="button-row domain-profile-actions">
           <button className="primary" type="button" onClick={() => void saveProfile()} disabled={saving || !editingName.trim()}>
             <Save size={16} /> {saving ? "Saving" : "Save profile"}
           </button>
-          <button type="button" onClick={() => void deleteProfile()} disabled={saving || !editingName.trim()}>
+          <button className="danger" type="button" onClick={() => void deleteProfile()} disabled={saving || !editingName.trim()}>
             <Trash2 size={16} /> Delete
           </button>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
