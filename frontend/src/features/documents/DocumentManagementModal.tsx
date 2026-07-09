@@ -43,99 +43,119 @@ export function DocumentManagementModal({ context, onClose }: DocumentManagement
   return (
     <div className="modal-backdrop" role="presentation">
       <section className="document-modal" role="dialog" aria-modal="true" aria-labelledby="document-management-title">
-        <header className="modal-header">
+        <header className="modal-header document-modal-header">
           <div>
             <h2 id="document-management-title">Manage documents</h2>
-            <span>{context.documents.length} documents</span>
+            <span>{context.documents.length} documents in your workspace</span>
           </div>
           <button type="button" className="icon-button" aria-label="Close document manager" onClick={onClose}>
             <X size={16} />
           </button>
         </header>
 
-        <section className="document-create-panel">
-          <label>
-            Title
-            <input value={newTitle} onChange={(event) => setNewTitle(event.target.value)} placeholder="Untitled document" />
-          </label>
-          <label>
-            Category
-            <input value={newCategory} onChange={(event) => setNewCategory(event.target.value)} placeholder="Category" list="document-category-options" />
-          </label>
-          <label>
-            Template
-            <select value={newTemplateId} onChange={(event) => setNewTemplateId(event.target.value)}>
-              <option value="">Blank document</option>
-              {context.templates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="button" className="primary document-create-button" onClick={() => void createDocument()} disabled={Boolean(context.busy)}>
-            <FilePlus2 size={16} /> Create
-          </button>
-        </section>
-
-        <section className="document-modal-filters">
-          <label>
-            Search
-            <div className="input-with-icon">
-              <Search size={16} />
-              <input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Title or category" />
+        <div className="document-modal-body">
+          <section className="document-create-panel">
+            <div className="document-section-heading">
+              <h3>Create document</h3>
+              <span>Start blank or from an existing template.</span>
             </div>
-          </label>
-          <label>
-            Category
-            <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
-              <option value={ALL_DOCUMENT_CATEGORIES}>All categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Sort
-            <select value={sortMode} onChange={(event) => setSortMode(event.target.value as DocumentSortMode)}>
-              <option value="updated-desc">Recently updated</option>
-              <option value="created-desc">Recently created</option>
-              <option value="title-asc">Title A-Z</option>
-            </select>
-          </label>
-        </section>
+            <div className="document-create-grid">
+              <label>
+                Title
+                <input value={newTitle} onChange={(event) => setNewTitle(event.target.value)} placeholder="Untitled document" />
+              </label>
+              <label>
+                Category
+                <input value={newCategory} onChange={(event) => setNewCategory(event.target.value)} placeholder="Category" list="document-category-options" />
+              </label>
+              <label>
+                Template
+                <select value={newTemplateId} onChange={(event) => setNewTemplateId(event.target.value)}>
+                  <option value="">Blank document</option>
+                  {context.templates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button type="button" className="primary document-create-button" onClick={() => void createDocument()} disabled={Boolean(context.busy)}>
+                <FilePlus2 size={16} /> Create
+              </button>
+            </div>
+          </section>
 
-        <datalist id="document-category-options">
-          {categories.map((category) => (
-            <option key={category} value={category} />
-          ))}
-        </datalist>
+          <section className="document-modal-filters">
+            <div className="document-section-heading">
+              <h3>Find documents</h3>
+              <span>Filter the library without changing document content.</span>
+            </div>
+            <div className="document-filter-grid">
+              <label>
+                Search
+                <div className="input-with-icon">
+                  <Search size={16} />
+                  <input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Title or category" />
+                </div>
+              </label>
+              <label>
+                Category
+                <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+                  <option value={ALL_DOCUMENT_CATEGORIES}>All categories</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Sort
+                <select value={sortMode} onChange={(event) => setSortMode(event.target.value as DocumentSortMode)}>
+                  <option value="updated-desc">Recently updated</option>
+                  <option value="created-desc">Recently created</option>
+                  <option value="title-asc">Title A-Z</option>
+                </select>
+              </label>
+            </div>
+          </section>
 
-        <div className="document-modal-list">
-          {context.documents.length === 0 ? (
-            <DocumentEmptyState title="No documents yet" detail="Create a blank document or start from a template." />
-          ) : visibleDocuments.length === 0 ? (
-            <DocumentEmptyState title="No matching documents" detail="Change the search or category filter." />
-          ) : (
-            visibleDocuments.map((document) => (
-              <DocumentManagementRow
-                key={document.id}
-                document={document}
-                active={document.id === context.activeDocument?.id}
-                busy={Boolean(context.busy)}
-                onOpen={() => {
-                  context.setActiveDocument(document);
-                  onClose();
-                }}
-                onSave={(payload) => context.updateDocumentMetadata(document.id, payload)}
-                onDuplicate={() => context.duplicateDocument(document.id)}
-                onExport={() => context.exportDocumentById(document.id)}
-                onDelete={() => context.deleteDocumentById(document.id)}
-              />
-            ))
-          )}
+          <datalist id="document-category-options">
+            {categories.map((category) => (
+              <option key={category} value={category} />
+            ))}
+          </datalist>
+
+          <section className="document-library-panel">
+            <div className="document-section-heading">
+              <h3>Document library</h3>
+              <span>{visibleDocuments.length} shown</span>
+            </div>
+            <div className="document-modal-list">
+              {context.documents.length === 0 ? (
+                <DocumentEmptyState title="No documents yet" detail="Create a blank document or start from a template." />
+              ) : visibleDocuments.length === 0 ? (
+                <DocumentEmptyState title="No matching documents" detail="Change the search or category filter." />
+              ) : (
+                visibleDocuments.map((document) => (
+                  <DocumentManagementRow
+                    key={document.id}
+                    document={document}
+                    active={document.id === context.activeDocument?.id}
+                    busy={Boolean(context.busy)}
+                    onOpen={() => {
+                      context.setActiveDocument(document);
+                      onClose();
+                    }}
+                    onSave={(payload) => context.updateDocumentMetadata(document.id, payload)}
+                    onDuplicate={() => context.duplicateDocument(document.id)}
+                    onExport={() => context.exportDocumentById(document.id)}
+                    onDelete={() => context.deleteDocumentById(document.id)}
+                  />
+                ))
+              )}
+            </div>
+          </section>
         </div>
       </section>
     </div>

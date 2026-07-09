@@ -1367,3 +1367,38 @@ Validation:
 
 Next:
 - Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Typography token standardization
+
+Changed:
+- Added canonical compact SaaS typography and line-height tokens with legacy aliases.
+- Replaced hardcoded UI font sizes and line heights with semantic tokens.
+- Preserved brand-lockup typography as the intentional raw-size exception.
+- Added focused CSS token coverage.
+
+Validation:
+- `cd frontend && npm test -- typographyTokens`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify unless a local dev server is available.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Manage documents Settings-style polish
+
+Changed:
+- Restyled the Manage documents modal with Settings-style section cards, spacing, and hierarchy.
+- Kept document create, filter, edit, duplicate, export, delete, and open behavior unchanged.
+- Improved responsive stacking for the document manager controls and rows.
+
+Validation:
+- `cd frontend && npm test -- typographyTokens`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify unless a local dev server is available.
+- Vite still reports the existing large chunk warning during production build.
