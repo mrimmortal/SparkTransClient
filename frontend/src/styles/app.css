@@ -1314,6 +1314,61 @@ button.danger {
   overflow: hidden;
 }
 
+.warning-modal-backdrop {
+  z-index: 12000;
+}
+
+.warning-confirmation-modal {
+  align-items: start;
+  background: var(--neo-surface);
+  border: 1px solid color-mix(in srgb, var(--neo-warning), var(--neo-border) 45%);
+  border-radius: 8px;
+  box-shadow: 14px 14px 34px var(--neo-shadow-dark), -10px -10px 24px var(--neo-shadow-light);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: auto minmax(0, 1fr);
+  max-width: 100%;
+  padding: 20px;
+  width: min(440px, 100%);
+}
+
+.warning-confirmation-icon {
+  align-items: center;
+  background: var(--neo-warning-bg);
+  border: 1px solid color-mix(in srgb, var(--neo-warning), var(--neo-border) 48%);
+  border-radius: 999px;
+  color: var(--neo-warning);
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.warning-confirmation-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.warning-confirmation-copy h2 {
+  font-size: 18px;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.warning-confirmation-copy p {
+  color: var(--neo-soft-text);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.warning-confirmation-actions {
+  display: flex;
+  gap: 8px;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+}
+
 .modal-header {
   display: flex;
   align-items: center;

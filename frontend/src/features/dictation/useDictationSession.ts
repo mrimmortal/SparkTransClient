@@ -16,7 +16,7 @@ import {
   shouldInsertFinalTranscriptText,
   TranscriptState,
 } from "../../lib/corestt";
-import { confirmationMessages, runEnterLikeVoiceCommand, runHistoryVoiceCommand, runListModeVoiceCommand } from "../../lib/editorFlow";
+import { runEnterLikeVoiceCommand, runHistoryVoiceCommand, runListModeVoiceCommand, runSelectAllVoiceCommand } from "../../lib/editorFlow";
 import { getDeleteLastSentenceRange, getDeleteLastWordRange, TextblockDeleteRange } from "../../lib/editorVoiceCommands";
 import { getMicrophoneCaptureErrorMessage, isMicrophoneCaptureSupported, MicrophoneCapture } from "../../lib/micCapture";
 import {
@@ -67,6 +67,7 @@ export function useDictationSession({
   const [audioPacketCount, setAudioPacketCount] = useState(0);
   const [audioSampleRate, setAudioSampleRate] = useState(0);
   const [retryAttempt, setRetryAttempt] = useState(0);
+  const [clearEditorConfirmationOpen, setClearEditorConfirmationOpen] = useState(false);
   const sttRef = useRef<SttClient | null>(null);
   const micRef = useRef<MicrophoneCapture | null>(null);
   const micStartingRef = useRef(false);
@@ -302,7 +303,21 @@ export function useDictationSession({
       runCommand(routed.command);
       return;
     }
+    if (routed.kind === "mixed") {
+      for (const command of routed.beforeCommands) runCommand(command);
+      insertRoutedText(applyDictationCaseMode(routed.text, dictationCaseModeRef.current), target, currentSettings);
+      for (const command of routed.afterCommands) runCommand(command);
+      return;
+    }
     const routedText = applyDictationCaseMode(routed.text, dictationCaseModeRef.current);
+    insertRoutedText(routedText, target, currentSettings);
+  }
+
+  function insertRoutedText(
+    routedText: string,
+    target: "smart-editor" | "micro-editor",
+    currentSettings: UserSettingsRecord,
+  ) {
     if (target === "micro-editor") {
       setMicroOpen(true);
       lastSmartEditorDictationRangeRef.current = null;
@@ -473,12 +488,25 @@ export function useDictationSession({
       return;
     }
     if (command === "select-all") {
-      currentEditor.commands.selectAll();
+      runSelectAllVoiceCommand(currentEditor);
       return;
     }
-    if (command === "clear-all" && (!settingsRef.current.confirm_destructive_actions || window.confirm(confirmationMessages.clearEditor))) {
-      currentEditor.commands.clearContent();
+    if (command === "clear-all") {
+      if (!settingsRef.current.confirm_destructive_actions) {
+        currentEditor.commands.clearContent();
+        return;
+      }
+      setClearEditorConfirmationOpen(true);
     }
+  }
+
+  function confirmClearEditorContent() {
+    editorRef.current?.commands.clearContent();
+    setClearEditorConfirmationOpen(false);
+  }
+
+  function cancelClearEditorContent() {
+    setClearEditorConfirmationOpen(false);
   }
 
   function deleteLastSmartEditorDictationRange(currentEditor: Editor) {
@@ -529,6 +557,9 @@ export function useDictationSession({
     audioPacketCount,
     audioSampleRate,
     retryAttempt,
+    clearEditorConfirmationOpen,
+    confirmClearEditorContent,
+    cancelClearEditorContent,
     connectStt,
     disconnectStt,
     startDictation,

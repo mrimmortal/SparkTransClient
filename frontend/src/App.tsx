@@ -4,12 +4,14 @@ import { useEditor } from "@tiptap/react";
 import Placeholder from "@tiptap/extension-placeholder";
 import StarterKit from "@tiptap/starter-kit";
 import UnderlineExtension from "@tiptap/extension-underline";
+import { AlertTriangle } from "lucide-react";
 import { AuthScreen } from "./features/auth/AuthScreen";
 import { useDictationSession } from "./features/dictation/useDictationSession";
 import { WorkspaceShell } from "./features/workspace/WorkspaceShell";
 import { useWorkspaceData } from "./features/workspace/useWorkspaceData";
 import { WorkspaceContext } from "./features/workspace/types";
 import { api, UserRecord } from "./lib/api";
+import { getClearEditorConfirmationDialog } from "./lib/editorFlow";
 import { RealtimeTranscriptPreview } from "./lib/realtimeTranscriptPreview";
 import { sampleUser } from "./lib/sampleUser";
 import { TemplatePlaceholderToken } from "./lib/templatePlaceholderToken";
@@ -158,9 +160,32 @@ export function App() {
     logout,
   };
 
+  const clearEditorDialog = getClearEditorConfirmationDialog();
+
   return (
     <BrowserRouter>
       <WorkspaceShell context={context} />
+      {dictation.clearEditorConfirmationOpen && (
+        <div className="modal-backdrop warning-modal-backdrop" role="presentation">
+          <section
+            className="warning-confirmation-modal"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="clear-editor-dialog-title"
+            aria-describedby="clear-editor-dialog-message"
+          >
+            <span className="warning-confirmation-icon" aria-hidden="true"><AlertTriangle size={24} /></span>
+            <div className="warning-confirmation-copy">
+              <h2 id="clear-editor-dialog-title">{clearEditorDialog.title}</h2>
+              <p id="clear-editor-dialog-message">{clearEditorDialog.message}</p>
+            </div>
+            <div className="warning-confirmation-actions">
+              <button type="button" onClick={dictation.cancelClearEditorContent}>{clearEditorDialog.cancelLabel}</button>
+              <button className="danger" type="button" onClick={dictation.confirmClearEditorContent}>{clearEditorDialog.confirmLabel}</button>
+            </div>
+          </section>
+        </div>
+      )}
     </BrowserRouter>
   );
 }

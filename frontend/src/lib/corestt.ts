@@ -26,7 +26,8 @@ export type TranscriptEvent =
 
 export type FinalRoute =
   | { kind: "command"; command: string }
-  | { kind: "insert"; text: string };
+  | { kind: "insert"; text: string }
+  | { kind: "mixed"; beforeCommands: string[]; text: string; afterCommands: string[] };
 
 export type DictationCaseMode = "normal" | "upper" | "lower";
 
@@ -238,6 +239,36 @@ const smartEditorCommandVariants = new Map<string, string>([
   ["horizontal line", "insert-horizontal-rule"],
 ]);
 
+const boundaryCommandIds = new Set([
+  "insert-newline",
+  "insert-paragraph",
+  "start-bold",
+  "stop-bold",
+  "start-italic",
+  "stop-italic",
+  "start-underline",
+  "stop-underline",
+  "start-upper-case",
+  "stop-upper-case",
+  "start-lower-case",
+  "stop-lower-case",
+  "start-bullet-list",
+  "stop-bullet-list",
+  "start-numbered-list",
+  "stop-numbered-list",
+  "start-heading",
+  "stop-heading",
+  "start-paragraph",
+  "start-quote",
+  "stop-quote",
+  "start-code-block",
+  "stop-code-block",
+]);
+
+const boundaryCommands = [...smartEditorCommands.entries(), ...smartEditorCommandVariants.entries()]
+  .filter(([phrase, command]) => boundaryCommandIds.has(command) && /^(start|stop|end|next|new|newline|line break)(?:\s|$)/.test(phrase))
+  .sort((left, right) => right[0].split(/\s+/).length - left[0].split(/\s+/).length);
+
 const templateMarkerCommands = new Map<string, string>([
   ["next field", "next-template-field"],
   ["previous field", "previous-template-field"],
@@ -301,7 +332,11 @@ export function routeFinalText(
   if (voiceCommandsEnabled && voiceCommandVariantsEnabled && smartEditorCommandVariants.has(normalized)) {
     return { kind: "command", command: smartEditorCommandVariants.get(normalized)! };
   }
-  const insertText = voiceCommandsEnabled ? convertSpokenPunctuation(text) : text;
+
+  const boundaryRoute = voiceCommandsEnabled ? routeBoundaryCommands(text, macros, { macrosEnabled }) : null;
+  if (boundaryRoute) return boundaryRoute;
+
+  const insertText = prepareInsertText(text, { voiceCommandsEnabled });
   return { kind: "insert", text: macrosEnabled ? expandMacros(insertText, macros) : insertText };
 }
 
@@ -327,21 +362,75 @@ function normalizeTranscriptText(value: string): string {
     .trim();
 }
 
-function convertSpokenPunctuation(text: string): string {
+function routeBoundaryCommands(
+  text: string,
+  macros: { trigger: string; replacement: string; enabled: boolean }[],
+  options: Pick<TranscriptRoutingOptions, "macrosEnabled"> = {},
+): FinalRoute | null {
+  let tokens = text.trim().split(/\s+/).filter(Boolean);
+  const beforeCommands: string[] = [];
+  const afterCommands: string[] = [];
+
+  while (tokens.length) {
+    const match = matchBoundaryCommand(tokens, "start");
+    if (!match) break;
+    beforeCommands.push(match.command);
+    tokens = tokens.slice(match.wordCount);
+  }
+
+  while (tokens.length) {
+    const match = matchBoundaryCommand(tokens, "end");
+    if (!match) break;
+    afterCommands.unshift(match.command);
+    tokens = tokens.slice(0, tokens.length - match.wordCount);
+  }
+
+  const remainingText = tokens.join(" ");
+  if ((!beforeCommands.length && !afterCommands.length) || !remainingText.trim()) return null;
+  const insertText = prepareInsertText(remainingText, { voiceCommandsEnabled: true });
+  return {
+    kind: "mixed",
+    beforeCommands,
+    text: options.macrosEnabled === false ? insertText : expandMacros(insertText, macros),
+    afterCommands,
+  };
+}
+
+function matchBoundaryCommand(tokens: string[], position: "start" | "end"): { command: string; wordCount: number } | null {
+  for (const [phrase, command] of boundaryCommands) {
+    const wordCount = phrase.split(/\s+/).length;
+    if (wordCount > tokens.length) continue;
+    const candidateTokens = position === "start" ? tokens.slice(0, wordCount) : tokens.slice(tokens.length - wordCount);
+    if (normalizeVoiceCommand(candidateTokens.join(" ")) === phrase) return { command, wordCount };
+  }
+  return null;
+}
+
+function prepareInsertText(text: string, options: Pick<TranscriptRoutingOptions, "voiceCommandsEnabled">): string {
+  if (options.voiceCommandsEnabled === false) return text;
+  const converted = convertSpokenPunctuation(text);
+  return converted.hasTerminalSpokenFullStop ? converted.text : stripAutomaticTrailingFullStop(converted.text);
+}
+
+function convertSpokenPunctuation(text: string): { text: string; hasTerminalSpokenFullStop: boolean } {
   const tokens = text.trim().split(/\s+/).filter(Boolean);
   const converted: string[] = [];
+  let hasTerminalSpokenFullStop = false;
   for (let index = 0; index < tokens.length; index += 1) {
     const match = spokenPunctuation.find((candidate) =>
       candidate.words.every((word, offset) => normalizePunctuationToken(tokens[index + offset] ?? "") === word),
     );
     if (match) {
+      if (match.symbol === "." && index + match.words.length === tokens.length) {
+        hasTerminalSpokenFullStop = true;
+      }
       converted.push(match.symbol);
       index += match.words.length - 1;
     } else {
       converted.push(tokens[index]);
     }
   }
-  return applyPunctuationSpacing(converted.join(" "));
+  return { text: applyPunctuationSpacing(converted.join(" ")), hasTerminalSpokenFullStop };
 }
 
 function normalizePunctuationToken(value: string): string {
@@ -356,6 +445,10 @@ function applyPunctuationSpacing(value: string): string {
     .replace(/\s*\/\s*/g, "/")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function stripAutomaticTrailingFullStop(value: string): string {
+  return value.replace(/\.$/, "").trimEnd();
 }
 
 function escapeRegExp(value: string): string {
@@ -390,8 +483,10 @@ export async function routeFinalTextSemantic(
   matcher: CommandEmbeddingMatcher | null | undefined,
   options: TranscriptRoutingOptions = {},
 ): Promise<FinalRoute> {
+  const exactRoute = routeFinalText(text, target, macros, options);
+  if (exactRoute.kind !== "insert") return exactRoute;
   if (!matcher?.ready) {
-    return routeFinalText(text, target, macros, options);
+    return exactRoute;
   }
   const match = await matcher.match(text);
   if (match.command && match.source) {
@@ -406,5 +501,5 @@ export async function routeFinalTextSemantic(
       return { kind: "command", command: match.command };
     }
   }
-  return routeFinalText(text, target, macros, options);
+  return exactRoute;
 }

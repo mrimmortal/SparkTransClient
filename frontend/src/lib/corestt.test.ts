@@ -316,10 +316,69 @@ describe("transcript routing", () => {
     });
   });
 
+  it("routes safe formatting commands at transcript boundaries with insert text", () => {
+    expect(routeFinalText("start bold hello", "smart-editor", [])).toEqual({
+      kind: "mixed",
+      beforeCommands: ["start-bold"],
+      text: "hello",
+      afterCommands: [],
+    });
+    expect(routeFinalText("hello stop bold", "smart-editor", [])).toEqual({
+      kind: "mixed",
+      beforeCommands: [],
+      text: "hello",
+      afterCommands: ["stop-bold"],
+    });
+    expect(routeFinalText("start bold hello stop bold", "smart-editor", [])).toEqual({
+      kind: "mixed",
+      beforeCommands: ["start-bold"],
+      text: "hello",
+      afterCommands: ["stop-bold"],
+    });
+    expect(routeFinalText("hello next line", "smart-editor", [])).toEqual({
+      kind: "mixed",
+      beforeCommands: [],
+      text: "hello",
+      afterCommands: ["insert-newline"],
+    });
+    expect(routeFinalText("start bullet hello", "smart-editor", [])).toEqual({
+      kind: "mixed",
+      beforeCommands: ["start-bullet-list"],
+      text: "hello",
+      afterCommands: [],
+    });
+    expect(routeFinalText("hello start bullet", "smart-editor", [])).toEqual({
+      kind: "mixed",
+      beforeCommands: [],
+      text: "hello",
+      afterCommands: ["start-bullet-list"],
+    });
+  });
+
+  it("does not boundary-route command phrases in the middle or unsafe commands around text", () => {
+    expect(routeFinalText("please start bold hello", "smart-editor", [])).toEqual({
+      kind: "insert",
+      text: "please start bold hello",
+    });
+    expect(routeFinalText("clear all hello", "smart-editor", [])).toEqual({
+      kind: "insert",
+      text: "clear all hello",
+    });
+    expect(routeFinalText("hello undo", "smart-editor", [])).toEqual({
+      kind: "insert",
+      text: "hello undo",
+    });
+  });
+
   it("converts standalone spoken punctuation to insertable punctuation", () => {
     expect(routeFinalText("comma", "smart-editor", [])).toEqual({ kind: "insert", text: "," });
     expect(routeFinalText("full stop", "smart-editor", [])).toEqual({ kind: "insert", text: "." });
     expect(routeFinalText("question mark", "smart-editor", [])).toEqual({ kind: "insert", text: "?" });
+  });
+
+  it("removes automatic trailing full stops from normal transcript text", () => {
+    expect(routeFinalText("hello world.", "smart-editor", [])).toEqual({ kind: "insert", text: "hello world" });
+    expect(routeFinalText("hello world", "smart-editor", [])).toEqual({ kind: "insert", text: "hello world" });
   });
 
   it("converts inline spoken punctuation before insertion", () => {

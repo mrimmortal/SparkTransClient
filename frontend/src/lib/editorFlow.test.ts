@@ -7,11 +7,13 @@ import {
   formatEditorCountLabel,
   formatQuickActionDate,
   formatQuickActionTime,
+  getClearEditorConfirmationDialog,
   getEditorTextMetrics,
   getSaveStatusLabel,
   runEnterLikeVoiceCommand,
   runHistoryVoiceCommand,
   runListModeVoiceCommand,
+  runSelectAllVoiceCommand,
 } from "./editorFlow";
 
 describe("editor flow UX", () => {
@@ -51,6 +53,15 @@ describe("editor flow UX", () => {
     expect(confirmationMessages.deleteDocument).toMatch(/Delete this document/i);
     expect(confirmationMessages.deleteTemplate).toMatch(/Delete this template/i);
     expect(confirmationMessages.deleteMacro).toMatch(/Delete this macro/i);
+  });
+
+  it("builds warning dialog copy for clearing editor content", () => {
+    expect(getClearEditorConfirmationDialog()).toEqual({
+      title: "Clear editor content?",
+      message: "Clear all editor content? This cannot be undone.",
+      confirmLabel: "Clear content",
+      cancelLabel: "Cancel",
+    });
   });
 
   it("counts editor words and characters from visible text", () => {
@@ -183,6 +194,35 @@ describe("editor flow UX", () => {
     expect(runHistoryVoiceCommand(editor, "undo")).toBe(true);
     expect(runHistoryVoiceCommand(editor, "redo")).toBe(true);
     expect(calls).toEqual(["focus", "undo", "run", "focus", "redo", "run"]);
+  });
+
+  it("moves the cursor to the document end before selecting all text", () => {
+    const calls: string[] = [];
+    const editor = {
+      state: { doc: { content: { size: 24 } } },
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        setTextSelection(position: number) {
+          calls.push(`setTextSelection:${position}`);
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+      commands: {
+        selectAll() {
+          calls.push("selectAll");
+        },
+      },
+    };
+
+    expect(runSelectAllVoiceCommand(editor)).toBe(true);
+    expect(calls).toEqual(["focus", "setTextSelection:24", "run", "selectAll"]);
   });
 
   it("stops list voice commands without creating another list item", () => {

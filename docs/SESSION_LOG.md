@@ -1316,3 +1316,54 @@ Validation:
 Next:
 - Browser visual verification remains To verify unless a local dev server is available.
 - Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Clear editor warning modal
+
+Changed:
+- Replaced the browser confirm for the `clear all` editor voice command with an app-styled warning modal.
+- Added Confirm/Cancel handling while preserving the destructive-action setting behavior.
+- Added focused coverage for the clear-editor dialog copy.
+
+Validation:
+- `cd frontend && npm test -- editorFlow`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify unless a local dev server is available.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Boundary voice commands and explicit full stops
+
+Changed:
+- Added mixed final transcript routing for safe editor commands at the start
+  and end of dictated text.
+- Kept destructive/navigation/action commands as full-utterance commands only.
+- Stripped automatic trailing full stops from normal transcript insertions while
+  preserving spoken `full stop` punctuation.
+- Follow-up: included enter-like boundary commands such as `next line` and
+  `new paragraph`, while keeping destructive commands excluded.
+
+Validation:
+- `cd frontend && npm test -- --run src/lib/corestt.test.ts`
+- `cd frontend && npm test -- --run src/lib/corestt.test.ts src/lib/commandEmbeddings.test.ts src/lib/editorFlow.test.ts src/lib/dictationFlow.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Select-all voice command cursor positioning
+
+Changed:
+- Updated the `select all` / `select everything` voice command path to move
+  the Smart Editor cursor to the document end before selecting all content.
+- Added focused coverage for the cursor move and select-all call order.
+
+Validation:
+- `cd frontend && npm test -- --run src/lib/editorFlow.test.ts`
+- `cd frontend && npm test -- --run src/lib/corestt.test.ts src/lib/commandEmbeddings.test.ts src/lib/editorFlow.test.ts src/lib/dictationFlow.test.ts`
+- `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.

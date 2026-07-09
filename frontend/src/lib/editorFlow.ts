@@ -34,6 +34,13 @@ export type EditorTextMetrics = {
   characters: number;
 };
 
+export type ConfirmationDialogCopy = {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  cancelLabel: string;
+};
+
 type ChainRunner = {
   focus: () => ChainRunner;
   createParagraphNear?: () => ChainRunner;
@@ -65,6 +72,18 @@ type HistoryEditor = {
   chain: () => HistoryChainRunner;
 };
 
+type SelectAllChainRunner = {
+  focus: () => SelectAllChainRunner;
+  setTextSelection: (position: number) => SelectAllChainRunner;
+  run: () => boolean;
+};
+
+type SelectAllEditor = {
+  state: { doc: { content: { size: number } } };
+  chain: () => SelectAllChainRunner;
+  commands: { selectAll: () => unknown };
+};
+
 export const editorToolbarItems: EditorToolbarItem[] = [
   { command: "paragraph", label: "Paragraph" },
   { command: "heading", label: "Heading" },
@@ -87,6 +106,15 @@ export const confirmationMessages = {
   deleteTemplate: "Delete this template? This cannot be undone.",
   deleteMacro: "Delete this macro? This cannot be undone.",
 } as const;
+
+export function getClearEditorConfirmationDialog(): ConfirmationDialogCopy {
+  return {
+    title: "Clear editor content?",
+    message: confirmationMessages.clearEditor,
+    confirmLabel: "Clear content",
+    cancelLabel: "Cancel",
+  };
+}
 
 export function getSaveStatusLabel(input: SaveStatusInput): string {
   if (input.saving) return "Saving...";
@@ -167,4 +195,10 @@ export function runEnterLikeVoiceCommand(editor: EnterLikeEditor): boolean {
 export function runHistoryVoiceCommand(editor: HistoryEditor, action: "undo" | "redo"): boolean {
   const chain = editor.chain().focus();
   return action === "undo" ? chain.undo().run() : chain.redo().run();
+}
+
+export function runSelectAllVoiceCommand(editor: SelectAllEditor): boolean {
+  const movedToEnd = editor.chain().focus().setTextSelection(editor.state.doc.content.size).run();
+  editor.commands.selectAll();
+  return movedToEnd;
 }
