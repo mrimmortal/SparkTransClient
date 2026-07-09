@@ -28,6 +28,25 @@ const LOCALHOST_NAMES = new Set(["localhost", "127.0.0.1", "::1"]);
 const MICROPHONE_PERMISSION_MESSAGE =
   "Microphone permission is blocked. Allow microphone access for this site in the browser or system settings, then start dictation again.";
 
+export function createMicrophoneAudioConstraints(audioDeviceId?: string): MediaTrackConstraints {
+  return {
+    channelCount: 1,
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+    ...(audioDeviceId ? { deviceId: { exact: audioDeviceId } } : {}),
+  };
+}
+
+export function shouldRestartMicrophoneForDeviceChange(
+  previousAudioDeviceId: string | null | undefined,
+  nextAudioDeviceId: string | null | undefined,
+  micStatus: string,
+): boolean {
+  const isActive = micStatus === "capturing" || micStatus === "starting";
+  return isActive && (previousAudioDeviceId ?? "") !== (nextAudioDeviceId ?? "");
+}
+
 export function isMicrophoneCaptureSupported(scope: MicrophoneSupportScope = globalThis as MicrophoneSupportScope): boolean {
   const hasGetUserMedia = typeof scope.navigator?.mediaDevices?.getUserMedia === "function";
   const hasAudioContext = typeof (scope.AudioContext ?? scope.webkitAudioContext) === "function";
@@ -75,13 +94,7 @@ export class MicrophoneCapture {
 
     const AudioContextConstructor = getAudioContextConstructor();
     this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        channelCount: 1,
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-        ...(this.options.audioDeviceId ? { deviceId: { exact: this.options.audioDeviceId } } : {}),
-      },
+      audio: createMicrophoneAudioConstraints(this.options.audioDeviceId),
       video: false,
     });
     this.audioContext = new AudioContextConstructor();

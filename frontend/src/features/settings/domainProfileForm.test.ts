@@ -3,6 +3,7 @@ import {
   buildAvailableProfileNames,
   buildDomainProfilePayload,
   createNewDomainProfileDraft,
+  filterDomainProfileNames,
   formatHotwords,
   getNextProfileNameAfterDelete,
 } from "./domainProfileForm";
@@ -37,6 +38,11 @@ describe("domain profile form helpers", () => {
         editingName: "new_profile",
       }),
     ).toEqual(["general", "medical", "new_profile", "support"]);
+  });
+
+  it("filters profile names case-insensitively while preserving list order", () => {
+    expect(filterDomainProfileNames(["general", "medical_radiology", "medical_cardiology", "support"], "RAD")).toEqual(["medical_radiology"]);
+    expect(filterDomainProfileNames(["general", "medical"], "  ")).toEqual(["general", "medical"]);
   });
 
   it("creates an empty new profile draft with the default name", () => {

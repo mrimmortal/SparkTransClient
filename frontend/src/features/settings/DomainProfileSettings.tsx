@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
+import { Plus, RefreshCw, Save, Search, Trash2, X } from "lucide-react";
 import { api, DomainProfilesResponse, UserSettingsRecord } from "../../lib/api";
 import {
   buildAvailableProfileNames,
@@ -7,6 +7,7 @@ import {
   createNewDomainProfileDraft,
   domainProfileToDraft,
   DomainProfileFormDraft,
+  filterDomainProfileNames,
   getNextProfileNameAfterDelete,
 } from "./domainProfileForm";
 
@@ -23,6 +24,7 @@ export function DomainProfileSettings({ profile, onProfileChange, setWarning }: 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteConfirming, setDeleteConfirming] = useState(false);
+  const [profileSearch, setProfileSearch] = useState("");
 
   const availableProfiles = useMemo(
     () => buildAvailableProfileNames({ domainProfiles: profiles.domainProfiles, activeProfile: profile, editingName }),
@@ -31,6 +33,12 @@ export function DomainProfileSettings({ profile, onProfileChange, setWarning }: 
   const trimmedEditingName = editingName.trim();
   const selectedProfileExists = profiles.domainProfiles.includes(trimmedEditingName);
   const canDeleteProfile = Boolean(trimmedEditingName && selectedProfileExists);
+  const filteredProfiles = useMemo(() => filterDomainProfileNames(availableProfiles, profileSearch), [availableProfiles, profileSearch]);
+  const profileCountLabel = loading
+    ? "Loading profiles"
+    : profileSearch.trim()
+      ? `${filteredProfiles.length} of ${availableProfiles.length} shown`
+      : `${availableProfiles.length} available`;
 
   useEffect(() => {
     void loadProfiles();
@@ -119,14 +127,30 @@ export function DomainProfileSettings({ profile, onProfileChange, setWarning }: 
         <div className="domain-profile-panel-header">
           <div>
             <h3>Profiles</h3>
-            <span>{loading ? "Loading profiles" : `${availableProfiles.length} available`}</span>
+            <span>{profileCountLabel}</span>
           </div>
           <button className="icon-button" type="button" onClick={() => void loadProfiles()} disabled={loading || saving} title="Refresh domain profiles" aria-label="Refresh domain profiles">
             <RefreshCw size={16} />
           </button>
         </div>
+        <label className="domain-profile-search">
+          Search profiles
+          <div className="input-with-icon">
+            <Search size={16} />
+            <input
+              value={profileSearch}
+              onChange={(event) => setProfileSearch(event.target.value)}
+              placeholder="Search profile name"
+              disabled={loading || saving || availableProfiles.length === 0}
+            />
+          </div>
+        </label>
         <div className="domain-profile-list" role="list" aria-label="Transcription profiles">
-          {availableProfiles.map((name) => {
+          {filteredProfiles.length === 0 ? (
+            <div className="domain-profile-empty-state">
+              {profileSearch.trim() ? "No profiles match your search." : "No profiles available."}
+            </div>
+          ) : filteredProfiles.map((name) => {
             const active = name === profile;
             const selected = name === editingName;
             return (

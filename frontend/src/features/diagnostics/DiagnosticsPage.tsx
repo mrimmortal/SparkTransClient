@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Activity, HeartPulse } from "lucide-react";
 import { PageHeader } from "../../components/PageHeader";
 import { HealthStatus, PublicConfig, VersionInfo, api } from "../../lib/api";
+import { filterAudioInputDevices, getSelectedMicrophoneLabel } from "../../lib/audioDevices";
 import { resolveSttUrl } from "../../lib/corestt";
 import { WorkspaceContext } from "../workspace/types";
 import { withWarning } from "../workspace/withWarning";
@@ -11,6 +12,7 @@ export function DiagnosticsPage({ context }: { context: WorkspaceContext }) {
   const [ready, setReady] = useState<HealthStatus | null>(null);
   const [version, setVersion] = useState<VersionInfo | null>(null);
   const [config, setConfig] = useState<PublicConfig | null>(null);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
 
   async function refreshDiagnostics() {
     await withWarning(context, async () => {
@@ -29,6 +31,19 @@ export function DiagnosticsPage({ context }: { context: WorkspaceContext }) {
 
   useEffect(() => {
     void refreshDiagnostics();
+  }, []);
+
+  useEffect(() => {
+    async function loadDevices() {
+      if (!navigator.mediaDevices?.enumerateDevices) return;
+      try {
+        setDevices(filterAudioInputDevices(await navigator.mediaDevices.enumerateDevices()));
+      } catch {
+        setDevices([]);
+      }
+    }
+
+    void loadDevices();
   }, []);
 
   return (
@@ -53,6 +68,8 @@ export function DiagnosticsPage({ context }: { context: WorkspaceContext }) {
         <dd>{resolveSttUrl()}</dd>
         <dt>Microphone</dt>
         <dd>{context.micStatus}</dd>
+        <dt>Microphone device</dt>
+        <dd>{getSelectedMicrophoneLabel(devices, context.settings.audio_device_id)}</dd>
         <dt>Audio sample rate</dt>
         <dd>{context.audioSampleRate || "Not capturing"}</dd>
         <dt>Audio packets</dt>

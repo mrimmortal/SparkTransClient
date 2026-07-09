@@ -1,7 +1,8 @@
 import { FormEvent, ReactNode, useEffect, useState } from "react";
-import { Mic, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { PageHeader } from "../../components/PageHeader";
 import { api, UserSettingsRecord } from "../../lib/api";
+import { filterAudioInputDevices, formatAudioInputDeviceLabel, getSelectedMicrophoneLabel } from "../../lib/audioDevices";
 import { WorkspaceContext } from "../workspace/types";
 import { withWarning } from "../workspace/withWarning";
 import { DomainProfileSettings } from "./DomainProfileSettings";
@@ -17,6 +18,12 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
 
   const settingsDirty = JSON.stringify(draftSettings) !== JSON.stringify(context.settings);
   const canSave = settingsDirty && !saving;
+  const selectedMicrophoneLabel = getSelectedMicrophoneLabel(devices, draftSettings.audio_device_id);
+  const microphoneListStatus = devices.length === 0 ? "Auto-detecting" : `${devices.length} microphone${devices.length === 1 ? "" : "s"} found`;
+
+  useEffect(() => {
+    void loadDevices({ silent: true });
+  }, []);
 
   async function saveSettings(event: FormEvent) {
     event.preventDefault();
@@ -33,13 +40,17 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
     setDraftSettings((current) => ({ ...current, [field]: value }));
   }
 
-  async function loadDevices() {
+  async function loadDevices({ silent = false }: { silent?: boolean } = {}) {
     if (!navigator.mediaDevices?.enumerateDevices) {
-      context.setWarning("This browser cannot list audio devices.");
+      if (!silent) context.setWarning("This browser cannot list audio devices.");
       return;
     }
-    const nextDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "audioinput");
-    setDevices(nextDevices);
+    try {
+      const nextDevices = filterAudioInputDevices(await navigator.mediaDevices.enumerateDevices());
+      setDevices(nextDevices);
+    } catch (error) {
+      if (!silent) context.setWarning(error instanceof Error ? error.message : "Microphone devices could not be loaded.");
+    }
   }
 
   async function checkMicrophone() {
@@ -51,13 +62,14 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: draftSettings.audio_device_id || undefined } });
       stream.getTracks().forEach((track) => track.stop());
       setMicrophoneStatus("Microphone permission and capture are available.");
+      await loadDevices({ silent: true });
     } catch (error) {
       setMicrophoneStatus(error instanceof Error ? error.message : "Microphone check failed.");
     }
   }
 
   return (
-    <section className="manager-page">
+    <section className="manager-page settings-page">
       <PageHeader
         title="Settings"
         actions={
@@ -174,27 +186,34 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
           </SettingRow>
         </SettingsSection>
 
-        <SettingsSection title="Microphone">
-          <SettingRow title="Device" description="Select the microphone used for browser capture.">
+        <SettingsSection title="Microphone" className="settings-microphone-section">
+          <div className="settings-microphone-summary">
+            <span className="settings-microphone-copy">
+              <span className="settings-microphone-label">Current microphone</span>
+              <strong>{selectedMicrophoneLabel}</strong>
+              <span>Used for browser capture when you start dictation.</span>
+            </span>
+            <span className="settings-status-pill">{microphoneListStatus}</span>
+          </div>
+          <SettingRow title="Device" description="Choose another microphone if needed. The list loads automatically.">
             <select
               aria-label="Microphone device"
               value={draftSettings.audio_device_id ?? ""}
               onChange={(event) => void updateSetting("audio_device_id", event.target.value || null)}
             >
               <option value="">Browser default microphone</option>
-              {devices.map((device) => (
-                <option key={device.deviceId} value={device.deviceId}>{device.label || `Microphone ${device.deviceId.slice(0, 6)}`}</option>
+              {devices.map((device, index) => (
+                <option key={device.deviceId} value={device.deviceId}>{formatAudioInputDeviceLabel(device, index + 1)}</option>
               ))}
             </select>
           </SettingRow>
-          <SettingRow title="Device actions">
+          <SettingRow title="Test microphone" description="Check browser permission and confirm the selected device can capture audio.">
             <div className="settings-button-row">
-              <button type="button" onClick={() => void loadDevices()}><Mic size={16} /> Load devices</button>
               <button type="button" onClick={() => void checkMicrophone()}>Check microphone</button>
             </div>
           </SettingRow>
           {draftSettings.show_microphone_status && (
-            <SettingRow title="Status">
+            <SettingRow title="Check result">
               <span className={`settings-status-pill ${getMicrophoneStatusTone(microphoneStatus)}`}>{microphoneStatus}</span>
             </SettingRow>
           )}
@@ -204,8 +223,9 @@ export function SettingsPage({ context }: { context: WorkspaceContext }) {
             checked={draftSettings.show_microphone_status}
             onChange={(checked) => void updateSetting("show_microphone_status", checked)}
           />
-          <details>
-            <summary>Advanced device ID</summary>
+          <details className="settings-advanced-device">
+            <summary>Advanced: saved device ID</summary>
+            <span className="settings-note">Use this only when a browser device is not shown in the list.</span>
             <input
               placeholder="Audio device id"
               value={draftSettings.audio_device_id ?? ""}

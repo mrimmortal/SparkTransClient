@@ -23,6 +23,12 @@ export function buildAvailableProfileNames({
   return Array.from(names).sort((left, right) => left.localeCompare(right));
 }
 
+export function filterDomainProfileNames(names: string[], searchText: string): string[] {
+  const normalizedSearch = searchText.trim().toLowerCase();
+  if (!normalizedSearch) return names;
+  return names.filter((name) => name.toLowerCase().includes(normalizedSearch));
+}
+
 export function createNewDomainProfileDraft(existingNames: string[] = []): { name: string; draft: DomainProfileFormDraft } {
   const existing = new Set(existingNames);
   let name = NEW_DOMAIN_PROFILE_NAME;

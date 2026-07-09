@@ -18,7 +18,12 @@ import {
 } from "../../lib/corestt";
 import { runEnterLikeVoiceCommand, runHistoryVoiceCommand, runListModeVoiceCommand, runSelectAllVoiceCommand } from "../../lib/editorFlow";
 import { getDeleteLastSentenceRange, getDeleteLastWordRange, TextblockDeleteRange } from "../../lib/editorVoiceCommands";
-import { getMicrophoneCaptureErrorMessage, isMicrophoneCaptureSupported, MicrophoneCapture } from "../../lib/micCapture";
+import {
+  getMicrophoneCaptureErrorMessage,
+  isMicrophoneCaptureSupported,
+  MicrophoneCapture,
+  shouldRestartMicrophoneForDeviceChange,
+} from "../../lib/micCapture";
 import {
   clearRealtimeTranscriptPreview,
   setRealtimeTranscriptPreview,
@@ -71,6 +76,7 @@ export function useDictationSession({
   const sttRef = useRef<SttClient | null>(null);
   const micRef = useRef<MicrophoneCapture | null>(null);
   const micStartingRef = useRef(false);
+  const activeAudioDeviceIdRef = useRef<string | null>(settings.audio_device_id ?? null);
   const dictationRequestedRef = useRef(false);
   const macrosRef = useRef(macros);
   const templatesRef = useRef(templates);
@@ -105,6 +111,20 @@ export function useDictationSession({
   useEffect(() => {
     settingsRef.current = settings;
   }, [settings]);
+
+  useEffect(() => {
+    const previousAudioDeviceId = activeAudioDeviceIdRef.current;
+    const nextAudioDeviceId = settings.audio_device_id ?? null;
+    if (shouldRestartMicrophoneForDeviceChange(previousAudioDeviceId, nextAudioDeviceId, micStatus)) {
+      stopMicrophoneCapture();
+      activeAudioDeviceIdRef.current = nextAudioDeviceId;
+      void startMicrophoneCapture();
+      return;
+    }
+    if (micStatus !== "capturing" && micStatus !== "starting") {
+      activeAudioDeviceIdRef.current = nextAudioDeviceId;
+    }
+  }, [settings.audio_device_id, micStatus]);
 
   useEffect(() => {
     microOpenRef.current = microOpen;
@@ -207,7 +227,7 @@ export function useDictationSession({
     micStartingRef.current = true;
     setMicStatus("starting");
     const capture = new MicrophoneCapture({
-      audioDeviceId: settings.audio_device_id || undefined,
+      audioDeviceId: settingsRef.current.audio_device_id || undefined,
       onWarning: setWarning,
       onSamples: (samples, sampleRate) => {
         if (sttRef.current?.sendFloatSamples(samples, sampleRate)) {
@@ -215,6 +235,7 @@ export function useDictationSession({
         }
       },
     });
+    activeAudioDeviceIdRef.current = settingsRef.current.audio_device_id ?? null;
     micRef.current = capture;
 
     try {

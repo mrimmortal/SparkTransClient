@@ -3,6 +3,38 @@
 Keep this file compact. Add only entries that help a future AI session resume
 without rediscovering recent decisions.
 
+## 2026-07-09 - Friendlier microphone settings section
+
+Changed:
+- Added a current microphone summary to Settings so the selected device is obvious.
+- Reworded microphone selection/testing copy around automatic device loading and permission checks.
+- Made the advanced device ID field visually secondary and responsive.
+
+Validation:
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+
+Next:
+- Browser visual/device-permission verification remains To verify.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Automatic microphone devices and diagnostics label
+
+Changed:
+- Settings now auto-loads available browser microphone devices when the page opens.
+- Removed the redundant manual `Load devices` action; `Check microphone` remains and refreshes labels after permission succeeds.
+- Diagnostics now shows the selected microphone label alongside microphone capture status.
+- Added focused audio device helper tests for filtering and selected-label fallback behavior.
+
+Validation:
+- `cd frontend && npm test -- audioDevices`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+
+Next:
+- Browser device label display remains To verify because labels can depend on microphone permission.
+- Vite still reports the existing large chunk warning during production build.
+
 ## 2026-07-09 - Documentation context compression
 
 Changed:
@@ -37,6 +69,50 @@ Validation:
 Next:
 - In-app browser visual verification was unavailable in this environment; manually review `http://127.0.0.1:5174/`.
 - Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Domain profile search
+
+Changed:
+- Added search filtering to the Transcription profiles list in Settings.
+- Added filtered count and empty-state copy for unmatched profile searches.
+- Added focused helper coverage for case-insensitive profile filtering.
+
+Validation:
+- `cd frontend && npm test -- domainProfileForm`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify.
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-09 - Sticky Settings header
+
+Changed:
+- Kept the Settings page header/save actions fixed in place while the settings form content scrolls.
+- Scoped the scroll containment to Settings only so other manager pages keep their existing page scroll.
+
+Validation:
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+- `git diff --check`
+
+Next:
+- Browser visual verification remains To verify.
+- Vite still reports the existing large chunk warning during production build.
+
+# 2026-07-09 Microphone Device Selection
+
+Changed:
+- Browser microphone capture now builds explicit audio constraints for the selected saved device id.
+- Active dictation restarts microphone capture when the saved `audio_device_id` changes, so the newly selected microphone is used without requiring a manual stop/start.
+- Focused tests cover default microphone constraints, exact selected-device constraints, and active capture restart detection.
+
+Validation:
+- Passed: `cd frontend && npm test -- src/lib/corestt.test.ts`
+- Passed: `cd frontend && npm run build`
+- Build still reports the existing Vite large chunk warning.
 
 ## Current UI State
 

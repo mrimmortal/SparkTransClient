@@ -9,7 +9,12 @@ import {
   shouldInsertFinalTranscript,
   shouldInsertFinalTranscriptText,
 } from "./corestt";
-import { getMicrophoneCaptureErrorMessage, isMicrophoneCaptureSupported } from "./micCapture";
+import {
+  createMicrophoneAudioConstraints,
+  getMicrophoneCaptureErrorMessage,
+  isMicrophoneCaptureSupported,
+  shouldRestartMicrophoneForDeviceChange,
+} from "./micCapture";
 import { sampleUser } from "./sampleUser";
 import { SttClient } from "./sttClient";
 
@@ -586,6 +591,32 @@ describe("SttClient streaming lifecycle", () => {
 describe("microphone capture support", () => {
   it("reports unsupported browsers without throwing", () => {
     expect(isMicrophoneCaptureSupported({})).toBe(false);
+  });
+
+  it("omits device constraints for the browser default microphone", () => {
+    expect(createMicrophoneAudioConstraints()).toEqual({
+      channelCount: 1,
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+    });
+  });
+
+  it("requests the selected microphone device exactly", () => {
+    expect(createMicrophoneAudioConstraints("usb-mic-1")).toEqual({
+      channelCount: 1,
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+      deviceId: { exact: "usb-mic-1" },
+    });
+  });
+
+  it("restarts active microphone capture after the saved device changes", () => {
+    expect(shouldRestartMicrophoneForDeviceChange("built-in", "usb-mic", "capturing")).toBe(true);
+    expect(shouldRestartMicrophoneForDeviceChange("built-in", "usb-mic", "starting")).toBe(true);
+    expect(shouldRestartMicrophoneForDeviceChange("built-in", "usb-mic", "stopped")).toBe(false);
+    expect(shouldRestartMicrophoneForDeviceChange("usb-mic", "usb-mic", "capturing")).toBe(false);
   });
 
   it("maps browser permission denial to an actionable message", () => {
