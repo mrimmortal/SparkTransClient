@@ -43,6 +43,8 @@
   --app-text-panel: 18px;
   --app-text-page: 24px;
   --app-text-editor: 16px;
+  --landing-hero-text: 56px;
+  --landing-section-title: 40px;
   --app-leading-tight: 1.25;
   --app-leading-normal: 1.45;
   --app-leading-editor: 1.65;
@@ -194,6 +196,15 @@ button.primary:disabled {
   box-shadow: var(--neo-raised-shadow);
 }
 
+.auth-back-link {
+  color: var(--neo-accent-text);
+  display: inline-flex;
+  font-size: var(--app-text-sm);
+  font-weight: 800;
+  margin-bottom: 12px;
+  text-decoration: none;
+}
+
 .auth-panel h1 {
   margin: 0 0 4px;
   font-size: var(--app-text-page);
@@ -239,6 +250,354 @@ input[type="checkbox"] {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.landing-page {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--neo-surface-soft), #ffffff 42%) 0%, var(--neo-bg) 62%),
+    var(--neo-bg);
+  color: var(--neo-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.landing-nav {
+  align-items: center;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(210px, auto) minmax(0, 1fr) auto;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 20px 24px;
+}
+
+.landing-brand {
+  grid-template-columns: 48px minmax(0, 1fr);
+}
+
+.landing-brand .brand-mark {
+  height: 48px;
+  width: 48px;
+}
+
+.landing-nav-links {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+}
+
+.landing-nav-links a,
+.landing-secondary-link {
+  color: var(--neo-soft-text);
+  font-size: var(--app-text-md);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.landing-nav-links a:hover,
+.landing-secondary-link:hover,
+.auth-back-link:hover {
+  color: var(--neo-accent-text);
+}
+
+.landing-hero {
+  align-items: center;
+  display: grid;
+  gap: 34px;
+  grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1fr);
+  margin: 0 auto;
+  max-width: 1180px;
+  min-height: calc(100vh - 92px);
+  padding: 42px 24px 64px;
+}
+
+.landing-hero-copy {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.landing-eyebrow,
+.landing-section-kicker {
+  align-items: center;
+  color: var(--neo-accent-text);
+  display: inline-flex;
+  font-size: var(--app-text-sm);
+  font-weight: 850;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.landing-hero h1 {
+  font-size: var(--landing-hero-text);
+  letter-spacing: 0;
+  line-height: 0.98;
+  margin: 0;
+  max-width: 820px;
+}
+
+.landing-hero p,
+.landing-section p,
+.landing-card p {
+  color: var(--neo-soft-text);
+  font-size: var(--app-text-section);
+  line-height: var(--app-leading-normal);
+  margin: 0;
+}
+
+.landing-hero-actions,
+.landing-proof-strip {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.landing-proof-strip span {
+  align-items: center;
+  background: var(--neo-surface-raised);
+  border: 1px solid var(--neo-border);
+  border-radius: 999px;
+  box-shadow: var(--neo-inset-shadow-small);
+  color: var(--neo-soft-text);
+  display: inline-flex;
+  font-size: var(--app-text-sm);
+  font-weight: 750;
+  gap: 6px;
+  padding: 7px 10px;
+}
+
+.landing-product-visual {
+  background: var(--neo-surface);
+  border: 1px solid color-mix(in srgb, var(--neo-border), var(--neo-text) 4%);
+  border-radius: 8px;
+  box-shadow: 16px 16px 38px color-mix(in srgb, var(--neo-shadow-dark), transparent 10%), -10px -10px 26px var(--neo-shadow-light);
+  display: grid;
+  gap: 14px;
+  min-height: 520px;
+  padding: 18px;
+}
+
+.landing-visual-toolbar,
+.landing-visual-rail {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.landing-visual-toolbar {
+  justify-content: flex-end;
+}
+
+.landing-visual-toolbar > span,
+.landing-visual-rail > span {
+  align-items: center;
+  background: var(--neo-surface-raised);
+  border: 1px solid var(--neo-border);
+  border-radius: 8px;
+  box-shadow: var(--neo-raised-shadow-small);
+  display: inline-flex;
+  font-size: var(--app-text-md);
+  font-weight: 750;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 11px;
+}
+
+.landing-status-pill {
+  color: var(--neo-success);
+}
+
+.landing-status-pill span {
+  background: currentColor;
+  border-radius: 999px;
+  height: 9px;
+  width: 9px;
+}
+
+.landing-visual-editor {
+  background: var(--neo-surface-soft);
+  border: 1px solid var(--neo-border);
+  border-radius: 8px;
+  box-shadow: var(--neo-inset-shadow-small);
+  display: grid;
+  gap: 18px;
+  min-height: 340px;
+  padding: 34px;
+}
+
+.landing-visual-editor div {
+  display: grid;
+  gap: 5px;
+}
+
+.landing-visual-editor strong {
+  font-size: var(--app-text-panel);
+}
+
+.landing-visual-editor small,
+.landing-realtime-line {
+  color: var(--neo-muted);
+  font-size: var(--app-text-sm);
+}
+
+.landing-visual-editor p {
+  color: var(--neo-text);
+  font-size: var(--app-text-editor);
+  line-height: var(--app-leading-editor);
+  margin: 0;
+}
+
+.landing-realtime-line {
+  border-left: 3px solid var(--neo-accent);
+  font-style: italic;
+  padding-left: 10px;
+}
+
+.landing-visual-rail {
+  align-self: end;
+}
+
+.landing-section {
+  display: grid;
+  gap: 22px;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 62px 24px;
+}
+
+.landing-problem,
+.landing-trust {
+  align-items: start;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+}
+
+.landing-section-heading {
+  display: grid;
+  gap: 10px;
+}
+
+.landing-section h2 {
+  font-size: var(--landing-section-title);
+  letter-spacing: 0;
+  line-height: var(--app-leading-tight);
+  margin: 0;
+}
+
+.landing-feature-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.landing-card {
+  background: var(--neo-surface-soft);
+  border: 1px solid color-mix(in srgb, var(--neo-border), var(--neo-text) 4%);
+  border-radius: 8px;
+  box-shadow: 4px 4px 12px color-mix(in srgb, var(--neo-shadow-dark), transparent 18%), -4px -4px 12px var(--neo-shadow-light);
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.landing-card h3 {
+  font-size: var(--app-text-section);
+  line-height: var(--app-leading-tight);
+  margin: 0;
+}
+
+.landing-card p {
+  font-size: var(--app-text-md);
+}
+
+.landing-card-icon {
+  align-items: center;
+  background: var(--neo-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--neo-accent), var(--neo-border) 45%);
+  border-radius: 8px;
+  color: var(--neo-accent-text);
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.landing-workflow-list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.landing-workflow-list article {
+  align-items: center;
+  background: var(--neo-surface-raised);
+  border: 1px solid var(--neo-border);
+  border-radius: 8px;
+  box-shadow: var(--neo-raised-shadow-small);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 14px;
+}
+
+.landing-workflow-list span {
+  align-items: center;
+  background: var(--neo-accent);
+  border-radius: 999px;
+  color: var(--neo-on-accent);
+  display: inline-flex;
+  font-size: var(--app-text-md);
+  font-weight: 850;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.landing-workflow-list p {
+  color: var(--neo-text);
+  font-size: var(--app-text-md);
+  font-weight: 750;
+  margin: 0;
+}
+
+.landing-trust {
+  background: var(--neo-surface-soft);
+  border: 1px solid var(--neo-border);
+  border-radius: 8px;
+  box-shadow: var(--neo-inset-shadow-small);
+  padding: 34px;
+}
+
+.landing-trust-list {
+  display: grid;
+  gap: 10px;
+}
+
+.landing-trust-list span {
+  align-items: center;
+  background: var(--neo-surface-raised);
+  border: 1px solid var(--neo-border);
+  border-radius: 8px;
+  box-shadow: var(--neo-raised-shadow-small);
+  display: inline-flex;
+  font-size: var(--app-text-md);
+  font-weight: 750;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.landing-final-cta {
+  align-items: center;
+  justify-items: center;
+  padding-bottom: 86px;
+  text-align: center;
+}
+
+.landing-final-cta h2 {
+  max-width: 820px;
 }
 
 .workspace {
@@ -2504,6 +2863,20 @@ details input {
 }
 
 @media (max-width: 1180px) {
+  .landing-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .landing-product-visual {
+    min-height: 460px;
+  }
+
+  .landing-feature-grid,
+  .landing-workflow-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .document-workspace-grid {
     grid-template-columns: 1fr;
     height: auto;
@@ -2577,6 +2950,8 @@ details input {
     --app-text-md: 12px;
     --app-text-panel: 17px;
     --app-text-editor: 15px;
+    --landing-hero-text: 46px;
+    --landing-section-title: 34px;
     --app-editor-padding-block: 28px;
     --app-editor-padding-inline: 28px;
   }
@@ -2586,6 +2961,30 @@ details input {
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
+  }
+
+  .landing-nav {
+    align-items: stretch;
+    grid-template-columns: 1fr auto;
+  }
+
+  .landing-nav-links {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    order: 3;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .landing-hero,
+  .landing-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .landing-problem,
+  .landing-trust {
+    grid-template-columns: 1fr;
   }
 
   .documents-page {
@@ -2823,8 +3222,63 @@ details input {
     --app-text-md: 12px;
     --app-text-panel: 16px;
     --app-text-editor: 14px;
+    --landing-hero-text: 38px;
+    --landing-section-title: 28px;
     --app-editor-padding-block: 20px;
     --app-editor-padding-inline: 16px;
+  }
+
+  .landing-nav {
+    gap: 12px;
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .landing-nav > button {
+    width: 100%;
+  }
+
+  .landing-nav-links {
+    gap: 10px;
+  }
+
+  .landing-hero {
+    gap: 22px;
+    padding-top: 24px;
+  }
+
+  .landing-hero p,
+  .landing-section p {
+    font-size: var(--app-text-lg);
+  }
+
+  .landing-hero-actions button,
+  .landing-secondary-link {
+    width: 100%;
+  }
+
+  .landing-product-visual {
+    min-height: auto;
+    padding: 12px;
+  }
+
+  .landing-visual-editor {
+    min-height: 260px;
+    padding: 18px;
+  }
+
+  .landing-feature-grid,
+  .landing-workflow-list {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-section {
+    padding-bottom: 42px;
+    padding-top: 42px;
+  }
+
+  .landing-trust {
+    padding: 18px;
   }
 
   .document-title-group {

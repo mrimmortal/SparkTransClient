@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useEditor } from "@tiptap/react";
 import Placeholder from "@tiptap/extension-placeholder";
 import StarterKit from "@tiptap/starter-kit";
@@ -7,6 +7,7 @@ import UnderlineExtension from "@tiptap/extension-underline";
 import { AlertTriangle } from "lucide-react";
 import { AuthScreen } from "./features/auth/AuthScreen";
 import { useDictationSession } from "./features/dictation/useDictationSession";
+import { LandingPage } from "./features/landing/LandingPage";
 import { WorkspaceShell } from "./features/workspace/WorkspaceShell";
 import { useWorkspaceData } from "./features/workspace/useWorkspaceData";
 import { WorkspaceContext } from "./features/workspace/types";
@@ -17,6 +18,15 @@ import { sampleUser } from "./lib/sampleUser";
 import { TemplatePlaceholderToken } from "./lib/templatePlaceholderToken";
 
 export function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
+}
+
+function AppRoutes() {
+  const navigate = useNavigate();
   const [user, setUser] = useState<UserRecord | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [email, setEmail] = useState(sampleUser.email);
@@ -86,6 +96,7 @@ export function App() {
     await runAuthTask(register ? "Creating account" : "Signing in", async () => {
       const nextUser = register ? await api.register(email, password) : await api.login(email, password);
       setUser(nextUser);
+      navigate("/documents", { replace: true });
     });
   }
 
@@ -102,16 +113,25 @@ export function App() {
 
   if (!user) {
     return (
-      <AuthScreen
-        email={email}
-        password={password}
-        warning={authWarning || workspace.warning}
-        busy={authBusy || workspace.busy}
-        onEmailChange={setEmail}
-        onPasswordChange={setPassword}
-        onLogin={() => void login(false)}
-        onRegister={() => void login(true)}
-      />
+      <Routes>
+        <Route path="/" element={<LandingPage onSignIn={() => navigate("/login")} />} />
+        <Route
+          path="/login"
+          element={
+            <AuthScreen
+              email={email}
+              password={password}
+              warning={authWarning || workspace.warning}
+              busy={authBusy || workspace.busy}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onLogin={() => void login(false)}
+              onRegister={() => void login(true)}
+            />
+          }
+        />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
     );
   }
 
@@ -163,7 +183,7 @@ export function App() {
   const clearEditorDialog = getClearEditorConfirmationDialog();
 
   return (
-    <BrowserRouter>
+    <>
       <WorkspaceShell context={context} />
       {dictation.clearEditorConfirmationOpen && (
         <div className="modal-backdrop warning-modal-backdrop" role="presentation">
@@ -186,6 +206,6 @@ export function App() {
           </section>
         </div>
       )}
-    </BrowserRouter>
+    </>
   );
 }

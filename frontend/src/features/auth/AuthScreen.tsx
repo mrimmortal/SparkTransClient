@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export function AuthScreen({
   email,
   password,
@@ -20,8 +22,9 @@ export function AuthScreen({
   return (
     <main className="auth-screen theme-neo-cool">
       <section className="auth-panel">
-        <h1>SparkTransClient</h1>
-        <p>Secure dictation workspace</p>
+        <Link className="auth-back-link" to="/">Next Line Spark</Link>
+        <h1>Sign in</h1>
+        <p>Secure clinical dictation workspace</p>
         <label>
           Email
           <input value={email} onChange={(event) => onEmailChange(event.target.value)} />

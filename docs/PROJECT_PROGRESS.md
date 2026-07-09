@@ -10,13 +10,16 @@ Status key:
 
 ## Current Validation Snapshot
 
-Automated checks last verified on 2026-06-27:
+Frontend checks last verified on 2026-07-09:
+
+- `[x]` Frontend tests: `cd frontend && npm test` (`162 passed`)
+- `[x]` Frontend build: `cd frontend && npm run build` (passes with existing large chunk warning)
+- `[x]` CSS typography guard: `cd frontend && npm test -- typographyTokens`
+
+Backend checks last recorded on 2026-06-27:
 
 - `[x]` Backend tests: `cd backend && .venv/bin/pytest -q` (`11 passed`)
 - `[x]` Backend syntax: `python3 -m compileall backend/app`
-- `[x]` Frontend tests: `cd frontend && npm test` (`118 passed`)
-- `[x]` Frontend build: `cd frontend && npm run build` (passes with existing large chunk warning)
-- `[x]` Frontend audit: `cd frontend && npm audit --audit-level=high` (`0 vulnerabilities`)
 - `[x]` Macro/template/settings API tests are covered in `backend/tests/test_macro_template_api.py`.
 - `[x]` STT proxy relay/log tests are covered in `backend/tests/test_stt_proxy.py`.
 

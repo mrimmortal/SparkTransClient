@@ -41,7 +41,8 @@ Use this map to find the smallest relevant file set for future work.
 | Commands | `docs/COMMANDS.md` |
 | User workflow | `docs/USER_MANUAL.md` |
 | Progress tracking | `docs/PROJECT_PROGRESS.md` |
-| Session notes | `docs/SESSION_LOG.md` |
+| Compact continuation notes | `docs/SESSION_LOG.md` |
+| Backlog and follow-ups | `docs/TODO_BACKLOG.md` |
 | CoreSTT contract | `WEBSOCKET_CLIENT_CONTRACT.md` |
 
 ## Boundaries
