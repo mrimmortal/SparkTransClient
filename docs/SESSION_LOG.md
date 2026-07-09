@@ -3,6 +3,23 @@
 Keep this file compact. Add only entries that help a future AI session resume
 without rediscovering recent decisions.
 
+## 2026-07-09 - Realtime transcript append-only animation
+
+Changed:
+- Realtime interim preview now compares the previous and latest interim text.
+- Only newly appended words get a fast muted fade/up animation; repeated or revised text updates without replaying the animation.
+- Added a subtle blinking cursor at the end of active realtime preview text.
+- Added focused helper tests for append, repeat, and revision cases.
+
+Validation:
+- `cd frontend && npm test -- realtimeTranscriptPreview`
+- `cd frontend && npm test`
+- `cd frontend && npm run build`
+
+Next:
+- Browser visual verification with live CoreSTT interim chunks remains To verify.
+- Vite still reports the existing large chunk warning during production build.
+
 ## 2026-07-09 - Friendlier microphone settings section
 
 Changed:

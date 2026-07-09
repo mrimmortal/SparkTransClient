@@ -5,6 +5,8 @@ import { Decoration, DecorationSet } from "@tiptap/pm/view";
 export type RealtimeTranscriptPreviewState = {
   text: string;
   pos: number;
+  stableText: string;
+  newText: string;
 };
 
 type RealtimeTranscriptPreviewMeta =
@@ -19,10 +21,39 @@ export function normalizeRealtimeTranscriptPreview(text: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
-export function createRealtimeTranscriptPreviewState(text: string, pos: number): RealtimeTranscriptPreviewState | null {
+export type RealtimeTranscriptPreviewParts = {
+  stableText: string;
+  newText: string;
+};
+
+export function splitRealtimeTranscriptPreview(previousText: string | null | undefined, nextText: string): RealtimeTranscriptPreviewParts {
+  const previous = normalizeRealtimeTranscriptPreview(previousText ?? "");
+  const next = normalizeRealtimeTranscriptPreview(nextText);
+  if (!next) return { stableText: "", newText: "" };
+  if (!previous) return { stableText: "", newText: next };
+
+  const previousWords = previous.split(" ");
+  const nextWords = next.split(" ");
+  const previousIsPrefix = previousWords.every((word, index) => nextWords[index] === word);
+
+  if (!previousIsPrefix || nextWords.length <= previousWords.length) {
+    return { stableText: next, newText: "" };
+  }
+
+  return {
+    stableText: previous,
+    newText: nextWords.slice(previousWords.length).join(" "),
+  };
+}
+
+export function createRealtimeTranscriptPreviewState(
+  text: string,
+  pos: number,
+  previousText?: string | null,
+): RealtimeTranscriptPreviewState | null {
   const normalized = normalizeRealtimeTranscriptPreview(text);
   if (!normalized) return null;
-  return { text: normalized, pos };
+  return { text: normalized, pos, ...splitRealtimeTranscriptPreview(previousText, normalized) };
 }
 
 export function setRealtimeTranscriptPreview(editor: Editor, text: string): void {
@@ -47,7 +78,7 @@ export const RealtimeTranscriptPreview = Extension.create({
           apply(transaction, value) {
             const meta = transaction.getMeta(realtimeTranscriptPreviewPluginKey) as RealtimeTranscriptPreviewMeta | undefined;
             if (meta?.type === "clear") return null;
-            if (meta?.type === "set") return createRealtimeTranscriptPreviewState(meta.text, meta.pos);
+            if (meta?.type === "set") return createRealtimeTranscriptPreviewState(meta.text, meta.pos, value?.text);
             if (value && transaction.docChanged) {
               return { ...value, pos: transaction.mapping.map(value.pos) };
             }
@@ -61,7 +92,23 @@ export const RealtimeTranscriptPreview = Extension.create({
             const pos = Math.min(preview.pos, state.doc.content.size);
             const widget = document.createElement("span");
             widget.className = "realtime-transcript-preview";
-            widget.textContent = preview.text;
+            widget.setAttribute("aria-label", preview.text);
+            if (preview.stableText) {
+              const stable = document.createElement("span");
+              stable.className = "realtime-transcript-preview-stable";
+              stable.textContent = preview.stableText;
+              widget.appendChild(stable);
+            }
+            if (preview.newText) {
+              const fresh = document.createElement("span");
+              fresh.className = "realtime-transcript-preview-new";
+              fresh.textContent = `${preview.stableText ? " " : ""}${preview.newText}`;
+              widget.appendChild(fresh);
+            }
+            const cursor = document.createElement("span");
+            cursor.className = "realtime-transcript-preview-cursor";
+            cursor.setAttribute("aria-hidden", "true");
+            widget.appendChild(cursor);
             return DecorationSet.create(state.doc, [Decoration.widget(pos, widget, { side: 1 })]);
           },
         },
