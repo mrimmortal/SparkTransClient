@@ -13,6 +13,7 @@ import {
   runEnterLikeVoiceCommand,
   runHistoryVoiceCommand,
   runListModeVoiceCommand,
+  runParagraphVoiceCommand,
   runSelectAllVoiceCommand,
 } from "./editorFlow";
 
@@ -166,6 +167,37 @@ describe("editor flow UX", () => {
 
     expect(runEnterLikeVoiceCommand(editor)).toBe(true);
     expect(calls).toEqual(["focus", "splitBlock", "run"]);
+  });
+
+  it("creates a visible paragraph break with one tab of indentation", () => {
+    const calls: string[] = [];
+    const editor = {
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        createParagraphNear() {
+          calls.push("createParagraphNear");
+          return this;
+        },
+        splitBlock() {
+          calls.push("splitBlock");
+          return this;
+        },
+        insertContent(content: string) {
+          calls.push(`insertContent:${content}`);
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(runParagraphVoiceCommand(editor)).toBe(true);
+    expect(calls).toEqual(["focus", "splitBlock", "insertContent:\t", "run"]);
   });
 
   it("runs voice undo and redo like the TipTap toolbar history buttons", () => {

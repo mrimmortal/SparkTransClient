@@ -1,6 +1,6 @@
 import { ClipboardList, FileText, FolderOpen, HeartPulse, LogOut, Plus, Settings, Wand2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Navigate, NavLink, Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { DiagnosticsPage } from "../diagnostics/DiagnosticsPage";
 import { DocumentManagementModal } from "../documents/DocumentManagementModal";
 import { DocumentsPage } from "../documents/DocumentsPage";
@@ -15,6 +15,7 @@ import { getWorkspaceBrand } from "./workspaceBrand";
 
 export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const brand = getWorkspaceBrand();
   const [documentManagerOpen, setDocumentManagerOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -53,8 +54,10 @@ export function WorkspaceShell({ context }: { context: WorkspaceContext }) {
     navigate("/documents");
   }
 
+  const workspaceClassName = `workspace theme-${context.settings.ui_theme}${location.pathname.startsWith("/documents") ? " workspace-documents" : ""}`;
+
   return (
-    <main className={`workspace theme-${context.settings.ui_theme}`}>
+    <main className={workspaceClassName}>
       <aside className="sidebar">
         <div className="brand-lockup" aria-label={brand.ariaLabel}>
           <span className="brand-mark" aria-hidden="true">

@@ -44,6 +44,7 @@ export type ConfirmationDialogCopy = {
 type ChainRunner = {
   focus: () => ChainRunner;
   createParagraphNear?: () => ChainRunner;
+  insertContent?: (content: string) => ChainRunner;
   splitBlock?: () => ChainRunner;
   splitListItem?: (name: string) => ChainRunner;
   toggleBulletList?: () => ChainRunner;
@@ -58,6 +59,10 @@ type ListModeEditor = {
 
 type EnterLikeEditor = {
   isActive: (name: string) => boolean;
+  chain: () => ChainRunner;
+};
+
+type ParagraphEditor = {
   chain: () => ChainRunner;
 };
 
@@ -190,6 +195,14 @@ export function runEnterLikeVoiceCommand(editor: EnterLikeEditor): boolean {
     return chain.splitListItem ? chain.splitListItem("listItem").run() : false;
   }
   return chain.splitBlock ? chain.splitBlock().run() : false;
+}
+
+export function runParagraphVoiceCommand(editor: ParagraphEditor): boolean {
+  const chain = editor.chain().focus();
+  const splitBlock = chain.splitBlock;
+  const insertContent = chain.insertContent;
+  if (!splitBlock || !insertContent) return false;
+  return insertContent.call(splitBlock.call(chain), "\t").run();
 }
 
 export function runHistoryVoiceCommand(editor: HistoryEditor, action: "undo" | "redo"): boolean {

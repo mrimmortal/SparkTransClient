@@ -16,7 +16,7 @@ import {
   shouldInsertFinalTranscriptText,
   TranscriptState,
 } from "../../lib/corestt";
-import { runEnterLikeVoiceCommand, runHistoryVoiceCommand, runListModeVoiceCommand, runSelectAllVoiceCommand } from "../../lib/editorFlow";
+import { runEnterLikeVoiceCommand, runHistoryVoiceCommand, runListModeVoiceCommand, runParagraphVoiceCommand, runSelectAllVoiceCommand } from "../../lib/editorFlow";
 import { getDeleteLastSentenceRange, getDeleteLastWordRange, TextblockDeleteRange } from "../../lib/editorVoiceCommands";
 import {
   getMicrophoneCaptureErrorMessage,
@@ -425,7 +425,7 @@ export function useDictationSession({
       return;
     }
     if (command === "insert-paragraph") {
-      currentEditor.chain().focus().createParagraphNear().run();
+      runParagraphVoiceCommand(currentEditor);
       return;
     }
     if (command === "undo") {

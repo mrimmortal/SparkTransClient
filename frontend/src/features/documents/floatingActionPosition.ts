@@ -38,7 +38,18 @@ export function getDefaultFloatingActionPosition({
   margin: number;
   reservedLeft?: number;
 }): FloatingActionPosition {
-  const leftBoundary = Math.max(0, reservedLeft);
+  if (reservedLeft >= size.width + margin * 2) {
+    return clampFloatingActionPosition({
+      position: {
+        x: Math.round((reservedLeft - size.width) / 2),
+        y: viewport.height - size.height - margin - 96,
+      },
+      viewport,
+      size,
+      margin,
+    });
+  }
+
   return clampFloatingActionPosition({
     position: {
       x: viewport.width - size.width - margin,
@@ -47,7 +58,6 @@ export function getDefaultFloatingActionPosition({
     viewport,
     size,
     margin,
-    reservedLeft: leftBoundary,
   });
 }
 

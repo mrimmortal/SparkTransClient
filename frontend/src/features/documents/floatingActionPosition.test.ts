@@ -12,7 +12,7 @@ describe("floating action position", () => {
     ).toEqual({ x: 1010, y: 732 });
   });
 
-  it("can default to the lower-right workspace area after a reserved left rail", () => {
+  it("can default to the lower-left rail when the shell reserves sidebar space", () => {
     expect(
       getDefaultFloatingActionPosition({
         viewport: { width: 1200, height: 800 },
@@ -20,7 +20,7 @@ describe("floating action position", () => {
         margin: 22,
         reservedLeft: 320,
       }),
-    ).toEqual({ x: 1010, y: 732 });
+    ).toEqual({ x: 76, y: 636 });
   });
 
   it("can reserve a left rail when clamping first-time placement", () => {

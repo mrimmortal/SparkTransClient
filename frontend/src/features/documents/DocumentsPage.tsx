@@ -15,6 +15,7 @@ import {
   Mic,
   Minimize2,
   Pause,
+  Pencil,
   Save,
   Search,
   SlidersHorizontal,
@@ -53,7 +54,7 @@ import { buildFloatingActionClassName, clampFloatingActionPosition, getDefaultFl
 import type { FloatingActionPosition, FloatingActionSize } from "./floatingActionPosition";
 import { buildDictationCommandGroups, getQuickActionLabel, getRightRailStatusTone } from "./rightRail";
 
-const FLOATING_ACTION_STORAGE_KEY = "sparktrans.floatingTranscriptionActionPosition";
+const FLOATING_ACTION_STORAGE_KEY = "sparktrans.floatingTranscriptionActionPosition.v2";
 const FLOATING_ACTION_MARGIN = 22;
 const FLOATING_ACTION_DEFAULT_SIZE: FloatingActionSize = { width: 168, height: 46 };
 
@@ -309,86 +310,123 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
     <section className={editorFocusMode ? "documents-page editor-focus-mode" : "documents-page"}>
       <div className="document-workspace-grid">
         <div className="document-workspace-main">
-          <header className="topbar document-hero-bar">
-            <div className="document-title-group">
-              <span className="document-icon-card"><FileText size={22} /></span>
-              <span className="document-title-copy">
-                <input
-                  className="title-input"
-                  value={context.activeDocument?.title ?? "Untitled document"}
-                  onChange={(event) => {
-                    if (!context.activeDocument) return;
-                    setEditorDirty(true);
-                    context.setActiveDocument({ ...context.activeDocument, title: event.target.value });
-                  }}
-                  disabled={!context.activeDocument}
-                />
-                <span className={savingDocument ? "save-status saving" : editorDirty ? "save-status dirty" : "save-status"}>
-                  <span className="status-dot" aria-hidden="true" /> {context.activeDocument ? saveStatus : "No document"}
-                  {context.activeDocument ? <span> · Updated {formatDocumentDate(context.activeDocument.updated_at)}</span> : null}
+          <section className="document-editor-chrome" aria-label="Document editor controls">
+            <header className="document-chrome-header">
+              <div className="document-title-group">
+                <span className="document-icon-card"><FileText size={20} /></span>
+                <span className="document-title-copy">
+                  <input
+                    className="title-input"
+                    value={context.activeDocument?.title ?? "Untitled document"}
+                    onChange={(event) => {
+                      if (!context.activeDocument) return;
+                      setEditorDirty(true);
+                      context.setActiveDocument({ ...context.activeDocument, title: event.target.value });
+                    }}
+                    disabled={!context.activeDocument}
+                  />
+                  <Pencil className="document-title-edit-icon" size={16} aria-hidden="true" />
+                  <span className={savingDocument ? "save-status saving" : editorDirty ? "save-status dirty" : "save-status"}>
+                    <span className="status-dot" aria-hidden="true" /> {context.activeDocument ? saveStatus : "No document"}
+                    {context.activeDocument ? <span> · Updated {formatDocumentDate(context.activeDocument.updated_at)}</span> : null}
+                  </span>
                 </span>
-              </span>
-            </div>
-            <div className="document-control-cluster">
-              <div className="document-status-inline">
-                <span className={`status ${context.connectionState.toLowerCase()}`}>
-                  <span className="status-dot" aria-hidden="true" /> {context.connectionState}
-                </span>
-                <div className="quick-target-group document-target-segment" role="group" aria-label="Default dictation target">
-                  {DOCUMENT_QUICK_TARGETS.map((target) => (
-                    <button
-                      key={target.value}
-                      type="button"
-                      className={context.settings.default_editor_target === target.value ? "quick-toggle active" : "quick-toggle"}
-                      aria-pressed={context.settings.default_editor_target === target.value}
-                      onClick={() => void context.updateSetting("default_editor_target", target.value)}
-                    >
-                      {target.label}
-                    </button>
-                  ))}
+              </div>
+              <div className="document-control-cluster">
+                <div className="document-status-inline">
+                  <span className={`status ${context.connectionState.toLowerCase()}`}>
+                    <span className="status-dot" aria-hidden="true" /> {context.connectionState}
+                  </span>
+                  <div className="quick-target-group document-target-segment" role="group" aria-label="Default dictation target">
+                    {DOCUMENT_QUICK_TARGETS.map((target) => (
+                      <button
+                        key={target.value}
+                        type="button"
+                        className={context.settings.default_editor_target === target.value ? "quick-toggle active" : "quick-toggle"}
+                        aria-pressed={context.settings.default_editor_target === target.value}
+                        onClick={() => void context.updateSetting("default_editor_target", target.value)}
+                      >
+                        {target.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="toolbar document-primary-actions">
+                  <button
+                    className="document-action-button"
+                    type="button"
+                    title="Save"
+                    aria-label="Save"
+                    onClick={() => void context.saveDocument()}
+                    disabled={!canSaveActiveDocument}
+                  >
+                    <Save size={16} />
+                    <span>Save</span>
+                  </button>
+                  <button
+                    className="document-action-button"
+                    type="button"
+                    title="Export"
+                    aria-label="Export"
+                    onClick={() => void context.exportDocument()}
+                    disabled={!context.activeDocument}
+                  >
+                    <Download size={16} />
+                    <span>Export</span>
+                  </button>
+                  <button
+                    className="document-action-button danger"
+                    type="button"
+                    title="Delete"
+                    aria-label="Delete"
+                    onClick={() => void context.deleteDocument()}
+                    disabled={!context.activeDocument}
+                  >
+                    <Trash2 size={16} />
+                    <span>Delete</span>
+                  </button>
+                  {!editorFocusMode && (
+                    <>
+                      <button
+                        className={quickSettingsOpen ? "document-action-button active" : "document-action-button"}
+                        type="button"
+                        title="Quick settings"
+                        aria-label="Quick settings"
+                        aria-pressed={quickSettingsOpen}
+                        onClick={() => setQuickSettingsOpen((current) => !current)}
+                      >
+                        <SlidersHorizontal size={16} />
+                        <span>Settings</span>
+                      </button>
+                      <button
+                        className={searchOpen ? "document-action-button active" : "document-action-button"}
+                        type="button"
+                        title="Find and replace"
+                        aria-label="Find and replace"
+                        aria-pressed={searchOpen}
+                        onClick={() => setSearchOpen((current) => !current)}
+                      >
+                        <Search size={16} />
+                        <span>Search</span>
+                      </button>
+                    </>
+                  )}
+                  <button
+                    className={editorFocusMode ? "document-action-button active" : "document-action-button"}
+                    type="button"
+                    title={editorFocusMode ? "Exit focus mode" : "Focus mode"}
+                    aria-label={editorFocusMode ? "Exit focus mode" : "Focus mode"}
+                    aria-pressed={editorFocusMode}
+                    onClick={() => setEditorFocusMode((current) => !current)}
+                  >
+                    {editorFocusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                    <span>{editorFocusMode ? "Exit" : "Focus"}</span>
+                  </button>
                 </div>
               </div>
-              <div className="toolbar document-primary-actions">
-                <button onClick={() => void context.saveDocument()} disabled={!canSaveActiveDocument}><Save size={16} /> Save</button>
-                <button onClick={() => void context.exportDocument()} disabled={!context.activeDocument}><Download size={16} /> Export</button>
-                <button className="danger" onClick={() => void context.deleteDocument()} disabled={!context.activeDocument}><Trash2 size={16} /> Delete</button>
-                {!editorFocusMode && (
-                  <>
-                    <button
-                      className={quickSettingsOpen ? "icon-button active" : "icon-button"}
-                      type="button"
-                      title="Quick settings"
-                      aria-label="Quick settings"
-                      aria-pressed={quickSettingsOpen}
-                      onClick={() => setQuickSettingsOpen((current) => !current)}
-                    >
-                      <SlidersHorizontal size={16} />
-                    </button>
-                    <button
-                      className={searchOpen ? "icon-button active" : "icon-button"}
-                      type="button"
-                      title="Find and replace"
-                      aria-label="Find and replace"
-                      aria-pressed={searchOpen}
-                      onClick={() => setSearchOpen((current) => !current)}
-                    >
-                      <Search size={16} />
-                    </button>
-                  </>
-                )}
-                <button
-                  className={editorFocusMode ? "icon-button active" : "icon-button"}
-                  type="button"
-                  title={editorFocusMode ? "Exit focus mode" : "Focus mode"}
-                  aria-label={editorFocusMode ? "Exit focus mode" : "Focus mode"}
-                  aria-pressed={editorFocusMode}
-                  onClick={() => setEditorFocusMode((current) => !current)}
-                >
-                  {editorFocusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-                </button>
-              </div>
-            </div>
-          </header>
+            </header>
+            <EditorToolbar editor={context.editor} disabled={!context.activeDocument || !context.editor} />
+          </section>
 
           {context.warning && <div className="banner warning dictation-warning">{context.warning}</div>}
 
@@ -411,8 +449,6 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
               )}
             </div>
           )}
-
-          <EditorToolbar editor={context.editor} disabled={!context.activeDocument || !context.editor} />
 
           {markerPanelVisible && (
             <section className="template-marker-panel">

@@ -30,11 +30,18 @@
   --neo-inset-shadow: inset 4px 4px 9px var(--neo-shadow-dark), inset -4px -4px 9px var(--neo-shadow-light);
   --neo-inset-shadow-small: inset 2px 2px 5px var(--neo-shadow-dark), inset -2px -2px 5px var(--neo-shadow-light);
   --neo-overlay: rgb(31 41 51 / 38%);
-  --app-sidebar-width: 240px;
+  --app-sidebar-width: 273px;
   --app-layout-gap: 18px;
+  --document-shell-gutter: 12px;
+  --document-right-rail-width: 220px;
+  --document-paper-width: 846px;
+  --document-paper-min-height: 530px;
+  --document-paper-padding-block: 99px;
+  --document-paper-padding-inline: 99px;
   --app-card-padding: 16px;
   --app-control-height: 34px;
   --app-icon-button-size: 34px;
+  --office-ribbon-button-size: 26px;
   --app-text-xs: 11px;
   --app-text-sm: 12px;
   --app-text-md: 13px;
@@ -608,6 +615,10 @@ input[type="checkbox"] {
   color: var(--neo-text);
 }
 
+.workspace-documents {
+  background: #f5f9fd;
+}
+
 .sidebar {
   border-right: 1px solid var(--neo-border);
   background: var(--neo-surface);
@@ -860,6 +871,10 @@ nav {
   padding: var(--app-layout-gap);
 }
 
+.workspace-documents .documents-page {
+  padding: var(--document-shell-gutter);
+}
+
 .document-workspace-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
@@ -867,6 +882,11 @@ nav {
   height: 100%;
   min-height: 0;
   overflow: hidden;
+}
+
+.workspace-documents .document-workspace-grid {
+  grid-template-columns: minmax(0, 1fr) var(--document-right-rail-width);
+  gap: var(--document-shell-gutter);
 }
 
 .editor-focus-mode .document-workspace-grid {
@@ -880,6 +900,10 @@ nav {
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+}
+
+.workspace-documents .document-workspace-main {
+  gap: var(--document-shell-gutter);
 }
 
 .topbar {
@@ -903,10 +927,44 @@ nav {
   padding: 10px 14px;
 }
 
+.document-editor-chrome {
+  background: var(--neo-surface-soft);
+  border: 1px solid color-mix(in srgb, var(--neo-border), transparent 10%);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--neo-shadow-dark), transparent 78%);
+  container-type: inline-size;
+  display: grid;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+}
+
+.workspace-documents .document-editor-chrome {
+  min-height: 230px;
+}
+
+.document-chrome-header {
+  align-items: center;
+  background: color-mix(in srgb, var(--neo-surface-soft), var(--neo-bg) 18%);
+  border-bottom: 1px solid color-mix(in srgb, var(--neo-border), transparent 18%);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  min-height: 54px;
+  padding: 7px 10px 7px 12px;
+}
+
+.workspace-documents .document-chrome-header {
+  grid-template-columns: minmax(360px, 1fr) auto;
+  min-height: 88px;
+  padding: 12px 18px;
+}
+
 .document-title-group {
   align-items: center;
   display: flex;
-  gap: 14px;
+  gap: 10px;
   min-width: 180px;
 }
 
@@ -918,9 +976,9 @@ nav {
   box-shadow: var(--neo-raised-shadow-small);
   color: var(--neo-accent);
   display: inline-flex;
-  height: 40px;
+  height: 34px;
   justify-content: center;
-  width: 40px;
+  width: 34px;
 }
 
 .document-title-copy {
@@ -929,9 +987,17 @@ nav {
   min-width: 0;
 }
 
+.workspace-documents .document-title-copy {
+  align-items: center;
+  display: grid;
+  gap: 4px 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  width: min(460px, 46vw);
+}
+
 .title-input {
   border: 0;
-  font-size: var(--app-title-text);
+  font-size: var(--app-text-panel);
   font-weight: 650;
   padding-left: 0;
   min-width: 180px;
@@ -949,9 +1015,107 @@ nav {
   display: flex;
   flex: 1 1 auto;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
   justify-content: flex-end;
   min-width: 260px;
+}
+
+.document-editor-chrome .document-primary-actions {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.workspace-documents .document-editor-chrome .document-primary-actions {
+  gap: 8px;
+}
+
+.document-editor-chrome .document-title-group,
+.document-editor-chrome .document-title-copy {
+  min-width: 0;
+}
+
+.document-editor-chrome .title-input {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.document-title-edit-icon {
+  color: var(--neo-muted);
+  flex: 0 0 auto;
+}
+
+.document-editor-chrome .document-primary-actions button {
+  min-height: 32px;
+  padding: 0 10px;
+}
+
+.document-action-button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  box-shadow: none;
+  color: var(--neo-text);
+  display: inline-flex;
+  flex-direction: column;
+  font-size: var(--app-text-xs);
+  font-weight: 600;
+  gap: 3px;
+  justify-content: center;
+  min-height: 46px;
+  min-width: 54px;
+  padding: 4px 7px;
+}
+
+.document-action-button:hover:not(:disabled),
+.document-action-button.active {
+  background: color-mix(in srgb, var(--neo-accent-soft), transparent 18%);
+  border-color: color-mix(in srgb, var(--neo-accent), transparent 56%);
+}
+
+.document-action-button.danger {
+  color: var(--neo-danger);
+}
+
+.document-editor-chrome .quick-toggle {
+  min-height: 32px;
+  padding: 0 12px;
+}
+
+.workspace-documents .document-editor-chrome .quick-toggle {
+  min-height: 44px;
+  padding: 0 18px;
+}
+
+.document-editor-chrome .document-control-cluster {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.document-editor-chrome .document-status-inline {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.document-editor-chrome .save-status {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-documents .document-editor-chrome .title-input {
+  font-size: clamp(22px, 2vw, 28px);
+  width: 100%;
+}
+
+.workspace-documents .document-editor-chrome .save-status {
+  grid-column: 1 / -1;
 }
 
 .floating-transcription-action {
@@ -967,7 +1131,11 @@ nav {
   right: max(22px, env(safe-area-inset-right, 0px));
   touch-action: none;
   user-select: none;
-  z-index: 11000;
+  z-index: 1;
+}
+
+.workspace-documents .floating-transcription-action {
+  min-width: 194px;
 }
 
 .floating-transcription-action:active {
@@ -1358,8 +1526,24 @@ button.danger {
 .editor-shell {
   flex: 1;
   min-height: 0;
-  padding: 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--neo-border), transparent 74%) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(180deg, color-mix(in srgb, var(--neo-border), transparent 80%) 1px, transparent 1px) 0 0 / 48px 48px,
+    color-mix(in srgb, var(--neo-bg), #d9e1ec 24%);
+  border: 1px solid color-mix(in srgb, var(--neo-border), transparent 14%);
+  border-radius: 8px;
   overflow: auto;
+  padding: 28px;
+}
+
+.workspace-documents .editor-shell {
+  background:
+    linear-gradient(90deg, rgb(203 213 225 / 30%) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(180deg, rgb(203 213 225 / 26%) 1px, transparent 1px) 0 0 / 24px 24px,
+    #f5f9fd;
+  border: 0;
+  border-radius: 0;
+  padding: 30px 24px 14px;
 }
 
 .search-replace {
@@ -1382,16 +1566,524 @@ button.danger {
 
 .editor-toolbar {
   flex-shrink: 0;
-  min-height: var(--app-control-height);
-  border: 1px solid color-mix(in srgb, var(--neo-border), transparent 18%);
+  border: 1px solid color-mix(in srgb, var(--neo-border), transparent 8%);
   border-radius: 8px;
-  box-shadow: 2px 2px 8px color-mix(in srgb, var(--neo-shadow-dark), transparent 28%), -2px -2px 8px var(--neo-shadow-light);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--neo-shadow-dark), transparent 76%);
   background: var(--neo-surface-soft);
+  display: grid;
+  overflow: hidden;
+}
+
+.office-ribbon-tabs {
+  align-items: end;
+  border-bottom: 1px solid color-mix(in srgb, var(--neo-border), transparent 10%);
   display: flex;
+  gap: 22px;
+  min-height: 34px;
+  overflow-x: auto;
+  padding: 0 16px;
+}
+
+.office-ribbon-tab {
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  color: color-mix(in srgb, var(--neo-text), var(--neo-muted) 18%);
+  font-size: var(--app-text-md);
+  font-weight: 700;
+  min-height: 34px;
+  padding: 0 0 7px;
+}
+
+.office-ribbon-tab.active {
+  border-bottom-color: var(--neo-accent);
+  color: var(--neo-text);
+}
+
+.office-ribbon-tab:disabled {
+  color: color-mix(in srgb, var(--neo-text), var(--neo-muted) 18%);
+  opacity: 1;
+}
+
+.office-ribbon-body {
+  align-items: stretch;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  min-height: 76px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 5px 8px 3px;
+}
+
+.editor-toolbar-group {
+  align-items: stretch;
+  border-right: 1px solid color-mix(in srgb, var(--neo-border), transparent 4%);
+  display: grid;
+  flex: 0 0 auto;
+  gap: 5px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: stretch;
+  min-height: 68px;
+  padding: 0 12px;
+}
+
+.editor-toolbar-group:last-child {
+  border-right: 0;
+  padding-right: 0;
+}
+
+.editor-toolbar-group-actions {
   align-items: center;
-  gap: 4px;
-  padding: 7px 10px;
+  display: inline-flex;
   flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.office-command-row {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 3px;
+  justify-content: center;
+}
+
+.editor-toolbar-group-label {
+  align-self: end;
+  color: var(--neo-muted);
+  font-size: var(--app-text-xs);
+  font-weight: 700;
+  line-height: var(--app-leading-tight);
+  min-height: 14px;
+  text-align: center;
+}
+
+.office-group-main {
+  align-self: center;
+  justify-self: center;
+}
+
+.office-command-stack {
+  display: grid;
+  gap: 2px;
+}
+
+.office-clipboard-main {
+  align-items: center;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 6px;
+}
+
+.office-clipboard-group {
+  width: 176px;
+}
+
+.office-large-command,
+.office-tile-command {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  box-shadow: none;
+  color: var(--neo-text);
+  display: inline-flex;
+  flex-direction: column;
+  font-size: var(--app-text-sm);
+  gap: 3px;
+  justify-content: center;
+  min-height: 42px;
+  min-width: 42px;
+  padding: 2px 5px;
+}
+
+.office-history-actions {
+  align-items: center;
+  display: inline-flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+.office-font-main {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.office-history-command {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  box-shadow: none;
+  color: var(--neo-text);
+  display: inline-flex;
+  flex-direction: column;
+  font-size: var(--app-text-sm);
+  gap: 3px;
+  justify-content: center;
+  min-height: 42px;
+  min-width: 44px;
+  padding: 2px 5px;
+}
+
+.office-text-command {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  box-shadow: none;
+  color: var(--neo-text);
+  display: inline-flex;
+  font-size: var(--app-text-sm);
+  gap: 4px;
+  justify-content: flex-start;
+  min-height: 18px;
+  padding: 0 4px;
+}
+
+.office-select-row {
+  display: grid;
+  gap: 5px;
+  grid-template-columns: minmax(92px, 1fr) 48px;
+  width: 100%;
+}
+
+.office-select-row select {
+  background: var(--neo-surface-soft);
+  border-color: color-mix(in srgb, var(--neo-border), transparent 5%);
+  min-height: 26px;
+}
+
+.office-font-group {
+  width: 380px;
+}
+
+.office-paragraph-group {
+  width: 260px;
+}
+
+.office-paragraph-rows {
+  align-content: center;
+  display: grid;
+  gap: 2px;
+  grid-template-columns: repeat(4, 28px);
+  justify-content: center;
+}
+
+.office-paragraph-rows .office-command-row {
+  display: contents;
+}
+
+.office-insert-group {
+  width: 270px;
+}
+
+.office-insert-group .editor-toolbar-group-actions {
+  align-items: start;
+  display: grid;
+  gap: 8px 10px;
+  grid-template-columns: repeat(2, minmax(72px, 1fr));
+  justify-content: center;
+}
+
+.document-editor-chrome .editor-toolbar {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.document-editor-chrome .office-ribbon-tabs {
+  min-height: 30px;
+  padding: 0 12px;
+}
+
+.workspace-documents .document-editor-chrome .office-ribbon-tabs {
+  gap: 34px;
+  min-height: 46px;
+  padding: 0 22px;
+}
+
+.document-editor-chrome .office-ribbon-tab {
+  min-height: 30px;
+  padding-bottom: 6px;
+}
+
+.workspace-documents .document-editor-chrome .office-ribbon-tab {
+  font-size: var(--app-text-md);
+  min-height: 46px;
+  padding-bottom: 12px;
+}
+
+.document-editor-chrome .office-ribbon-body {
+  min-height: 58px;
+  padding: 6px 8px 4px;
+}
+
+.workspace-documents .document-editor-chrome .office-ribbon-body {
+  justify-content: flex-start;
+  min-height: 110px;
+  overflow-x: auto;
+  padding: 9px 10px 7px;
+}
+
+.document-editor-chrome .editor-toolbar-group {
+  gap: 3px;
+  grid-template-rows: 1fr;
+  min-height: 60px;
+  padding: 0 10px;
+}
+
+.workspace-documents .document-editor-chrome .editor-toolbar-group {
+  gap: 5px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 94px;
+  padding: 0 12px;
+}
+
+.document-editor-chrome .editor-toolbar-group-label {
+  display: none;
+}
+
+.workspace-documents .document-editor-chrome .editor-toolbar-group-label {
+  display: block;
+  line-height: 1;
+  min-height: 11px;
+}
+
+.document-editor-chrome .office-large-command,
+.document-editor-chrome .office-tile-command,
+.document-editor-chrome .office-history-command {
+  min-height: 36px;
+}
+
+.workspace-documents .document-editor-chrome .office-large-command,
+.workspace-documents .document-editor-chrome .office-tile-command,
+.workspace-documents .document-editor-chrome .office-history-command {
+  min-height: 42px;
+  min-width: 48px;
+}
+
+.document-editor-chrome .office-select-row select {
+  min-height: 24px;
+}
+
+.workspace-documents .document-editor-chrome .office-select-row select {
+  min-height: 36px;
+}
+
+.document-editor-chrome .office-clipboard-group {
+  width: 174px;
+}
+
+.document-editor-chrome .office-font-group {
+  width: 278px;
+}
+
+.document-editor-chrome .office-paragraph-group {
+  width: 196px;
+}
+
+.document-editor-chrome .office-insert-group {
+  width: 194px;
+}
+
+.workspace-documents .document-editor-chrome .office-clipboard-group {
+  width: 176px;
+}
+
+.workspace-documents .document-editor-chrome .office-font-group {
+  width: 380px;
+}
+
+.workspace-documents .document-editor-chrome .office-paragraph-group {
+  width: 240px;
+}
+
+.workspace-documents .document-editor-chrome .office-paragraph-rows {
+  gap: 2px 4px;
+  grid-template-columns: repeat(4, 28px);
+}
+
+.workspace-documents .document-editor-chrome .office-insert-group {
+  width: 150px;
+}
+
+.workspace-documents .document-editor-chrome .editor-toolbar .icon-button {
+  min-height: 28px;
+  min-width: 28px;
+  width: 28px;
+}
+
+@container (max-width: 760px) {
+  .document-chrome-header {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .workspace-documents .document-chrome-header {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
+  .workspace-documents .document-title-copy {
+    display: grid;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .workspace-documents .document-title-edit-icon {
+    display: none;
+  }
+
+  .workspace-documents .document-editor-chrome .title-input {
+    font-size: 22px;
+    width: 100%;
+  }
+
+  .workspace-documents .document-editor-chrome .save-status {
+    font-size: var(--app-text-sm);
+  }
+
+  .document-editor-chrome .document-control-cluster {
+    width: 100%;
+  }
+
+  .workspace-documents .document-editor-chrome .document-primary-actions {
+    gap: 6px;
+  }
+
+  .workspace-documents .document-editor-chrome .document-primary-actions button,
+  .workspace-documents .document-editor-chrome .quick-toggle {
+    min-height: 34px;
+    padding-inline: 8px;
+  }
+
+  .workspace-documents .document-action-button {
+    min-height: 36px;
+    min-width: 46px;
+    padding: 3px 6px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-tabs {
+    gap: 22px;
+    min-height: 34px;
+    padding: 0 14px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-tab {
+    min-height: 34px;
+    padding-bottom: 7px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-body {
+    justify-content: flex-start;
+    min-height: 92px;
+    padding: 5px 8px 4px;
+  }
+
+  .workspace-documents .document-editor-chrome .editor-toolbar-group {
+    gap: 3px;
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-height: 76px;
+    padding: 0 7px;
+  }
+
+  .workspace-documents .document-editor-chrome .editor-toolbar-group-label {
+    display: block;
+    font-size: 10px;
+    line-height: 1;
+    min-height: 10px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-large-command,
+  .workspace-documents .document-editor-chrome .office-tile-command,
+  .workspace-documents .document-editor-chrome .office-history-command {
+    min-height: 34px;
+    min-width: 40px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-tile-command {
+    font-size: 10px;
+    min-width: 44px;
+    padding-inline: 3px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-select-row select {
+    min-height: 25px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-command-row {
+    gap: 2px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-paragraph-rows {
+    gap: 1px 3px;
+    grid-template-columns: repeat(4, 26px);
+  }
+
+  .workspace-documents .document-editor-chrome .office-insert-group .editor-toolbar-group-actions {
+    flex-wrap: nowrap;
+    gap: 3px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-clipboard-group {
+    width: 176px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-font-group {
+    width: 282px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-paragraph-group {
+    width: 176px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-insert-group {
+    width: 206px;
+  }
+
+  .workspace-documents .document-editor-chrome .editor-toolbar .icon-button {
+    min-height: 28px;
+    min-width: 28px;
+    width: 28px;
+  }
+}
+
+@container (max-width: 520px) {
+  .workspace-documents .document-title-copy {
+    display: grid;
+    gap: 4px;
+  }
+
+  .workspace-documents .document-editor-chrome .title-input {
+    width: 100%;
+  }
+}
+
+.editor-toolbar button:disabled,
+.editor-toolbar select:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.editor-toolbar .office-ribbon-tab:disabled {
+  opacity: 1;
+}
+
+.editor-toolbar .icon-button:hover:not(:disabled),
+.office-large-command:hover:not(:disabled),
+.office-history-command:hover:not(:disabled),
+.office-text-command:hover:not(:disabled),
+.office-tile-command:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--neo-accent-soft), transparent 34%);
+  border-color: color-mix(in srgb, var(--neo-accent), transparent 58%);
 }
 
 .icon-button {
@@ -1407,22 +2099,122 @@ button.danger {
   box-shadow: var(--neo-inset-shadow-small);
 }
 
+.editor-toolbar .icon-button {
+  background: transparent;
+  border-color: transparent;
+  border-radius: 5px;
+  box-shadow: none;
+  min-height: var(--office-ribbon-button-size);
+  min-width: var(--office-ribbon-button-size);
+  width: var(--office-ribbon-button-size);
+}
+
+.editor-toolbar button svg {
+  color: currentColor;
+  flex: 0 0 auto;
+  height: 18px;
+  width: 18px;
+}
+
+.editor-toolbar .office-large-command svg {
+  height: 24px;
+  width: 24px;
+}
+
+.editor-toolbar .office-text-command svg,
+.editor-toolbar .office-tile-command svg,
+.editor-toolbar .office-history-command svg {
+  height: 18px;
+  width: 18px;
+}
+
+.editor-toolbar .icon-button.active {
+  background: color-mix(in srgb, var(--neo-accent-soft), #ffffff 20%);
+  border-color: color-mix(in srgb, var(--neo-accent), transparent 42%);
+  box-shadow: none;
+}
+
+.editor-toolbar button {
+  color: var(--neo-text);
+}
+
+.editor-toolbar button:disabled {
+  color: color-mix(in srgb, var(--neo-text), var(--neo-muted) 24%);
+  opacity: 0.82;
+}
+
+.office-history-command.active {
+  background: color-mix(in srgb, var(--neo-accent-soft), #ffffff 20%);
+  border-color: color-mix(in srgb, var(--neo-accent), transparent 42%);
+}
+
 .smart-editor {
-  min-height: 100%;
-  max-width: 920px;
+  box-sizing: border-box;
+  min-height: 1056px;
+  max-width: 816px;
+  width: 100%;
   margin: 0 auto;
-  background: var(--neo-surface-soft);
-  border: 1px solid color-mix(in srgb, var(--neo-border), transparent 8%);
-  border-radius: 8px;
-  box-shadow: 4px 4px 12px color-mix(in srgb, var(--neo-shadow-dark), transparent 26%), -4px -4px 12px var(--neo-shadow-light);
-  padding: var(--app-editor-padding-block) var(--app-editor-padding-inline);
+  background: #ffffff;
+  border: 1px solid color-mix(in srgb, var(--neo-border), #ffffff 28%);
+  border-radius: 2px;
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--neo-shadow-dark), transparent 62%);
+  color: #1f2937;
+  padding: 76px 82px;
   outline: none;
   line-height: var(--app-leading-editor);
   font-size: var(--app-editor-text);
 }
 
+.workspace-documents .smart-editor {
+  box-shadow: 0 10px 28px rgb(15 23 42 / 12%);
+  max-width: min(100%, var(--document-paper-width));
+  min-height: var(--document-paper-min-height);
+  padding: var(--document-paper-padding-block) var(--document-paper-padding-inline);
+}
+
 .smart-editor p {
-  margin: 0 0 12px;
+  margin: 0 0 13px;
+}
+
+.smart-editor h1,
+.smart-editor h2,
+.smart-editor h3 {
+  color: #111827;
+  line-height: var(--app-leading-tight);
+  margin: 18px 0 10px;
+}
+
+.smart-editor h1:first-child,
+.smart-editor h2:first-child,
+.smart-editor h3:first-child,
+.smart-editor p:first-child {
+  margin-top: 0;
+}
+
+.smart-editor ul,
+.smart-editor ol {
+  margin: 0 0 13px 24px;
+  padding-left: 18px;
+}
+
+.smart-editor li {
+  margin: 3px 0;
+}
+
+.smart-editor blockquote {
+  border-left: 3px solid color-mix(in srgb, var(--neo-accent), transparent 18%);
+  color: color-mix(in srgb, #1f2937, var(--neo-muted) 24%);
+  margin: 12px 0 14px;
+  padding: 2px 0 2px 14px;
+}
+
+.smart-editor pre {
+  background: color-mix(in srgb, var(--neo-bg), #ffffff 42%);
+  border: 1px solid color-mix(in srgb, var(--neo-border), transparent 12%);
+  border-radius: 6px;
+  margin: 12px 0 14px;
+  overflow: auto;
+  padding: 10px 12px;
 }
 
 .realtime-transcript-preview {
@@ -1505,6 +2297,11 @@ button.danger {
   padding: 9px 12px;
 }
 
+.workspace-documents .document-footer-dock {
+  min-height: 73px;
+  padding: 10px 14px;
+}
+
 .footer-save-indicator {
   align-items: center;
   display: inline-flex;
@@ -1540,10 +2337,20 @@ button.danger {
   overflow: auto;
 }
 
+.workspace-documents .document-right-rail {
+  gap: 20px;
+}
+
 .right-rail-card {
   display: grid;
   gap: 10px;
   padding: 14px;
+}
+
+.workspace-documents .right-rail-card {
+  border-radius: 8px;
+  padding: 14px 12px;
+  width: 100%;
 }
 
 .right-rail-card.status-card {
@@ -2614,7 +3421,13 @@ button.danger {
   min-width: 0;
 }
 
+.template-marker-panel strong {
+  font-size: var(--app-text-md);
+  line-height: var(--app-leading-tight);
+}
+
 .template-marker-panel > div:first-child span {
+  font-size: var(--app-text-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2625,6 +3438,12 @@ button.danger {
   flex-wrap: wrap;
   gap: 4px;
   justify-content: flex-end;
+}
+
+.template-marker-actions button {
+  font-size: var(--app-text-md);
+  min-height: 32px;
+  padding: 0 12px;
 }
 
 .template-marker-panel .settings-note {
@@ -3002,6 +3821,290 @@ details input {
   color: var(--neo-text);
 }
 
+@media (min-width: 1181px) and (max-width: 1536px) {
+  .workspace-documents {
+    --app-sidebar-width: 240px;
+    --document-right-rail-width: 200px;
+    --document-shell-gutter: 10px;
+    --document-paper-width: 760px;
+    --document-paper-min-height: 500px;
+    --document-paper-padding-block: 72px;
+    --document-paper-padding-inline: 72px;
+  }
+
+  .workspace-documents .documents-page {
+    padding: var(--document-shell-gutter);
+  }
+
+  .workspace-documents .document-workspace-main {
+    gap: var(--document-shell-gutter);
+  }
+
+  .workspace-documents .document-editor-chrome {
+    min-height: 190px;
+  }
+
+  .workspace-documents .document-chrome-header {
+    grid-template-columns: minmax(250px, 1fr) auto;
+    min-height: 70px;
+    padding: 8px 12px;
+  }
+
+  .workspace-documents .document-editor-chrome .title-input {
+    font-size: clamp(20px, 1.5vw, 24px);
+    max-width: 260px;
+  }
+
+  .workspace-documents .document-editor-chrome .quick-toggle {
+    min-height: 38px;
+    padding: 0 12px;
+  }
+
+  .workspace-documents .document-action-button {
+    min-height: 40px;
+    min-width: 40px;
+    padding: 3px 5px;
+  }
+
+  .workspace-documents .document-action-button span {
+    display: none;
+  }
+
+  .workspace-documents .document-editor-chrome .document-primary-actions {
+    gap: 5px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-tabs {
+    gap: 28px;
+    min-height: 38px;
+    padding: 0 18px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-tab {
+    min-height: 38px;
+    padding-bottom: 8px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-body {
+    min-height: 94px;
+    padding: 7px 8px 6px;
+  }
+
+  .workspace-documents .document-editor-chrome .editor-toolbar-group {
+    gap: 4px;
+    min-height: 80px;
+    padding: 0 6px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-large-command,
+  .workspace-documents .document-editor-chrome .office-tile-command,
+  .workspace-documents .document-editor-chrome .office-history-command {
+    min-height: 34px;
+    min-width: 42px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-large-command,
+  .workspace-documents .document-editor-chrome .office-tile-command,
+  .workspace-documents .document-editor-chrome .office-history-command,
+  .workspace-documents .document-editor-chrome .office-text-command {
+    font-size: 10px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-select-row {
+    grid-template-columns: minmax(120px, 1fr) 44px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-select-row select {
+    min-height: 32px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-clipboard-group {
+    width: 134px;
+  }
+
+  .workspace-documents .document-editor-chrome .editor-toolbar-group[aria-label="History"] {
+    width: 96px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-font-group {
+    width: 300px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-paragraph-group {
+    width: 176px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-insert-group {
+    width: 118px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-insert-group .editor-toolbar-group-actions {
+    gap: 4px;
+    grid-template-columns: repeat(2, minmax(42px, 1fr));
+  }
+
+  .workspace-documents .document-editor-chrome .editor-toolbar .icon-button {
+    min-height: 26px;
+    min-width: 26px;
+    width: 26px;
+  }
+
+  .workspace-documents .editor-shell {
+    padding: 18px 16px 10px;
+  }
+
+  .workspace-documents .smart-editor {
+    max-width: min(100%, var(--document-paper-width));
+    min-height: var(--document-paper-min-height);
+    padding: var(--document-paper-padding-block) var(--document-paper-padding-inline);
+  }
+
+  .workspace-documents .document-footer-dock {
+    min-height: 64px;
+    padding: 8px 12px;
+  }
+
+  .workspace-documents .document-right-rail {
+    gap: 10px;
+  }
+
+  .workspace-documents .right-rail-card {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .workspace-documents .right-rail-card h2 {
+    font-size: var(--app-text-md);
+  }
+
+  .workspace-documents .right-rail-actions {
+    gap: 6px;
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-documents .right-rail-actions button {
+    min-height: 30px;
+    padding-inline: 8px;
+  }
+
+  .workspace-documents .right-rail-status-row {
+    grid-template-columns: minmax(68px, 0.8fr) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1380px) and (max-width: 1536px) and (min-height: 800px) {
+  .workspace-documents {
+    --app-sidebar-width: 252px;
+    --document-right-rail-width: 210px;
+    --document-paper-width: 820px;
+    --document-paper-min-height: 520px;
+    --document-paper-padding-block: 78px;
+    --document-paper-padding-inline: 86px;
+  }
+
+  .workspace-documents .document-editor-chrome {
+    min-height: 190px;
+  }
+
+  .workspace-documents .document-chrome-header {
+    min-height: 72px;
+    padding: 9px 14px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-tabs {
+    min-height: 40px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-tab {
+    min-height: 40px;
+    padding-bottom: 9px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-body {
+    min-height: 94px;
+    padding: 7px 8px 6px;
+  }
+
+  .workspace-documents .document-editor-chrome .editor-toolbar-group {
+    min-height: 80px;
+  }
+
+  .workspace-documents .editor-shell {
+    padding: 22px 18px 12px;
+  }
+
+  .workspace-documents .document-footer-dock {
+    min-height: 64px;
+  }
+}
+
+@media (min-width: 1380px) and (max-width: 1536px) and (max-height: 860px) {
+  .workspace-documents {
+    --app-sidebar-width: 244px;
+    --document-right-rail-width: 204px;
+    --document-paper-width: 800px;
+    --document-paper-min-height: 460px;
+    --document-paper-padding-block: 62px;
+    --document-paper-padding-inline: 78px;
+  }
+
+  .workspace-documents .document-editor-chrome {
+    min-height: 176px;
+  }
+
+  .workspace-documents .document-chrome-header {
+    min-height: 64px;
+    padding: 7px 12px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-tabs {
+    min-height: 36px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-tab {
+    min-height: 36px;
+    padding-bottom: 7px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-ribbon-body {
+    min-height: 88px;
+    padding: 6px 7px 5px;
+  }
+
+  .workspace-documents .document-editor-chrome .editor-toolbar-group {
+    min-height: 76px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-select-row {
+    grid-template-columns: minmax(118px, 1fr) 44px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-font-group {
+    width: 300px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-paragraph-group {
+    width: 176px;
+  }
+
+  .workspace-documents .document-editor-chrome .office-insert-group {
+    width: 118px;
+  }
+
+  .workspace-documents .editor-shell {
+    padding: 16px 14px 8px;
+  }
+
+  .workspace-documents .document-footer-dock {
+    min-height: 58px;
+    padding: 7px 10px;
+  }
+
+  .workspace-documents .right-rail-card {
+    padding: 9px;
+  }
+}
+
 @media (max-width: 1180px) {
   .landing-hero {
     grid-template-columns: 1fr;
@@ -3024,8 +4127,26 @@ details input {
     overflow: visible;
   }
 
+  .workspace-documents .document-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
   .documents-page {
     overflow: auto;
+  }
+
+  .workspace-documents .document-editor-chrome {
+    min-height: auto;
+  }
+
+  .workspace-documents .editor-shell {
+    padding: 18px;
+  }
+
+  .workspace-documents .smart-editor {
+    max-width: min(100%, 816px);
+    min-height: 860px;
+    padding: 54px 48px;
   }
 
   .document-workspace-main {
@@ -3044,6 +4165,21 @@ details input {
   .document-hero-bar {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .document-chrome-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .workspace-documents .document-chrome-header {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-documents .document-editor-chrome .document-control-cluster {
+    justify-content: flex-start;
+    overflow-x: auto;
+    width: 100%;
   }
 
   .document-control-cluster,
@@ -3225,9 +4361,57 @@ details input {
     justify-content: flex-start;
   }
 
-  .smart-editor {
-    padding: var(--app-editor-padding-block) var(--app-editor-padding-inline);
+  .editor-shell {
+    padding: 18px;
+  }
+
+  .editor-toolbar {
+    gap: 6px;
+  }
+
+  .office-ribbon-tabs {
+    gap: 18px;
+    padding: 0 14px;
+  }
+
+  .office-ribbon-body {
+    flex-wrap: nowrap;
+    gap: 0;
+    overflow-x: auto;
+    padding: 6px 8px;
+  }
+
+  .editor-toolbar-group {
+    border-right: 0;
+    border-right: 1px solid color-mix(in srgb, var(--neo-border), transparent 24%);
+    border-radius: 0;
+    justify-items: start;
+    min-height: 60px;
+    padding: 0 7px;
+  }
+
+  .office-font-group,
+  .office-paragraph-group {
     max-width: none;
+    min-width: 0;
+  }
+
+  .office-clipboard-main {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .office-insert-group .editor-toolbar-group-actions {
+    justify-content: flex-start;
+  }
+
+  .office-ribbon-body .editor-toolbar-group:last-child {
+    padding: 0 7px;
+  }
+
+  .smart-editor {
+    max-width: min(100%, 816px);
+    min-height: 860px;
+    padding: 54px 48px;
   }
 
   .diagnostics {
@@ -3432,8 +4616,8 @@ details input {
   }
 
   .document-icon-card {
-    height: 38px;
-    width: 38px;
+    height: 34px;
+    width: 34px;
   }
 
   .title-input {
@@ -3457,6 +4641,112 @@ details input {
     flex: 1 1 auto;
   }
 
+  .editor-shell {
+    padding: 10px;
+  }
+
+  .workspace-documents .editor-shell {
+    padding: 10px;
+  }
+
+  .editor-toolbar-group {
+    flex: 1 1 auto;
+    min-width: min(100%, 180px);
+  }
+
+  .editor-toolbar-group-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .editor-toolbar-group-label {
+    text-align: left;
+    width: 100%;
+  }
+
+  .office-ribbon-tabs {
+    gap: 14px;
+    min-height: 38px;
+  }
+
+  .office-ribbon-tab {
+    font-size: var(--app-text-md);
+    min-height: 38px;
+    padding-bottom: 8px;
+  }
+
+  .office-ribbon-body {
+    padding: 8px;
+  }
+
+  .office-select-row,
+  .office-clipboard-main {
+    grid-template-columns: 1fr;
+  }
+
+  .office-large-command,
+  .office-tile-command {
+    min-height: 48px;
+  }
+
+  .document-editor-chrome .document-chrome-header {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .document-editor-chrome .editor-toolbar-group {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .document-editor-chrome .editor-toolbar-group-actions {
+    justify-content: center;
+    width: auto;
+  }
+
+  .document-editor-chrome .editor-toolbar-group-label {
+    text-align: center;
+    width: auto;
+  }
+
+  .document-editor-chrome .office-ribbon-tabs {
+    min-height: 30px;
+  }
+
+  .document-editor-chrome .office-ribbon-tab {
+    min-height: 30px;
+    padding-bottom: 6px;
+  }
+
+  .document-editor-chrome .office-ribbon-body {
+    padding: 4px 8px;
+  }
+
+  .document-editor-chrome .office-select-row {
+    grid-template-columns: minmax(92px, 1fr) 48px;
+  }
+
+  .document-editor-chrome .office-clipboard-main {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .document-editor-chrome .office-large-command,
+  .document-editor-chrome .office-tile-command {
+    min-height: 36px;
+  }
+
+  .smart-editor {
+    border-radius: 4px;
+    min-height: 680px;
+    padding: 28px 20px;
+  }
+
+  .workspace-documents .smart-editor {
+    border-radius: 4px;
+    min-height: 680px;
+    padding: 28px 20px;
+  }
+
   .floating-transcription-action {
     bottom: max(12px, env(safe-area-inset-bottom, 0px));
     min-width: 0;
@@ -3469,6 +4759,15 @@ details input {
 
   .document-title-copy {
     width: 100%;
+  }
+
+  .workspace-documents .document-title-copy {
+    display: grid;
+    gap: 4px;
+  }
+
+  .workspace-documents .document-title-edit-icon {
+    display: none;
   }
 
   .page-header-actions button {
