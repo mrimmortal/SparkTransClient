@@ -5,6 +5,7 @@ import { CommandEmbeddingMatcher } from "../../lib/commandEmbeddings";
 import {
   applyDictationCaseMode,
   applyTranscriptEvent,
+  CommandRouteArgs,
   ConnectionState,
   DictationCaseMode,
   isBlankAudioTranscript,
@@ -16,7 +17,25 @@ import {
   shouldInsertFinalTranscriptText,
   TranscriptState,
 } from "../../lib/corestt";
-import { runEnterLikeVoiceCommand, runHistoryVoiceCommand, runListModeVoiceCommand, runParagraphVoiceCommand, runSelectAllVoiceCommand } from "../../lib/editorFlow";
+import {
+  moveCursorAfterTextInCurrentParagraph,
+  moveCursorBeforeTextInCurrentParagraph,
+  moveCursorToDocumentEnd,
+  moveCursorToDocumentStart,
+  moveCursorToLineEnd,
+  moveCursorToLineStart,
+  runEnterLikeVoiceCommand,
+  runHistoryVoiceCommand,
+  runListModeVoiceCommand,
+  runParagraphVoiceCommand,
+  runSelectAllVoiceCommand,
+  selectAdjacentCharacter,
+  selectAdjacentParagraph,
+  selectAdjacentSentence,
+  selectCurrentCharacter,
+  selectCurrentParagraph,
+  selectCurrentSentence,
+} from "../../lib/editorFlow";
 import { getDeleteLastSentenceRange, getDeleteLastWordRange, TextblockDeleteRange } from "../../lib/editorVoiceCommands";
 import {
   getMicrophoneCaptureErrorMessage,
@@ -321,7 +340,7 @@ export function useDictationSession({
       templateMarkerNavigationEnabled: currentSettings.template_marker_navigation_enabled,
     });
     if (routed.kind === "command") {
-      runCommand(routed.command);
+      runCommand(routed.command, routed.args);
       return;
     }
     if (routed.kind === "mixed") {
@@ -361,7 +380,7 @@ export function useDictationSession({
     }
   }
 
-  function runCommand(command: string) {
+  function runCommand(command: string, args?: CommandRouteArgs) {
     if (command === "stop-dictation") {
       stopDictation();
       return;
@@ -418,6 +437,64 @@ export function useDictationSession({
     }
     if (command === "cancel-template-field-navigation") {
       cancelTemplateMarkerNavigation(currentEditor);
+      return;
+    }
+    if (command === "go-line-start") {
+      moveCursorToLineStart(currentEditor);
+      return;
+    }
+    if (command === "go-line-end") {
+      moveCursorToLineEnd(currentEditor);
+      return;
+    }
+    if (command === "go-document-start") {
+      moveCursorToDocumentStart(currentEditor);
+      return;
+    }
+    if (command === "go-document-end") {
+      moveCursorToDocumentEnd(currentEditor);
+      return;
+    }
+    if (command === "insert-before-text") {
+      if (!args?.text || !moveCursorBeforeTextInCurrentParagraph(currentEditor, args.text)) {
+        setWarning("Text not found in current paragraph.");
+      }
+      return;
+    }
+    if (command === "insert-after-text") {
+      if (!args?.text || !moveCursorAfterTextInCurrentParagraph(currentEditor, args.text)) {
+        setWarning("Text not found in current paragraph.");
+      }
+      return;
+    }
+    if (command === "select-current-paragraph") {
+      selectCurrentParagraph(currentEditor);
+      return;
+    }
+    if (command === "select-adjacent-paragraph") {
+      if (!args?.direction || !selectAdjacentParagraph(currentEditor, args.direction)) {
+        setWarning(args?.direction === "last" ? "No previous paragraph found." : "No next paragraph found.");
+      }
+      return;
+    }
+    if (command === "select-current-sentence") {
+      selectCurrentSentence(currentEditor);
+      return;
+    }
+    if (command === "select-adjacent-sentence") {
+      if (!args?.direction || !selectAdjacentSentence(currentEditor, args.direction, args.count ?? 1)) {
+        setWarning(args?.direction === "last" ? "No previous sentence found." : "No next sentence found.");
+      }
+      return;
+    }
+    if (command === "select-current-character") {
+      selectCurrentCharacter(currentEditor);
+      return;
+    }
+    if (command === "select-adjacent-character") {
+      if (!args?.direction || !selectAdjacentCharacter(currentEditor, args.direction, args.count ?? 1)) {
+        setWarning(args?.direction === "last" ? "No previous character found." : "No next character found.");
+      }
       return;
     }
     if (command === "insert-newline") {

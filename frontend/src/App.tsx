@@ -1,7 +1,19 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useEditor } from "@tiptap/react";
+import Color from "@tiptap/extension-color";
+import FontFamily from "@tiptap/extension-font-family";
+import Highlight from "@tiptap/extension-highlight";
+import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
+import Table from "@tiptap/extension-table";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+import TableRow from "@tiptap/extension-table-row";
+import TextAlign from "@tiptap/extension-text-align";
+import TextStyle from "@tiptap/extension-text-style";
 import StarterKit from "@tiptap/starter-kit";
 import UnderlineExtension from "@tiptap/extension-underline";
 import { AlertTriangle } from "lucide-react";
@@ -16,6 +28,7 @@ import { getClearEditorConfirmationDialog } from "./lib/editorFlow";
 import { RealtimeTranscriptPreview } from "./lib/realtimeTranscriptPreview";
 import { sampleUser } from "./lib/sampleUser";
 import { TemplatePlaceholderToken } from "./lib/templatePlaceholderToken";
+import { FontSizeExtension } from "./lib/fontSizeExtension";
 
 export function App() {
   return (
@@ -38,7 +51,20 @@ function AppRoutes() {
   const editor = useEditor({
     extensions: [
       StarterKit,
+      TextStyle,
+      Color,
+      FontFamily,
+      FontSizeExtension,
+      Highlight.configure({ multicolor: true }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       UnderlineExtension,
+      Subscript,
+      Superscript,
+      Image.configure({ allowBase64: true }),
+      Table.configure({ resizable: true }),
+      TableRow,
+      TableHeader,
+      TableCell,
       RealtimeTranscriptPreview,
       TemplatePlaceholderToken,
       Placeholder.configure({ placeholder: "Start dictation or type your document..." }),

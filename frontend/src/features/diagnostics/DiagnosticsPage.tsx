@@ -46,6 +46,46 @@ export function DiagnosticsPage({ context }: { context: WorkspaceContext }) {
     void loadDevices();
   }, []);
 
+  const systemStatusItems = [
+    {
+      label: "App",
+      value: ready ? (ready.ok ? "Ready" : "Not ready") : "Unknown",
+      tone: ready?.ok ? "good" : "warn",
+      detail: version ? `${version.app} ${version.version} (${version.environment})` : "Version unknown",
+    },
+    {
+      label: "STT",
+      value: formatConnectionState(context.connectionState),
+      tone: context.connectionState === "STREAMING" || context.connectionState === "READY" ? "good" : "warn",
+      detail: resolveSttUrl(),
+    },
+    {
+      label: "Microphone",
+      value: formatStatusValue(context.micStatus),
+      tone: context.micStatus.toLowerCase().includes("capturing") ? "good" : "warn",
+      detail: getSelectedMicrophoneLabel(devices, context.settings.audio_device_id),
+    },
+    {
+      label: "Audio",
+      value: context.audioSampleRate ? `${context.audioSampleRate} Hz` : "Not capturing",
+      tone: context.audioSampleRate ? "good" : "neutral",
+      detail: `${context.audioPacketCount} packets`,
+    },
+  ] as const;
+
+  const connectionDetails = [
+    ["Live check", live ? String(live.ok) : "Unknown"],
+    ["Ready check", ready ? String(ready.ok) : "Unknown"],
+    ["Config", config ? `${config.sttProxyUrl}, ${config.audioFormat}, protocol ${config.sttProtocolVersion}` : "Unknown"],
+    ["Reconnect attempt", context.retryAttempt || "None"],
+  ];
+
+  const workspaceCounts = [
+    ["Documents", context.documents.length],
+    ["Templates", context.templates.length],
+    ["Macros", context.macros.length],
+  ];
+
   return (
     <section className="manager-page">
       <PageHeader title="Diagnostics" />
@@ -53,36 +93,46 @@ export function DiagnosticsPage({ context }: { context: WorkspaceContext }) {
         <button onClick={() => void refreshDiagnostics()}><HeartPulse size={16} /> Refresh diagnostics</button>
         <button onClick={() => void context.refreshWorkspace()}><Activity size={16} /> Refresh workspace</button>
       </div>
-      <dl className="diagnostics-grid">
-        <dt>Live</dt>
-        <dd>{live ? String(live.ok) : "Unknown"}</dd>
-        <dt>Ready</dt>
-        <dd>{ready ? String(ready.ok) : "Unknown"}</dd>
-        <dt>App</dt>
-        <dd>{version ? `${version.app} ${version.version} (${version.environment})` : "Unknown"}</dd>
-        <dt>Config</dt>
-        <dd>{config ? `${config.sttProxyUrl}, ${config.audioFormat}, protocol ${config.sttProtocolVersion}` : "Unknown"}</dd>
-        <dt>Connection</dt>
-        <dd>{context.connectionState}</dd>
-        <dt>STT URL</dt>
-        <dd>{resolveSttUrl()}</dd>
-        <dt>Microphone</dt>
-        <dd>{context.micStatus}</dd>
-        <dt>Microphone device</dt>
-        <dd>{getSelectedMicrophoneLabel(devices, context.settings.audio_device_id)}</dd>
-        <dt>Audio sample rate</dt>
-        <dd>{context.audioSampleRate || "Not capturing"}</dd>
-        <dt>Audio packets</dt>
-        <dd>{context.audioPacketCount}</dd>
-        <dt>Reconnect attempt</dt>
-        <dd>{context.retryAttempt || "None"}</dd>
-        <dt>Documents</dt>
-        <dd>{context.documents.length}</dd>
-        <dt>Templates</dt>
-        <dd>{context.templates.length}</dd>
-        <dt>Macros</dt>
-        <dd>{context.macros.length}</dd>
-      </dl>
+      <div className="diagnostics-dashboard">
+        <section className="diagnostics-status-grid" aria-label="System status">
+          {systemStatusItems.map((item) => (
+            <article className="diagnostics-status-card" key={item.label}>
+              <span>{item.label}</span>
+              <strong className={`diagnostics-pill ${item.tone}`}>{item.value}</strong>
+              <small>{item.detail}</small>
+            </article>
+          ))}
+        </section>
+
+        <section className="diagnostics-panel">
+          <h2>Connection details</h2>
+          <dl className="diagnostics-detail-grid">
+            {connectionDetails.map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section className="diagnostics-count-grid" aria-label="Workspace counts">
+          {workspaceCounts.map(([label, value]) => (
+            <article className="diagnostics-count-card" key={label}>
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </article>
+          ))}
+        </section>
+      </div>
     </section>
   );
+}
+
+function formatConnectionState(state: string): string {
+  return state.toLowerCase().replace(/^\w/, (letter) => letter.toUpperCase());
+}
+
+function formatStatusValue(status: string): string {
+  return status.replace(/_/g, " ").toLowerCase().replace(/^\w/, (letter) => letter.toUpperCase());
 }

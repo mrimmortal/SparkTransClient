@@ -220,6 +220,84 @@ describe("transcript routing", () => {
     expect(routeFinalText("SAVE DOCUMENT", "smart-editor", [])).toEqual({ kind: "command", command: "save-document" });
   });
 
+  it("routes exact line and document cursor navigation commands", () => {
+    expect(routeFinalText("go to line start", "smart-editor", [])).toEqual({ kind: "command", command: "go-line-start" });
+    expect(routeFinalText("go to line end", "smart-editor", [])).toEqual({ kind: "command", command: "go-line-end" });
+    expect(routeFinalText("go to document start", "smart-editor", [])).toEqual({ kind: "command", command: "go-document-start" });
+    expect(routeFinalText("go to start of the document", "smart-editor", [])).toEqual({ kind: "command", command: "go-document-start" });
+    expect(routeFinalText("go to start of document", "smart-editor", [])).toEqual({ kind: "command", command: "go-document-start" });
+    expect(routeFinalText("go to document end", "smart-editor", [])).toEqual({ kind: "command", command: "go-document-end" });
+    expect(routeFinalText("go to end of the document", "smart-editor", [])).toEqual({ kind: "command", command: "go-document-end" });
+    expect(routeFinalText("go to end of document", "smart-editor", [])).toEqual({ kind: "command", command: "go-document-end" });
+  });
+
+  it("extracts text payloads for insert before and insert after commands", () => {
+    expect(routeFinalText("insert before alpha", "smart-editor", [])).toEqual({
+      kind: "command",
+      command: "insert-before-text",
+      args: { text: "alpha" },
+    });
+    expect(routeFinalText("insert after beta", "smart-editor", [])).toEqual({
+      kind: "command",
+      command: "insert-after-text",
+      args: { text: "beta" },
+    });
+  });
+
+  it("routes exact selection commands for paragraphs, sentences, and characters", () => {
+    expect(routeFinalText("select para", "smart-editor", [])).toEqual({
+      kind: "command",
+      command: "select-current-paragraph",
+    });
+    expect(routeFinalText("select next paragraph", "smart-editor", [])).toEqual({
+      kind: "command",
+      command: "select-adjacent-paragraph",
+      args: { direction: "next" },
+    });
+    expect(routeFinalText("select sentence", "smart-editor", [])).toEqual({
+      kind: "command",
+      command: "select-current-sentence",
+    });
+    expect(routeFinalText("select last sentence", "smart-editor", [])).toEqual({
+      kind: "command",
+      command: "select-adjacent-sentence",
+      args: { direction: "last", count: 1 },
+    });
+    expect(routeFinalText("select character", "smart-editor", [])).toEqual({
+      kind: "command",
+      command: "select-current-character",
+    });
+    expect(routeFinalText("select next character", "smart-editor", [])).toEqual({
+      kind: "command",
+      command: "select-adjacent-character",
+      args: { direction: "next", count: 1 },
+    });
+  });
+
+  it("extracts count payloads for sentence and character selection commands", () => {
+    expect(routeFinalText("select next 3 sentences", "smart-editor", [])).toEqual({
+      kind: "command",
+      command: "select-adjacent-sentence",
+      args: { direction: "next", count: 3 },
+    });
+    expect(routeFinalText("select last three characters", "smart-editor", [])).toEqual({
+      kind: "command",
+      command: "select-adjacent-character",
+      args: { direction: "last", count: 3 },
+    });
+  });
+
+  it("keeps selection commands out of mixed boundary routing", () => {
+    expect(routeFinalText("hello select next sentence", "smart-editor", [])).toEqual({
+      kind: "insert",
+      text: "hello select next sentence",
+    });
+    expect(routeFinalText("select next sentence hello", "smart-editor", [])).toEqual({
+      kind: "insert",
+      text: "select next sentence hello",
+    });
+  });
+
   it("routes next field only when template marker navigation is enabled", () => {
     expect(routeFinalText("next field", "smart-editor", [])).toEqual({ kind: "insert", text: "next field" });
     expect(routeFinalText("next field", "micro-editor", [], { templateMarkerNavigationEnabled: true })).toEqual({

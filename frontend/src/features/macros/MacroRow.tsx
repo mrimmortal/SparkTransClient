@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Save, Trash2 } from "lucide-react";
 import { MacroRecord } from "../../lib/api";
-import { canSaveMacroDraft, normalizeMacroDraft } from "../../lib/macroFlow";
+import { canReplaceMacroDraftFromServer, canSaveMacroDraft, normalizeMacroDraft } from "../../lib/macroFlow";
 import { getMacroRowStatus } from "./macrosUi";
 
 export function MacroRow({
@@ -14,10 +14,18 @@ export function MacroRow({
   onDelete: (macro: MacroRecord) => Promise<void>;
 }) {
   const [draft, setDraft] = useState(macro);
+  const [lastServerMacro, setLastServerMacro] = useState(macro);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => setDraft(macro), [macro]);
+  useEffect(() => {
+    setLastServerMacro((previousServerMacro) => {
+      setDraft((currentDraft) => (
+        canReplaceMacroDraftFromServer(currentDraft, previousServerMacro, macro) ? macro : currentDraft
+      ));
+      return macro;
+    });
+  }, [macro]);
 
   const normalizedDraft = normalizeMacroDraft(draft);
   const dirty =

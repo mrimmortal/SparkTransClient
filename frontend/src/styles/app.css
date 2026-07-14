@@ -36,8 +36,8 @@
   --document-right-rail-width: 220px;
   --document-paper-width: 846px;
   --document-paper-min-height: 530px;
-  --document-paper-padding-block: 99px;
-  --document-paper-padding-inline: 99px;
+  --document-paper-padding-block: 64px;
+  --document-paper-padding-inline: 64px;
   --app-card-padding: 16px;
   --app-control-height: 34px;
   --app-icon-button-size: 34px;
@@ -54,7 +54,7 @@
   --landing-section-title: 40px;
   --app-leading-tight: 1.25;
   --app-leading-normal: 1.45;
-  --app-leading-editor: 1.65;
+  --app-leading-editor: 1.45;
   --app-compact-text: var(--app-text-sm);
   --app-body-text: var(--app-text-md);
   --app-title-text: var(--app-text-panel);
@@ -1824,7 +1824,8 @@ button.danger {
 }
 
 .workspace-documents .document-editor-chrome .office-ribbon-body {
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: space-evenly;
   min-height: 110px;
   overflow-x: auto;
   padding: 9px 10px 7px;
@@ -1983,7 +1984,8 @@ button.danger {
   }
 
   .workspace-documents .document-editor-chrome .office-ribbon-body {
-    justify-content: flex-start;
+    align-items: center;
+    justify-content: space-evenly;
     min-height: 92px;
     padding: 5px 8px 4px;
   }
@@ -2159,7 +2161,7 @@ button.danger {
   border-radius: 2px;
   box-shadow: 0 16px 36px color-mix(in srgb, var(--neo-shadow-dark), transparent 62%);
   color: #1f2937;
-  padding: 76px 82px;
+  padding: 56px 64px;
   outline: none;
   line-height: var(--app-leading-editor);
   font-size: var(--app-editor-text);
@@ -2173,7 +2175,7 @@ button.danger {
 }
 
 .smart-editor p {
-  margin: 0 0 13px;
+  margin: 0 0 8px;
 }
 
 .smart-editor h1,
@@ -2193,7 +2195,7 @@ button.danger {
 
 .smart-editor ul,
 .smart-editor ol {
-  margin: 0 0 13px 24px;
+  margin: 0 0 8px 24px;
   padding-left: 18px;
 }
 
@@ -2206,6 +2208,33 @@ button.danger {
   color: color-mix(in srgb, #1f2937, var(--neo-muted) 24%);
   margin: 12px 0 14px;
   padding: 2px 0 2px 14px;
+}
+
+.smart-editor img {
+  display: block;
+  height: auto;
+  margin: 12px 0;
+  max-width: 100%;
+}
+
+.smart-editor table {
+  border-collapse: collapse;
+  margin: 12px 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.smart-editor th,
+.smart-editor td {
+  border: 1px solid color-mix(in srgb, var(--neo-border), #111827 12%);
+  min-width: 1em;
+  padding: 6px 8px;
+  vertical-align: top;
+}
+
+.smart-editor th {
+  background: color-mix(in srgb, var(--neo-bg), #ffffff 42%);
+  font-weight: 700;
 }
 
 .smart-editor pre {
@@ -2358,6 +2387,13 @@ button.danger {
   padding: 12px 14px;
 }
 
+.dictation-control-card p {
+  color: var(--neo-soft-text);
+  font-size: var(--app-body-text);
+  line-height: var(--app-leading-normal);
+  margin: 0;
+}
+
 .right-rail-card.actions-card {
   gap: 9px;
 }
@@ -2446,6 +2482,26 @@ button.danger {
   width: 100%;
 }
 
+.right-rail-primary-action,
+.right-rail-secondary-action {
+  width: 100%;
+}
+
+.right-rail-primary-action {
+  justify-content: center;
+  min-height: 38px;
+}
+
+.right-rail-primary-action.recording {
+  background: var(--recording-action-bg);
+  border-color: var(--recording-action-border);
+  color: var(--recording-action-text);
+}
+
+.right-rail-secondary-action {
+  justify-content: center;
+}
+
 .right-rail-status-pill {
   align-items: center;
   border: 1px solid var(--neo-border);
@@ -2482,8 +2538,33 @@ button.danger {
 
 .right-rail-status-grid {
   display: grid;
-  gap: 4px;
+  gap: 7px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 2px;
+}
+
+.right-rail-stat-card {
+  background: color-mix(in srgb, var(--neo-surface-soft), #ffffff 10%);
+  border: 1px solid color-mix(in srgb, var(--neo-border), transparent 16%);
+  border-radius: 7px;
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px;
+}
+
+.right-rail-stat-card span {
+  color: var(--neo-muted);
+  font-size: var(--app-compact-text);
+  font-weight: 700;
+}
+
+.right-rail-stat-card strong {
+  color: var(--neo-text);
+  font-size: var(--app-body-text);
+  font-weight: 650;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .right-rail-status-row {
@@ -3219,8 +3300,8 @@ button.danger {
   align-items: start;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(280px, 360px) minmax(520px, 1fr);
-  max-width: 1260px;
+  grid-template-columns: minmax(260px, 320px) minmax(640px, 1fr);
+  max-width: 100%;
 }
 
 .macro-section {
@@ -3267,7 +3348,7 @@ button.danger {
   border: 1px solid color-mix(in srgb, var(--neo-border), transparent 24%);
   border-radius: 8px;
   gap: 10px;
-  grid-template-columns: minmax(150px, 0.9fr) minmax(260px, 1.5fr) minmax(128px, auto) minmax(150px, auto);
+  grid-template-columns: minmax(150px, 0.9fr) minmax(280px, 1.6fr) minmax(126px, auto) minmax(148px, auto);
   padding: 10px;
 }
 
@@ -3695,25 +3776,117 @@ details input {
   font-weight: 700;
 }
 
-.diagnostics-grid {
+.diagnostics-dashboard {
   display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
-  gap: 10px;
+  gap: 16px;
   margin-top: 16px;
+}
+
+.diagnostics-status-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.diagnostics-status-card,
+.diagnostics-panel,
+.diagnostics-count-card {
   border: 1px solid var(--neo-border);
   background: var(--neo-surface-raised);
   border-radius: 8px;
   box-shadow: var(--neo-raised-shadow-small);
+}
+
+.diagnostics-status-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
   padding: 14px;
 }
 
-.diagnostics-grid dt {
+.diagnostics-status-card > span,
+.diagnostics-count-card > span {
   color: var(--neo-muted);
+  font-size: var(--app-text-sm);
+  font-weight: 700;
 }
 
-.diagnostics-grid dd {
+.diagnostics-status-card small {
+  color: var(--neo-soft-text);
+  line-height: var(--app-leading-normal);
+  overflow-wrap: anywhere;
+}
+
+.diagnostics-pill {
+  border: 1px solid var(--neo-border);
+  border-radius: 999px;
+  color: var(--neo-soft-text);
+  justify-self: start;
+  padding: 4px 10px;
+}
+
+.diagnostics-pill.good {
+  background: var(--neo-success-bg);
+  border-color: color-mix(in srgb, var(--neo-success), var(--neo-border) 45%);
+  color: var(--neo-success);
+}
+
+.diagnostics-pill.warn {
+  background: var(--neo-warning-bg);
+  border-color: color-mix(in srgb, var(--neo-warning), var(--neo-border) 45%);
+  color: var(--neo-warning);
+}
+
+.diagnostics-panel {
+  padding: 14px;
+}
+
+.diagnostics-panel h2 {
+  font-size: var(--app-text-section);
+  line-height: var(--app-leading-tight);
+  margin: 0 0 12px;
+}
+
+.diagnostics-detail-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.diagnostics-detail-grid > div {
+  border-top: 1px solid color-mix(in srgb, var(--neo-border), transparent 30%);
+  display: grid;
+  gap: 4px;
+  padding-top: 10px;
+}
+
+.diagnostics-detail-grid dt {
+  color: var(--neo-muted);
+  font-size: var(--app-text-sm);
+  font-weight: 700;
+}
+
+.diagnostics-detail-grid dd {
   margin: 0;
   word-break: break-word;
+}
+
+.diagnostics-count-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.diagnostics-count-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+}
+
+.diagnostics-count-card strong {
+  font-size: var(--app-text-page);
+  line-height: 1;
 }
 
 .empty-state {
@@ -3828,8 +4001,8 @@ details input {
     --document-shell-gutter: 10px;
     --document-paper-width: 760px;
     --document-paper-min-height: 500px;
-    --document-paper-padding-block: 72px;
-    --document-paper-padding-inline: 72px;
+    --document-paper-padding-block: 52px;
+    --document-paper-padding-inline: 52px;
   }
 
   .workspace-documents .documents-page {
@@ -3838,6 +4011,10 @@ details input {
 
   .workspace-documents .document-workspace-main {
     gap: var(--document-shell-gutter);
+  }
+
+  .workspace-documents .document-right-rail {
+    margin-left: -10px;
   }
 
   .workspace-documents .document-editor-chrome {
@@ -3919,15 +4096,15 @@ details input {
   }
 
   .workspace-documents .document-editor-chrome .office-clipboard-group {
-    width: 134px;
+    width: 180px;
   }
 
   .workspace-documents .document-editor-chrome .editor-toolbar-group[aria-label="History"] {
-    width: 96px;
+    width: 119px;
   }
 
   .workspace-documents .document-editor-chrome .office-font-group {
-    width: 300px;
+    width: 314px;
   }
 
   .workspace-documents .document-editor-chrome .office-paragraph-group {
@@ -3998,8 +4175,8 @@ details input {
     --document-right-rail-width: 210px;
     --document-paper-width: 820px;
     --document-paper-min-height: 520px;
-    --document-paper-padding-block: 78px;
-    --document-paper-padding-inline: 86px;
+    --document-paper-padding-block: 56px;
+    --document-paper-padding-inline: 62px;
   }
 
   .workspace-documents .document-editor-chrome {
@@ -4044,8 +4221,8 @@ details input {
     --document-right-rail-width: 204px;
     --document-paper-width: 800px;
     --document-paper-min-height: 460px;
-    --document-paper-padding-block: 62px;
-    --document-paper-padding-inline: 78px;
+    --document-paper-padding-block: 46px;
+    --document-paper-padding-inline: 58px;
   }
 
   .workspace-documents .document-editor-chrome {
@@ -4146,7 +4323,7 @@ details input {
   .workspace-documents .smart-editor {
     max-width: min(100%, 816px);
     min-height: 860px;
-    padding: 54px 48px;
+    padding: 40px 36px;
   }
 
   .document-workspace-main {
@@ -4889,7 +5066,9 @@ details input {
     width: 100%;
   }
 
-  .diagnostics-summary dl {
+  .diagnostics-status-grid,
+  .diagnostics-detail-grid,
+  .diagnostics-count-grid {
     grid-template-columns: 1fr;
   }
 }

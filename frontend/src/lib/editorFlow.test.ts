@@ -10,6 +10,18 @@ import {
   getClearEditorConfirmationDialog,
   getEditorTextMetrics,
   getSaveStatusLabel,
+  selectAdjacentCharacter,
+  selectAdjacentParagraph,
+  selectAdjacentSentence,
+  selectCurrentCharacter,
+  selectCurrentParagraph,
+  selectCurrentSentence,
+  moveCursorAfterTextInCurrentParagraph,
+  moveCursorBeforeTextInCurrentParagraph,
+  moveCursorToDocumentEnd,
+  moveCursorToDocumentStart,
+  moveCursorToLineEnd,
+  moveCursorToLineStart,
   runEnterLikeVoiceCommand,
   runHistoryVoiceCommand,
   runListModeVoiceCommand,
@@ -29,13 +41,24 @@ describe("editor flow UX", () => {
       "bold",
       "italic",
       "underline",
+      "strike",
+      "subscript",
+      "superscript",
+      "font-color",
+      "text-highlight",
       "heading",
       "paragraph",
       "bullet-list",
       "ordered-list",
+      "align-left",
+      "align-center",
+      "align-right",
+      "align-justify",
       "blockquote",
       "code-block",
       "horizontal-rule",
+      "insert-table",
+      "insert-image",
       "undo",
       "redo",
       "clear-formatting",
@@ -87,7 +110,7 @@ describe("editor flow UX", () => {
 
   it("starts list voice commands from a fresh block instead of converting existing text", () => {
     const calls: string[] = [];
-    const editor = {
+    const editor: any = {
       isActive: () => false,
       chain: () => ({
         focus() {
@@ -115,7 +138,7 @@ describe("editor flow UX", () => {
 
   it("continues active lists when next line is spoken", () => {
     const calls: string[] = [];
-    const editor = {
+    const editor: any = {
       isActive: (name: string) => name === "bulletList",
       chain: () => ({
         focus() {
@@ -143,7 +166,7 @@ describe("editor flow UX", () => {
 
   it("uses normal enter behavior for next line outside lists", () => {
     const calls: string[] = [];
-    const editor = {
+    const editor: any = {
       isActive: () => false,
       chain: () => ({
         focus() {
@@ -169,9 +192,9 @@ describe("editor flow UX", () => {
     expect(calls).toEqual(["focus", "splitBlock", "run"]);
   });
 
-  it("creates a visible paragraph break with one tab of indentation", () => {
+  it("creates a visible paragraph break with one tab-width indentation", () => {
     const calls: string[] = [];
-    const editor = {
+    const editor: any = {
       chain: () => ({
         focus() {
           calls.push("focus");
@@ -197,12 +220,12 @@ describe("editor flow UX", () => {
     };
 
     expect(runParagraphVoiceCommand(editor)).toBe(true);
-    expect(calls).toEqual(["focus", "splitBlock", "insertContent:\t", "run"]);
+    expect(calls).toEqual(["focus", "splitBlock", "insertContent:\u00A0\u00A0\u00A0\u00A0", "run"]);
   });
 
   it("runs voice undo and redo like the TipTap toolbar history buttons", () => {
     const calls: string[] = [];
-    const editor = {
+    const editor: any = {
       chain: () => ({
         focus() {
           calls.push("focus");
@@ -230,7 +253,7 @@ describe("editor flow UX", () => {
 
   it("moves the cursor to the document end before selecting all text", () => {
     const calls: string[] = [];
-    const editor = {
+    const editor: any = {
       state: { doc: { content: { size: 24 } } },
       chain: () => ({
         focus() {
@@ -257,9 +280,385 @@ describe("editor flow UX", () => {
     expect(calls).toEqual(["focus", "setTextSelection:24", "run", "selectAll"]);
   });
 
+  it("moves the cursor to the current paragraph start and end", () => {
+    const calls: string[] = [];
+    const editor: any = {
+      state: {
+        doc: { content: { size: 24 } },
+        selection: {
+          $from: {
+            start: () => 5,
+            end: () => 17,
+          },
+        },
+      },
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        setTextSelection(position: number) {
+          calls.push(`setTextSelection:${position}`);
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(moveCursorToLineStart(editor)).toBe(true);
+    expect(moveCursorToLineEnd(editor)).toBe(true);
+    expect(calls).toEqual(["focus", "setTextSelection:5", "run", "focus", "setTextSelection:17", "run"]);
+  });
+
+  it("moves the cursor to the document start and end", () => {
+    const calls: string[] = [];
+    const editor: any = {
+      state: {
+        doc: { content: { size: 24 } },
+      },
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        setTextSelection(position: number) {
+          calls.push(`setTextSelection:${position}`);
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(moveCursorToDocumentStart(editor)).toBe(true);
+    expect(moveCursorToDocumentEnd(editor)).toBe(true);
+    expect(calls).toEqual(["focus", "setTextSelection:1", "run", "focus", "setTextSelection:24", "run"]);
+  });
+
+  it("moves the cursor before or after the first matching text in the current paragraph", () => {
+    const calls: string[] = [];
+    const editor: any = {
+      state: {
+        doc: { content: { size: 32 } },
+        selection: {
+          $from: {
+            start: () => 10,
+            parent: {
+              textContent: "Alpha beta gamma",
+            },
+          },
+        },
+      },
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        setTextSelection(position: number) {
+          calls.push(`setTextSelection:${position}`);
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(moveCursorBeforeTextInCurrentParagraph(editor, "beta")).toBe(true);
+    expect(moveCursorAfterTextInCurrentParagraph(editor, "beta")).toBe(true);
+    expect(calls).toEqual(["focus", "setTextSelection:16", "run", "focus", "setTextSelection:20", "run"]);
+  });
+
+  it("selects the current paragraph and adjacent paragraphs", () => {
+    const calls: string[] = [];
+    const editor: any = {
+      state: {
+        doc: {
+          content: { size: 32 },
+          descendants(callback: (node: { isTextblock: boolean; nodeSize: number }, pos: number) => void) {
+            callback({ isTextblock: true, nodeSize: 7 }, 0);
+            callback({ isTextblock: true, nodeSize: 8 }, 7);
+            callback({ isTextblock: true, nodeSize: 9 }, 15);
+          },
+        },
+        selection: {
+          from: 9,
+          to: 9,
+          $from: {
+            start: () => 8,
+            end: () => 13,
+          },
+        },
+      },
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        setTextSelection(selection: number | { from: number; to: number }) {
+          calls.push(`setTextSelection:${JSON.stringify(selection)}`);
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(selectCurrentParagraph(editor)).toBe(true);
+    expect(selectAdjacentParagraph(editor, "last")).toBe(true);
+    expect(selectAdjacentParagraph(editor, "next")).toBe(true);
+    expect(calls).toEqual([
+      "focus",
+      'setTextSelection:{"from":8,"to":13}',
+      "run",
+      "focus",
+      'setTextSelection:{"from":1,"to":6}',
+      "run",
+      "focus",
+      'setTextSelection:{"from":16,"to":23}',
+      "run",
+    ]);
+  });
+
+  it("selects the current sentence and adjacent sentence ranges in the current paragraph", () => {
+    const calls: string[] = [];
+    const editor: any = {
+      state: {
+        doc: { content: { size: 48 } },
+        selection: {
+          from: 20,
+          to: 20,
+          empty: true,
+          $from: {
+            start: () => 5,
+            parentOffset: 15,
+            parent: {
+              textContent: "Alpha one. Beta two! Gamma three? Delta four.",
+            },
+          },
+        },
+      },
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        setTextSelection(selection: number | { from: number; to: number }) {
+          calls.push(`setTextSelection:${JSON.stringify(selection)}`);
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(selectCurrentSentence(editor)).toBe(true);
+    expect(selectAdjacentSentence(editor, "last")).toBe(true);
+    expect(selectAdjacentSentence(editor, "next")).toBe(true);
+    expect(selectAdjacentSentence(editor, "next", 2)).toBe(true);
+    expect(calls).toEqual([
+      "focus",
+      'setTextSelection:{"from":16,"to":25}',
+      "run",
+      "focus",
+      'setTextSelection:{"from":5,"to":15}',
+      "run",
+      "focus",
+      'setTextSelection:{"from":26,"to":38}',
+      "run",
+      "focus",
+      'setTextSelection:{"from":26,"to":50}',
+      "run",
+    ]);
+  });
+
+  it("selects the current character and adjacent character ranges", () => {
+    const calls: string[] = [];
+    const editor: any = {
+      state: {
+        doc: {
+          content: { size: 20 },
+          descendants(callback: (node: { isText?: boolean; text?: string }, pos: number) => void) {
+            callback({ isText: true, text: "Alpha" }, 1);
+            callback({ isText: true, text: "Beta" }, 8);
+          },
+        },
+        selection: {
+          from: 3,
+          to: 3,
+          empty: true,
+        },
+      },
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        setTextSelection(selection: number | { from: number; to: number }) {
+          calls.push(`setTextSelection:${JSON.stringify(selection)}`);
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(selectCurrentCharacter(editor)).toBe(true);
+    expect(selectAdjacentCharacter(editor, "last")).toBe(true);
+    expect(selectAdjacentCharacter(editor, "next", 2)).toBe(true);
+    expect(calls).toEqual([
+      "focus",
+      'setTextSelection:{"from":3,"to":4}',
+      "run",
+      "focus",
+      'setTextSelection:{"from":2,"to":3}',
+      "run",
+      "focus",
+      'setTextSelection:{"from":3,"to":5}',
+      "run",
+    ]);
+  });
+
+  it("returns false when before or after text is not found in the current paragraph", () => {
+    const calls: string[] = [];
+    const editor: any = {
+      state: {
+        doc: { content: { size: 32 } },
+        selection: {
+          $from: {
+            start: () => 3,
+            parent: {
+              textContent: "Alpha beta gamma",
+            },
+          },
+        },
+      },
+      chain: () => ({
+        focus() {
+          calls.push("focus");
+          return this;
+        },
+        setTextSelection(position: number) {
+          calls.push(`setTextSelection:${position}`);
+          return this;
+        },
+        run() {
+          calls.push("run");
+          return true;
+        },
+      }),
+    };
+
+    expect(moveCursorBeforeTextInCurrentParagraph(editor, "delta")).toBe(false);
+    expect(moveCursorAfterTextInCurrentParagraph(editor, "delta")).toBe(false);
+    expect(calls).toEqual([]);
+  });
+
+  it("returns false when adjacent paragraph, sentence, or character targets do not exist", () => {
+    const paragraphEditor: any = {
+      state: {
+        doc: {
+          content: { size: 8 },
+          descendants(callback: (node: { isTextblock: boolean; nodeSize: number }, pos: number) => void) {
+            callback({ isTextblock: true, nodeSize: 8 }, 0);
+          },
+        },
+        selection: {
+          from: 1,
+          to: 1,
+          $from: {
+            start: () => 1,
+            end: () => 6,
+          },
+        },
+      },
+      chain: () => ({
+        focus() {
+          return this;
+        },
+        setTextSelection() {
+          return this;
+        },
+        run() {
+          return true;
+        },
+      }),
+    };
+    const sentenceEditor: any = {
+      state: {
+        doc: { content: { size: 20 } },
+        selection: {
+          from: 5,
+          to: 5,
+          empty: true,
+          $from: {
+            start: () => 1,
+            parentOffset: 2,
+            parent: {
+              textContent: "Only sentence",
+            },
+          },
+        },
+      },
+      chain: () => ({
+        focus() {
+          return this;
+        },
+        setTextSelection() {
+          return this;
+        },
+        run() {
+          return true;
+        },
+      }),
+    };
+    const characterEditor: any = {
+      state: {
+        doc: {
+          content: { size: 8 },
+          descendants(callback: (node: { isText?: boolean; text?: string }, pos: number) => void) {
+            callback({ isText: true, text: "A" }, 1);
+          },
+        },
+        selection: {
+          from: 2,
+          to: 2,
+          empty: true,
+        },
+      },
+      chain: () => ({
+        focus() {
+          return this;
+        },
+        setTextSelection() {
+          return this;
+        },
+        run() {
+          return true;
+        },
+      }),
+    };
+
+    expect(selectAdjacentParagraph(paragraphEditor, "last")).toBe(false);
+    expect(selectAdjacentSentence(sentenceEditor, "next")).toBe(false);
+    expect(selectAdjacentCharacter(characterEditor, "next")).toBe(false);
+  });
+
   it("stops list voice commands without creating another list item", () => {
     const calls: string[] = [];
-    const editor = {
+    const editor: any = {
       isActive: (name: string) => name === "orderedList",
       chain: () => ({
         focus() {

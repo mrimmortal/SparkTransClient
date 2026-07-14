@@ -81,6 +81,10 @@ describe("dictation flow UX", () => {
     expect(help.editorControls).toContain("undo / undo that");
     expect(help.editorControls).toContain("redo / redo that");
     expect(help.editorControls).toContain("save document");
+    expect(help.navigationCommands).toContain("go to line start");
+    expect(help.navigationCommands).toContain("go to line end");
+    expect(help.navigationCommands).toContain("go to document start");
+    expect(help.navigationCommands).toContain("go to document end");
     expect(help.recordingControls).toContain("stop recording / stop dictation / pause recording");
     expect(help.formattingCommands).toContain("start bold / stop bold");
     expect(help.formattingCommands).toContain("start italic / stop italic");
@@ -94,5 +98,10 @@ describe("dictation flow UX", () => {
     expect(help.templatePhrases).toContain("insert template <template name>");
     expect(help.templatePhrases).toContain("use template <template name>");
     expect(help.templatePhrases).toContain("get template <template name>");
+    expect(help.templateFieldCommands).toContain("next field");
+    expect(help.templateFieldCommands).toContain("previous field");
+    expect(help.templateFieldCommands).toContain("first field");
+    expect(help.templateFieldCommands).toContain("skip field");
+    expect(help.templateFieldCommands).toContain("cancel field navigation");
   });
 });

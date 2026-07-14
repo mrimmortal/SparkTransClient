@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { EditorContent } from "@tiptap/react";
 import { useNavigate } from "react-router-dom";
-import { getDictationAction, getDictationHelpContent, getEditorTargetLabel } from "../../lib/dictationFlow";
+import { DictationAction, getDictationAction, getDictationHelpContent, getEditorTargetLabel } from "../../lib/dictationFlow";
 import {
   canSaveEditorDocument,
   clearLastSentenceText,
@@ -371,7 +371,7 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
                     onClick={() => void context.exportDocument()}
                     disabled={!context.activeDocument}
                   >
-                    <Download size={16} />
+                    <Download size={18} />
                     <span>Export</span>
                   </button>
                   <button
@@ -507,8 +507,10 @@ export function DocumentsPage({ context }: { context: WorkspaceContext }) {
             activeTarget={activeTarget}
             connectionReady={connectionReady}
             microphoneActive={microphoneActive}
+            dictationAction={dictationAction}
             helpOpen={helpOpen}
             onToggleHelp={() => setHelpOpen((current) => !current)}
+            onRunDictationAction={runDictationAction}
             onInsertDate={() => insertEditorText(formatQuickActionDate())}
             onInsertTime={() => insertEditorText(formatQuickActionTime())}
             onClearLastSentence={clearLastSentence}
@@ -586,8 +588,10 @@ function DocumentRightRail({
   activeTarget,
   connectionReady,
   microphoneActive,
+  dictationAction,
   helpOpen,
   onToggleHelp,
+  onRunDictationAction,
   onInsertDate,
   onInsertTime,
   onClearLastSentence,
@@ -598,8 +602,10 @@ function DocumentRightRail({
   activeTarget: "smart-editor" | "micro-editor";
   connectionReady: boolean;
   microphoneActive: boolean;
+  dictationAction: DictationAction;
   helpOpen: boolean;
   onToggleHelp: () => void;
+  onRunDictationAction: () => void;
   onInsertDate: () => void;
   onInsertTime: () => void;
   onClearLastSentence: () => void;
@@ -610,25 +616,43 @@ function DocumentRightRail({
   const commandGroups = buildDictationCommandGroups(help);
   const quickActionsDisabled = !context.activeDocument || !context.editor;
   const statusTone = getRightRailStatusTone(connectionReady, microphoneActive);
+  const statusLabel = microphoneActive ? "Recording" : connectionReady ? "Ready" : formatConnectionState(context.connectionState);
+  const captureStatus = microphoneActive ? "Active" : "Not capturing";
+  const railStats = [
+    ["Mic", formatMicStatus(context.micStatus)],
+    ["Packets", context.audioPacketCount],
+    ["Target", getEditorTargetLabel(activeTarget)],
+    ["Capture", captureStatus],
+  ] as const;
 
   return (
     <aside className="document-right-rail">
-      <section className="right-rail-card status-card">
+      <section className="right-rail-card status-card dictation-control-card">
         <header>
-          <h2><HeartPulse size={18} /> Dictation Status</h2>
-        </header>
-        <div className="diagnostics-summary">
+          <h2><HeartPulse size={18} /> Dictation</h2>
           <span className={`right-rail-status-pill ${statusTone}`}>
-            <span className="status-dot" aria-hidden="true" /> {microphoneActive ? "Recording active" : connectionReady ? "CoreSTT ready" : context.connectionState}
+            <span className="status-dot" aria-hidden="true" /> {statusLabel}
           </span>
-          <div className="right-rail-status-grid">
-            <span className="right-rail-status-row"><span>Microphone</span><strong>{formatMicStatus(context.micStatus)}</strong></span>
-            <span className="right-rail-status-row"><span>Audio packets</span><strong>{context.audioPacketCount}</strong></span>
-            <span className="right-rail-status-row"><span>Target</span><strong>{getEditorTargetLabel(activeTarget)}</strong></span>
-            <span className="right-rail-status-row"><span>Capture</span><strong>{microphoneActive ? "Active" : "Not capturing"}</strong></span>
-          </div>
-          <button type="button" onClick={onDiagnostics}><HeartPulse size={16} /> Diagnostics</button>
+        </header>
+        <p>{dictationAction.helperText}</p>
+        <button
+          className={dictationAction.intent === "stop" ? "right-rail-primary-action recording" : "right-rail-primary-action"}
+          type="button"
+          onClick={onRunDictationAction}
+          disabled={dictationAction.disabled}
+        >
+          {dictationAction.intent === "stop" ? <Pause size={16} /> : <Mic size={16} />}
+          {dictationAction.label}
+        </button>
+        <div className="right-rail-status-grid" aria-label="Live capture stats">
+          {railStats.map(([label, value]) => (
+            <span className="right-rail-stat-card" key={label}>
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </span>
+          ))}
         </div>
+        <button className="right-rail-secondary-action" type="button" onClick={onDiagnostics}><HeartPulse size={16} /> Diagnostics</button>
       </section>
 
       <section className="right-rail-card actions-card">
@@ -645,14 +669,13 @@ function DocumentRightRail({
 
       <section className="right-rail-card help-card">
         <header>
-          <h2><HelpCircle size={18} /> Dictation Help</h2>
+          <h2><HelpCircle size={18} /> Commands</h2>
           <button className="icon-button" aria-label={helpOpen ? "Hide dictation help" : "Show dictation help"} onClick={onToggleHelp}>
             {helpOpen ? <X size={16} /> : <ArrowRight size={16} />}
           </button>
         </header>
         <div className="tip-card">
-          <strong>Tip</strong>
-          <p>Use voice commands to format, navigate, and edit hands-free.</p>
+          <p>Format, navigate, and edit hands-free.</p>
           {!helpOpen && <button type="button" onClick={onToggleHelp}>View commands <ArrowRight size={14} /></button>}
         </div>
         {helpOpen && (
@@ -678,6 +701,10 @@ function formatElapsedTime(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function formatConnectionState(state: string): string {
+  return state.toLowerCase().replace(/^\w/, (letter) => letter.toUpperCase());
 }
 
 function plainTextToEditorHtml(text: string): string {

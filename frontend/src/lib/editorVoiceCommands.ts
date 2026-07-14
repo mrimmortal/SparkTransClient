@@ -3,6 +3,24 @@ export type TextblockDeleteRange = {
   toOffset: number;
 };
 
+export function findSentenceRanges(text: string): TextblockDeleteRange[] {
+  const ranges: TextblockDeleteRange[] = [];
+  let sentenceStart = skipWhitespaceForward(text, 0);
+
+  for (let index = sentenceStart; index < text.length; index += 1) {
+    if (!/[.!?]/.test(text[index])) continue;
+    ranges.push({ fromOffset: sentenceStart, toOffset: index + 1 });
+    sentenceStart = skipWhitespaceForward(text, index + 1);
+  }
+
+  const trimmedEnd = findTrimmedEnd(text);
+  if (sentenceStart < trimmedEnd) {
+    ranges.push({ fromOffset: sentenceStart, toOffset: trimmedEnd });
+  }
+
+  return ranges;
+}
+
 export function getDeleteLastWordRange(text: string, cursorOffset: number): TextblockDeleteRange | null {
   const beforeCursor = text.slice(0, cursorOffset);
   const match = /(\S+)\s*$/.exec(beforeCursor);
@@ -13,14 +31,10 @@ export function getDeleteLastWordRange(text: string, cursorOffset: number): Text
 export function getDeleteLastSentenceRange(text: string, cursorOffset: number): TextblockDeleteRange | null {
   const beforeCursor = text.slice(0, cursorOffset);
   if (!beforeCursor.trim()) return null;
-  const trimmedEnd = findTrimmedEnd(beforeCursor);
-  const boundary = Math.max(
-    beforeCursor.lastIndexOf(".", trimmedEnd - 1),
-    beforeCursor.lastIndexOf("?", trimmedEnd - 1),
-    beforeCursor.lastIndexOf("!", trimmedEnd - 1),
-  );
-  const fromOffset = boundary >= 0 ? skipWhitespaceForward(beforeCursor, boundary + 1) : 0;
-  return { fromOffset, toOffset: cursorOffset };
+  const sentences = findSentenceRanges(beforeCursor);
+  if (!sentences.length) return null;
+  const previousSentence = sentences[sentences.length - 1];
+  return { fromOffset: previousSentence.fromOffset, toOffset: cursorOffset };
 }
 
 function findTrimmedEnd(value: string): number {

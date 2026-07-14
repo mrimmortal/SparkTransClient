@@ -5,14 +5,20 @@ describe("document right rail helpers", () => {
   it("groups dictation commands for chip rendering", () => {
     expect(
       buildDictationCommandGroups({
+        recordingControls: ["stop recording / stop dictation / pause recording"],
         formattingCommands: ["start bold / stop bold"],
         editorControls: ["next line"],
+        navigationCommands: ["go to document end"],
         templatePhrases: ["insert template <template name>"],
+        templateFieldCommands: ["next field"],
       }),
     ).toEqual([
+      { title: "Recording", commands: ["stop recording / stop dictation / pause recording"] },
       { title: "Formatting", commands: ["start bold / stop bold"] },
       { title: "Editing", commands: ["next line"] },
+      { title: "Navigation", commands: ["go to document end"] },
       { title: "Templates", commands: ["insert template <template name>"] },
+      { title: "Template fields", commands: ["next field"] },
     ]);
   });
 

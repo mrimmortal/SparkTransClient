@@ -24,8 +24,14 @@ export type TranscriptEvent =
   | { type: "realtime"; segmentId: number; text?: string; displayText?: string }
   | { type: "final"; segmentId: number; text: string };
 
+export type CommandRouteArgs = {
+  text?: string;
+  direction?: "last" | "next";
+  count?: number;
+};
+
 export type FinalRoute =
-  | { kind: "command"; command: string }
+  | { kind: "command"; command: string; args?: CommandRouteArgs }
   | { kind: "insert"; text: string }
   | { kind: "mixed"; beforeCommands: string[]; text: string; afterCommands: string[] };
 
@@ -277,6 +283,17 @@ const templateMarkerCommands = new Map<string, string>([
   ["cancel field navigation", "cancel-template-field-navigation"],
 ]);
 
+const exactCursorNavigationCommands = new Map<string, string>([
+  ["go to line start", "go-line-start"],
+  ["go to line end", "go-line-end"],
+  ["go to document start", "go-document-start"],
+  ["go to start of the document", "go-document-start"],
+  ["go to start of document", "go-document-start"],
+  ["go to document end", "go-document-end"],
+  ["go to end of the document", "go-document-end"],
+  ["go to end of document", "go-document-end"],
+]);
+
 const spokenPunctuation = [
   { words: ["exclamation", "mark"], symbol: "!" },
   { words: ["exclamation", "point"], symbol: "!" },
@@ -322,9 +339,17 @@ export function routeFinalText(
   const voiceCommandsEnabled = options.voiceCommandsEnabled ?? true;
   const macrosEnabled = options.macrosEnabled ?? true;
   const voiceCommandVariantsEnabled = options.voiceCommandVariantsEnabled ?? true;
+
+  const dynamicCursorCommand = voiceCommandsEnabled ? parseDynamicCursorCommand(normalized) : null;
+  if (dynamicCursorCommand) return dynamicCursorCommand;
+
   const templateMarkerCommand = templateMarkerCommands.get(normalized);
   if (target === "smart-editor" && voiceCommandsEnabled && options.templateMarkerNavigationEnabled && templateMarkerCommand) {
     return { kind: "command", command: templateMarkerCommand };
+  }
+  const exactCursorCommand = exactCursorNavigationCommands.get(normalized);
+  if (voiceCommandsEnabled && exactCursorCommand) {
+    return { kind: "command", command: exactCursorCommand };
   }
   if (voiceCommandsEnabled && smartEditorCommands.has(normalized)) {
     return { kind: "command", command: smartEditorCommands.get(normalized)! };
@@ -352,6 +377,84 @@ function normalizeVoiceCommand(value: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+function parseDynamicCursorCommand(normalized: string): FinalRoute | null {
+  const selectionCommand = parseSelectionCommand(normalized);
+  if (selectionCommand) return selectionCommand;
+  const insertBeforeMatch = /^insert before (.+)$/.exec(normalized);
+  if (insertBeforeMatch) {
+    return { kind: "command", command: "insert-before-text", args: { text: insertBeforeMatch[1] } };
+  }
+  const insertAfterMatch = /^insert after (.+)$/.exec(normalized);
+  if (insertAfterMatch) {
+    return { kind: "command", command: "insert-after-text", args: { text: insertAfterMatch[1] } };
+  }
+  return null;
+}
+
+function parseSelectionCommand(normalized: string): FinalRoute | null {
+  if (normalized === "select para" || normalized === "select paragraph") {
+    return { kind: "command", command: "select-current-paragraph" };
+  }
+  if (normalized === "select sentence") {
+    return { kind: "command", command: "select-current-sentence" };
+  }
+  if (normalized === "select character") {
+    return { kind: "command", command: "select-current-character" };
+  }
+
+  const paragraphMatch = /^select (last|next) (?:para|paragraph)$/.exec(normalized);
+  if (paragraphMatch) {
+    return {
+      kind: "command",
+      command: "select-adjacent-paragraph",
+      args: { direction: paragraphMatch[1] as "last" | "next" },
+    };
+  }
+
+  const sentenceMatch = /^select (last|next)(?: ([a-z0-9-]+))? sentence(?:s)?$/.exec(normalized);
+  if (sentenceMatch) {
+    const count = sentenceMatch[2] ? parseCountToken(sentenceMatch[2]) : 1;
+    if (!count) return null;
+    return {
+      kind: "command",
+      command: "select-adjacent-sentence",
+      args: { direction: sentenceMatch[1] as "last" | "next", count },
+    };
+  }
+
+  const characterMatch = /^select (last|next)(?: ([a-z0-9-]+))? character(?:s)?$/.exec(normalized);
+  if (characterMatch) {
+    const count = characterMatch[2] ? parseCountToken(characterMatch[2]) : 1;
+    if (!count) return null;
+    return {
+      kind: "command",
+      command: "select-adjacent-character",
+      args: { direction: characterMatch[1] as "last" | "next", count },
+    };
+  }
+
+  return null;
+}
+
+function parseCountToken(token: string): number | null {
+  const numeric = Number.parseInt(token, 10);
+  if (Number.isInteger(numeric) && numeric > 0) return numeric;
+  return numberWordValues[token] ?? null;
+}
+
+const numberWordValues: Record<string, number> = {
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+};
 
 function normalizeTranscriptText(value: string): string {
   return value

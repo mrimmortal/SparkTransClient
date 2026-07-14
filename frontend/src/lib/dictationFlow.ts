@@ -23,7 +23,9 @@ export type DictationHelpContent = {
   recordingControls: string[];
   formattingCommands: string[];
   editorControls: string[];
+  navigationCommands: string[];
   templatePhrases: string[];
+  templateFieldCommands: string[];
   macroSummary: string;
 };
 
@@ -136,7 +138,14 @@ export function getDictationHelpContent(): DictationHelpContent {
       "select all / select everything",
       "clear all / clear everything",
     ],
+    navigationCommands: [
+      "go to line start",
+      "go to line end",
+      "go to document start",
+      "go to document end",
+    ],
     templatePhrases: ["insert template <template name>", "use template <template name>", "get template <template name>"],
+    templateFieldCommands: ["next field", "previous field", "first field", "skip field", "cancel field navigation"],
     macroSummary: "Enabled macros expand matching dictated phrases automatically before text is inserted.",
   };
 }

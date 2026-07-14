@@ -106,11 +106,27 @@ export function DictationControlPanel({
           </section>
 
           <section>
+            <h2>Navigate by voice</h2>
+            <p>Move the cursor without changing document content.</p>
+            <div className="command-list">
+              {help.navigationCommands.map((command) => (
+                <code key={command}>{command}</code>
+              ))}
+            </div>
+          </section>
+
+          <section>
             <h2>Templates and macros</h2>
             <p>Insert a saved template by saying one of these phrases followed by the template name.</p>
             <div className="command-list">
               {help.templatePhrases.map((phrase) => (
                 <code key={phrase}>{phrase}</code>
+              ))}
+            </div>
+            <p>When template field navigation is enabled, use these commands to move through highlighted fields.</p>
+            <div className="command-list">
+              {help.templateFieldCommands.map((command) => (
+                <code key={command}>{command}</code>
               ))}
             </div>
             <p>

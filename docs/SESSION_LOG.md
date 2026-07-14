@@ -448,13 +448,88 @@ Next:
 
 Changed:
 - Updated the `new paragraph` voice command path to split the current text
-  block and insert one tab so the Smart Editor starts the new paragraph on a
-  new indented line.
+  block and insert a visible tab-width indentation so the Smart Editor starts
+  the new paragraph on a new indented line.
 - Added focused coverage for paragraph command behavior.
 
 Validation:
 - Passed: `cd frontend && npm test -- --run src/lib/editorFlow.test.ts`
 - Passed: `cd frontend && npm test -- --run src/lib/corestt.test.ts src/lib/commandEmbeddings.test.ts src/lib/editorFlow.test.ts src/lib/dictationFlow.test.ts`
+- Passed: `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-10 - Cursor navigation voice commands
+
+Changed:
+- Added exact Smart Editor voice commands for line start/end and document
+  start/end cursor movement.
+- Added exact payload voice commands for `insert before <text>` and
+  `insert after <text>` that search only in the current paragraph.
+- Routed these commands outside semantic matching and boundary-command parsing,
+  and show a warning when the target text is not found in the current
+  paragraph.
+
+Validation:
+- Passed: `cd frontend && npm test -- --run src/lib/corestt.test.ts src/lib/commandEmbeddings.test.ts src/lib/editorFlow.test.ts src/lib/dictationFlow.test.ts`
+- Passed: `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-10 - Smart Editor toolbar tools
+
+Changed:
+- Enabled visible Smart Editor toolbar controls for clipboard, font formatting,
+  paragraph alignment, table insertion, and image insertion.
+- Added matching TipTap extensions for alignment, color/highlight, subscript,
+  superscript, font family, images, and tables.
+- Added local font-size support through the existing `textStyle` mark.
+
+Validation:
+- Passed: `cd frontend && npm run build`
+- Passed: `cd frontend && npm test -- src/lib/editorFlow.test.ts`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-10 - Macro manager fixes
+
+Changed:
+- Prevented background macro refreshes from overwriting dirty row edits.
+- Ensured macro creation always clears its busy state after failures.
+- Added accessible labels to macro builder fields.
+- Adjusted desktop macro manager layout to give the macro library more width.
+
+Validation:
+- Passed: `cd frontend && npm test -- src/lib/macroFlow.test.ts src/features/macros/macrosUi.test.ts`
+- Passed: `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-10 - Diagnostics dashboard
+
+Changed:
+- Replaced the plain diagnostics key-value list with grouped status cards,
+  connection details, and workspace count cards.
+- Added responsive diagnostics grid styling for narrow screens.
+
+Validation:
+- Passed: `cd frontend && npm run build`
+
+Next:
+- Vite still reports the existing large chunk warning during production build.
+
+## 2026-07-10 - Dictation right rail
+
+Changed:
+- Reworked the document right rail into a state-first dictation control panel
+  with the primary Connect/Start/Stop action, compact capture stats, quick
+  actions, and a lighter commands panel.
+
+Validation:
 - Passed: `cd frontend && npm run build`
 
 Next:
@@ -469,7 +544,9 @@ Changed:
 - Boundary command handling supports safe editor commands at the start/end of dictated text.
 - Destructive/navigation/action commands remain full-utterance commands.
 - Explicit spoken `full stop` punctuation is preserved while automatic trailing full stops are stripped from normal transcript insertions.
-- `new paragraph` splits the current text block and inserts one tab indentation.
+- `new paragraph` splits the current text block and inserts a visible tab-width indentation.
+- Exact voice commands can move the cursor to line/document start or end.
+- `insert before <text>` and `insert after <text>` move within the current paragraph and warn when text is not found.
 - `select all` / `select everything` moves the Smart Editor cursor to document end before selecting all.
 
 Validation:

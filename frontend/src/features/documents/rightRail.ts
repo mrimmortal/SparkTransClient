@@ -15,11 +15,19 @@ const QUICK_ACTION_LABELS: Record<QuickActionId, string> = {
   undo: "Undo",
 };
 
-export function buildDictationCommandGroups(help: Pick<DictationHelpContent, "formattingCommands" | "editorControls" | "templatePhrases">): DictationCommandGroup[] {
+export function buildDictationCommandGroups(
+  help: Pick<
+    DictationHelpContent,
+    "formattingCommands" | "editorControls" | "navigationCommands" | "templatePhrases" | "templateFieldCommands" | "recordingControls"
+  >,
+): DictationCommandGroup[] {
   return [
+    { title: "Recording", commands: help.recordingControls },
     { title: "Formatting", commands: help.formattingCommands },
     { title: "Editing", commands: help.editorControls },
+    { title: "Navigation", commands: help.navigationCommands },
     { title: "Templates", commands: help.templatePhrases },
+    { title: "Template fields", commands: help.templateFieldCommands },
   ];
 }
 

@@ -20,13 +20,16 @@ export function MacrosPage({ context }: { context: WorkspaceContext }) {
     event.preventDefault();
     if (!canSaveMacroDraft(createDraft)) return;
     setCreating(true);
-    await withWarning(context, async () => {
-      const macro = await api.createMacro(normalizeMacroDraft(createDraft));
-      context.setMacros((current) => upsertMacro(current, macro));
-      setTrigger("");
-      setReplacement("");
-    });
-    setCreating(false);
+    try {
+      await withWarning(context, async () => {
+        const macro = await api.createMacro(normalizeMacroDraft(createDraft));
+        context.setMacros((current) => upsertMacro(current, macro));
+        setTrigger("");
+        setReplacement("");
+      });
+    } finally {
+      setCreating(false);
+    }
   }
 
   async function updateMacro(macro: MacroRecord, payload: Partial<Omit<MacroRecord, "id">>) {
@@ -55,8 +58,8 @@ export function MacrosPage({ context }: { context: WorkspaceContext }) {
         <section className="macro-section macro-builder-section">
           <form onSubmit={(event) => void createMacro(event)} className="macro-builder-form">
             <h2 className="macro-section-title">{layoutCopy.builderTitle}</h2>
-            <input placeholder="Trigger phrase" value={trigger} onChange={(event) => setTrigger(event.target.value)} />
-            <textarea placeholder="Replacement text" value={replacement} onChange={(event) => setReplacement(event.target.value)} />
+            <input aria-label="Trigger phrase" placeholder="Trigger phrase" value={trigger} onChange={(event) => setTrigger(event.target.value)} />
+            <textarea aria-label="Replacement text" placeholder="Replacement text" value={replacement} onChange={(event) => setReplacement(event.target.value)} />
             <button className="primary" type="submit" disabled={creating || !canSaveMacroDraft(createDraft)}><Plus size={16} /> {creating ? "Creating" : "Create macro"}</button>
           </form>
         </section>

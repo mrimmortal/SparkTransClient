@@ -15,6 +15,20 @@ export function canSaveMacroDraft(draft: MacroDraft): boolean {
   return Boolean(normalized.trigger && normalized.replacement);
 }
 
+export function canReplaceMacroDraftFromServer(
+  draft: MacroRecord,
+  previousServerMacro: MacroRecord,
+  nextServerMacro: MacroRecord,
+): boolean {
+  if (draft.id !== nextServerMacro.id || previousServerMacro.id !== nextServerMacro.id) return false;
+  const normalizedDraft = normalizeMacroDraft(draft);
+  return (
+    normalizedDraft.trigger === previousServerMacro.trigger &&
+    normalizedDraft.replacement === previousServerMacro.replacement &&
+    normalizedDraft.enabled === previousServerMacro.enabled
+  );
+}
+
 export function upsertMacro(macros: MacroRecord[], macro: MacroRecord): MacroRecord[] {
   if (!macros.some((item) => item.id === macro.id)) {
     return [...macros, macro];
